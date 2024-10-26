@@ -10,7 +10,7 @@ from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
-from .agent import BaseAgent
+from .agent import BaseAgent, register_agent
 from .message import ConvoMessage, OrchestratorMessage
 from .prompts import question_generator_prompt
 from ..utils.utils import chunk_string
@@ -31,10 +31,13 @@ class QuestionState(TypedDict):
     message_flow: Annotated[str, "message flow between different nodes"]
 
 
-
+@register_agent
 class QuestionAgent(BaseAgent):
-    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage, name='QuestionAgent'):
-        super().__init__(name)
+
+    description = "Question Agent"
+
+    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
+        super().__init__()
         self.user_message = user_message
         self.orchestrator_message = orchestrator_message
         self.action_graph = self._create_action_graph()
