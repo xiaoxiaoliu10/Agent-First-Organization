@@ -19,8 +19,6 @@ from agentorg.agents.message import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import check_phone_validation, check_email_validation, possible_email
 from agentorg.orchestrator.NLU.nlu import NLU
 
-from agentorg.agents.agent import AGENT_REGISTRY
-
 
 logger = logging.getLogger(__name__)
 

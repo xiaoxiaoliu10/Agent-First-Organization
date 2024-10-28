@@ -12,9 +12,6 @@ from agentorg.utils.utils import normalize, str_similarity
 from agentorg.orchestrator.NLU.nlu import NLU
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s')
-
 
 class TaskGraphBase:
     def __init__(self, name, product_kwargs):
@@ -80,7 +77,7 @@ class TaskGraph(TaskGraphBase):
         return node
 
     def jump_to_node(self, pred_intent, intent_idx, available_nodes, curr_node):
-        logging.info(f"pred_intent in jump_to_node is {pred_intent}")
+        logger.info(f"pred_intent in jump_to_node is {pred_intent}")
         candidates_nodes = [self.intents[pred_intent][intent_idx]]
         candidates_nodes = [node for node in candidates_nodes if available_nodes[node["target_node"]]["limit"] >= 1]
         candidates_nodes_weights = [node["attribute"]["weight"] for node in candidates_nodes]
@@ -109,8 +106,8 @@ class TaskGraph(TaskGraphBase):
         return next_node
 
     def _get_node(self, sample_node, available_nodes, available_intents, chat_history_str, params, intent=None):
-        logging.info(f"available_intents in _get_node: {available_intents}")
-        logging.info(f"intent in _get_node: {intent}")
+        logger.info(f"available_intents in _get_node: {available_intents}")
+        logger.info(f"intent in _get_node: {intent}")
         candidates_intents = collections.defaultdict(list)
         agent_name = self.graph.nodes[sample_node]["name"]
         available_nodes[sample_node]["limit"] -= 1
@@ -164,7 +161,7 @@ class TaskGraph(TaskGraphBase):
             params["curr_node"] = curr_node
         else:
             curr_node = str(curr_node)
-        logging.info(f"Intial curr_node: {curr_node}")
+        logger.info(f"Intial curr_node: {curr_node}")
 
         # give a initial flow for the most common / important service, in case it miss the highest level intent information, it still have the chance to finally enter this from flow stack
         if self.initial_node:
@@ -178,7 +175,7 @@ class TaskGraph(TaskGraphBase):
             available_intents = copy.deepcopy(self.intents)
             if self.unsure_intent.get("intent") not in available_intents.keys():
                 available_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
-        logging.info(f"available_intents: {available_intents}")
+        logger.info(f"available_intents: {available_intents}")
         
         # dialog_states = params.get("dialog_states", {})
         if not params.get("available_nodes", None):
@@ -195,7 +192,7 @@ class TaskGraph(TaskGraphBase):
         
         next_node = curr_node  # initialize next node as curr node
         params["curr_node"] = next_node
-        logging.info(f"curr_node: {next_node}")
+        logger.info(f"curr_node: {next_node}")
 
         # Get local intents of the curr_node
         candidates_intents = collections.defaultdict(list)
@@ -220,7 +217,7 @@ class TaskGraph(TaskGraphBase):
                 else:
                     available_intents_w_unsure = copy.deepcopy(available_intents)
                     available_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
-                logging.info(f"available_intents_w_unsure: {available_intents_w_unsure}")
+                logger.info(f"available_intents_w_unsure: {available_intents_w_unsure}")
                 
                 pred_intent = self.nluapi.execute(text, available_intents_w_unsure, chat_history_str)
                 nlu_records.append({"candidate_intents": available_intents_w_unsure, 
@@ -229,7 +226,7 @@ class TaskGraph(TaskGraphBase):
                 found_pred_in_avil, pred_intent, intent_idx = self._postprocess_intent(pred_intent, available_intents)
             if pred_intent.lower() != self.unsure_intent.get("intent") and found_pred_in_avil:  # found global intent
                 next_node, next_intent = self.jump_to_node(pred_intent, intent_idx, available_nodes, curr_node)
-                logging.info(f"curr_node: {next_node}")
+                logger.info(f"curr_node: {next_node}")
                 node_info, params, candidates_intents = \
                 self._get_node(next_node, available_nodes, available_intents, chat_history_str, params, intent=next_intent)
                 if next_node != curr_node:
@@ -247,7 +244,7 @@ class TaskGraph(TaskGraphBase):
                 if next_node == curr_node:  # leaf node
                     break
                 
-                logging.info(f"curr_node: {next_node}")
+                logger.info(f"curr_node: {next_node}")
 
                 node_info, params, candidates_intents = \
                 self._get_node(next_node, available_nodes, available_intents, chat_history_str, params)
@@ -265,7 +262,7 @@ class TaskGraph(TaskGraphBase):
         curr_node = params["curr_node"]
         available_nodes = params["available_nodes"]
         next_node = curr_node
-        logging.info(f"curr_node: {curr_node}")
+        logger.info(f"curr_node: {curr_node}")
 
         while candidates_intents:  # local intent prediction
             # there are local intent(s) to chooose from
@@ -274,20 +271,20 @@ class TaskGraph(TaskGraphBase):
             else:
                 candidates_intents_w_unsure = copy.deepcopy(candidates_intents)
                 candidates_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
-            logging.info(f"Check intent under current node: {candidates_intents_w_unsure}")
+            logger.info(f"Check intent under current node: {candidates_intents_w_unsure}")
 
             pred_intent = self.nluapi.execute(text, candidates_intents_w_unsure, chat_history_str)
             nlu_records.append({"candidate_intents": candidates_intents_w_unsure, 
                                 "pred_intent": pred_intent, "no_intent": False, "global_intent": False})
             params["nlu_records"] = nlu_records
             found_pred_in_avil, pred_intent, intent_idx = self._postprocess_intent(pred_intent, candidates_intents)
-            logging.info(f"found_pred_in_avil: {found_pred_in_avil}, pred_intent: {pred_intent}")
+            logger.info(f"found_pred_in_avil: {found_pred_in_avil}, pred_intent: {pred_intent}")
             if found_pred_in_avil:  # found local intent
                 for edge in self.graph.out_edges(curr_node, data="intent"):
                     if edge[2] == pred_intent:
                         next_node = edge[1]  # found intent under the current node
                         break
-                logging.info(f"curr_node: {next_node}")
+                logger.info(f"curr_node: {next_node}")
                 node_info, params, candidates_intents = \
                 self._get_node(next_node, available_nodes, available_intents, chat_history_str, params, intent=pred_intent)
                 if node_info["name"]:
@@ -299,7 +296,7 @@ class TaskGraph(TaskGraphBase):
                     next_node = self.move_to_node(curr_node, available_nodes)
                     if next_node == curr_node:  # leaf node
                         break
-                    logging.info(f"curr_node: {next_node}")
+                    logger.info(f"curr_node: {next_node}")
 
                     node_info, params, candidates_intents = \
                     self._get_node(next_node, available_nodes, available_intents, chat_history_str, params)
@@ -316,7 +313,7 @@ class TaskGraph(TaskGraphBase):
                         other_intents[key] = value
                 if self.unsure_intent.get("intent") not in other_intents.keys():
                     other_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
-                logging.info(f"Check other intent (including unsure): {other_intents}")
+                logger.info(f"Check other intent (including unsure): {other_intents}")
                 
                 pred_intent = self.nluapi.execute(text, other_intents, chat_history_str)
                 nlu_records.append({"candidate_intents": other_intents, 
@@ -325,7 +322,7 @@ class TaskGraph(TaskGraphBase):
                 found_pred_in_avil, pred_intent, intent_idx = self._postprocess_intent(pred_intent, other_intents)
                 if pred_intent.lower() != self.unsure_intent.get("intent") and found_pred_in_avil:  # found global intent
                     next_node, next_intent = self.jump_to_node(pred_intent, intent_idx, available_nodes, curr_node)
-                    logging.info(f"curr_node: {next_node}")
+                    logger.info(f"curr_node: {next_node}")
                     node_info, params, candidates_intents = \
                     self._get_node(next_node, available_nodes, available_intents, chat_history_str, params, intent=next_intent)
                     if next_node != curr_node:
@@ -334,14 +331,14 @@ class TaskGraph(TaskGraphBase):
                     if node_info["name"]:
                         return node_info, params
                     curr_node = params["curr_node"]
-                    logging.info(f"curr_node: {curr_node}")
+                    logger.info(f"curr_node: {curr_node}")
                 else:  
                     # If user didn't indicate all the intent of children nodes under the current node, 
                     # then we could randomly choose one of Nones to continue the dialog flow
                     next_node = self.move_to_node(curr_node, available_nodes)
                     if next_node == curr_node:  # leaf node or no other nodes to choose from
                         break
-                    logging.info(f"curr_node: {next_node}")
+                    logger.info(f"curr_node: {next_node}")
 
                     node_info, params, candidates_intents = \
                     self._get_node(next_node, available_nodes, available_intents, chat_history_str, params)

@@ -1,6 +1,39 @@
+import os
+import sys
+import logging
+from logging.handlers import RotatingFileHandler
+
 import tiktoken
 import phonenumbers
 import Levenshtein
+
+
+def init_logger(log_level=logging.INFO, filename=None):
+	handlers = [logging.StreamHandler(sys.stdout)]
+	if filename is not None:
+		directory_name, _ = os.path.split(filename)
+		if not os.path.exists(directory_name):
+			os.makedirs(directory_name)
+		rfh = RotatingFileHandler(
+			filename=filename, 
+			mode='a',
+			maxBytes=50*1024*1024,
+			backupCount=20,
+			encoding=None,
+			delay=0
+		)
+		# handlers.append(logging.FileHandler(filename=filename))
+		handlers.append(rfh)
+	logging.basicConfig(
+		datefmt="%m/%d/%Y %H:%M:%S",
+		level=log_level,
+		format="[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
+		handlers=handlers,
+	)
+	logging.getLogger("transformers.tokenization_utils").setLevel(logging.ERROR)
+	logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
+	return logging.getLogger(__name__)
+
 
 def chunk_string(text, tokenizer, max_length, from_end=True):
     # Initialize the tokenizer
