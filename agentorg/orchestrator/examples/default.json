@@ -36,7 +36,7 @@
         [
             "3",
             {
-                "name": "QuestionAgent",
+                "name": "RAGAgent",
                 "attribute": {
                     "value": "If you are interested, you can book a demo with us! Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon."
                 },
