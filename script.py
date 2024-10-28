@@ -37,8 +37,8 @@ if __name__ == "__main__":
     history = []
     params = {}
     config = json.load(open(os.path.join(os.path.dirname(__file__), args.config_taskgraph)))
-    user_prefix = config['user_prefix']
-    agent_prefix = config['agent_prefix']
+    user_prefix = "USER"
+    agent_prefix = "ASSISTANT"
     for node in config['nodes']:
         if node[1].get("type", "") == 'start':
             start_message = node[1]['attribute']["value"]

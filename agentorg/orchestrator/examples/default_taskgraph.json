@@ -1,6 +1,4 @@
 {   
-    "user_prefix": "USER",
-    "agent_prefix": "ASSISTANT",
     "nodes": [
         [
             "0",

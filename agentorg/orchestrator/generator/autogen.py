@@ -178,8 +178,6 @@ class AutoGen:
         nodes.insert(0, start_node)
 
         task_graph = {
-            "user_prefix": "USER",
-            "agent_prefix": "ASSISTANT",
             "nodes": nodes,
             "edges": edges
         }

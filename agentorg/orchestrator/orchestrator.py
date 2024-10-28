@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 class AgentOrg(BaseBot):
     def __init__(self, config, **kwargs):
         self.product_kwargs = json.load(open(config))
-        self.user_prefix = self.product_kwargs.get("user_prefix", "USER")
-        self.agent_prefix = self.product_kwargs.get("agent_prefix", "ASSISTANT")
+        self.user_prefix = "USER"
+        self.agent_prefix = "ASSISTANT"
         self.__eos_token = "\n"
         self.tools = list(AGENT_REGISTRY.keys())
         nluapi = NLU(self.product_kwargs.get("nluapi"))
