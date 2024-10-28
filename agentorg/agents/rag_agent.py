@@ -93,7 +93,7 @@ class FaissRetriever:
 @register_agent
 class RAGAgent(BaseAgent):
 
-    description = "RAG Agent"
+    description = "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information"
 
     def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
         super().__init__()
