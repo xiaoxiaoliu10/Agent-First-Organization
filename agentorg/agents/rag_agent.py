@@ -46,6 +46,7 @@ class FaissRetriever:
         self.texts = texts
         self.index_path = index_path
         self.embedding_model_name = embedding_model_name
+        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         self.retriever = self._init_retriever()
 
     def _init_retriever(self, **kwargs):
@@ -53,7 +54,7 @@ class FaissRetriever:
         embedding_model = OpenAIEmbeddings(
             model=self.embedding_model_name,
         )
-        docsearch = FAISS.from_documents(self.docs, embedding_model)
+        docsearch = FAISS.from_documents(self.texts, embedding_model)
         retriever = docsearch.as_retriever(**kwargs)
         return retriever     
 
@@ -90,6 +91,53 @@ class FaissRetriever:
         )
 
 
+class Retriever():
+    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
+        self.user_message = user_message
+        self.orchestrator_message = orchestrator_message
+
+    def retrieve(self, state: RAGState):
+        # get the input message
+        user_message = state['user_message']
+        chat_history_str = user_message.history + "\nUser: " + user_message.message
+
+        # Search for the relevant documents
+        docs = FaissRetriever.load_docs(database_path="./agentorg/data")
+        retrieved_text = docs.search(chat_history_str)
+
+        return {
+            "user_message": state["user_message"],
+            "orchestrator_message": state["orchestrator_message"],
+            "message_flow": retrieved_text
+        }
+    
+
+class RAGenerator():
+    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
+        self.user_message = user_message
+        self.orchestrator_message = orchestrator_message
+        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+
+    def rag_generator(self, state: RAGState):
+        # get the input message
+        user_message = state['user_message']
+        message_flow = state['message_flow']
+        logger.info(f"Retrieved texts (from retriever to generator): {message_flow}")
+        
+        # generate answer based on the retrieved texts
+        prompt = PromptTemplate.from_template(rag_generator_prompt)
+        input_prompt = prompt.invoke({"question": user_message.message, "formatted_chat": user_message.history, "context": message_flow})
+        chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+        final_chain = self.llm | StrOutputParser()
+        answer = final_chain.invoke(chunked_prompt)
+
+        return {
+            "user_message": user_message,
+            "orchestrator_message": state["orchestrator_message"],
+            "message_flow": answer
+        }
+
+
 @register_agent
 class RAGAgent(BaseAgent):
 
@@ -101,46 +149,28 @@ class RAGAgent(BaseAgent):
         self.orchestrator_message = orchestrator_message
         self.action_graph = self._create_action_graph()
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
-
-    def rag_generator(self, state: RAGState):
-        # get the input message
-        user_message = state['user_message']
-        orchestrator_message = state['orchestrator_message']
-        message_flow = state['message_flow']
-
-        # get the orchestrator message content
-        orch_msg_content = orchestrator_message.message
-        orch_msg_attr = orchestrator_message.attribute
-        direct_response = orch_msg_attr.get('direct_response', False)
-        if direct_response:
-            return orch_msg_content
-        
-        prompt = PromptTemplate.from_template(rag_generator_prompt)
-        chat_history_str = user_message.history + "\nUser: " + user_message.message
-
-        # Search for the relevant documents
-        docs = FaissRetriever.load_docs(database_path="./data")
-        retrieved_text = docs.search(orch_msg_content)
-        input_prompt = prompt.invoke({"question": orch_msg_content, "formatted_chat": chat_history_str, "context": retrieved_text})
-        chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-        final_chain = self.llm | StrOutputParser()
-        answer = final_chain.invoke(chunked_prompt)
-
-        return {
-            "user_message": user_message,
-            "orchestrator_message": orchestrator_message,
-            "message_flow": answer
-        }
      
     def _create_action_graph(self):
         workflow = StateGraph(RAGState)
         # Add nodes for each agent
-        workflow.add_node("rag_generator", self.rag_generator)
+        retriever_tool = Retriever(user_message=self.user_message, orchestrator_message=self.orchestrator_message)
+        generator_tool = RAGenerator(user_message=self.user_message, orchestrator_message=self.orchestrator_message)
+        workflow.add_node("retriever", retriever_tool.retrieve)
+        workflow.add_node("rag_generator", generator_tool.rag_generator)
         # Add edges
-        workflow.add_edge(START, "rag_generator")
+        workflow.add_edge(START, "retriever")
+        workflow.add_edge("retriever", "rag_generator")
         return workflow
 
     def execute(self):
         graph = self.action_graph.compile()
         result = graph.invoke({"user_message": self.user_message, "orchestrator_message": self.orchestrator_message, "message_flow": ""})
         return result
+    
+
+if __name__ == "__main__":
+    user_message = ConvoMessage(history="", message="How can you help me?")
+    orchestrator_message = OrchestratorMessage(message="What is your name?", attribute={"direct_response": False})
+    agent = RAGAgent(user_message=user_message, orchestrator_message=orchestrator_message)
+    result = agent.execute()
+    print(result)

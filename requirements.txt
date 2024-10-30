@@ -80,3 +80,6 @@ uvloop==0.21.0
 watchfiles==0.24.0
 websockets==13.1
 yarl==1.15.5
+selenium==4.25.0
+unstructured==0.16.3
+faiss-cpu==1.9.0

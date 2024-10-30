@@ -1,4 +1,5 @@
 from typing import TypedDict, List, Annotated, Sequence
+import logging
 
 from langgraph.graph import StateGraph, END, START
 from langchain_core.messages import (
@@ -12,8 +13,12 @@ from langchain_core.output_parsers import StrOutputParser
 
 from .agent import BaseAgent, register_agent
 from .message import ConvoMessage, OrchestratorMessage
-from .prompts import question_generator_prompt
+from .prompts import message_generator_prompt
 from ..utils.utils import chunk_string
+
+
+logger = logging.getLogger(__name__)
+
 
 MODEL = {
     "model_type_or_path": "gpt-4o",
@@ -23,7 +28,7 @@ MODEL = {
     }
 
 
-class QuestionState(TypedDict):
+class MessageState(TypedDict):
     # input message
     user_message: ConvoMessage
     orchestrator_message: OrchestratorMessage
@@ -32,9 +37,9 @@ class QuestionState(TypedDict):
 
 
 @register_agent
-class QuestionAgent(BaseAgent):
+class MessageAgent(BaseAgent):
 
-    description = "Question Agent"
+    description = "Message Agent"
 
     def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
         super().__init__()
@@ -43,7 +48,7 @@ class QuestionAgent(BaseAgent):
         self.action_graph = self._create_action_graph()
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
 
-    def generator(self, state: QuestionState):
+    def generator(self, state: MessageState):
         # get the input message
         user_message = state['user_message']
         orchestrator_message = state['orchestrator_message']
@@ -56,8 +61,9 @@ class QuestionAgent(BaseAgent):
         if direct_response:
             return orch_msg_content
         else:
-            prompt = PromptTemplate.from_template(question_generator_prompt)
-            input_prompt = prompt.invoke({"question": orch_msg_content, "formatted_chat": user_message.history + "\nUser: " + user_message.message})
+            prompt = PromptTemplate.from_template(message_generator_prompt)
+            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history + "\nUser: " + user_message.message, "initial_response": message_flow})
+        logger.info(f"Prompt: {input_prompt.text}")
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = self.llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
@@ -69,7 +75,7 @@ class QuestionAgent(BaseAgent):
         }
 
     def _create_action_graph(self):
-        workflow = StateGraph(QuestionState)
+        workflow = StateGraph(MessageState)
         # Add nodes for each agent
         workflow.add_node("generator", self.generator)
         # Add edges
@@ -92,6 +98,6 @@ class QuestionAgent(BaseAgent):
 if __name__ == "__main__":
     user_message = ConvoMessage(history="", message="How can you help me?")
     orchestrator_message = OrchestratorMessage(message="What is your name?", attribute={"direct_response": False})
-    agent = QuestionAgent(user_message=user_message, orchestrator_message=orchestrator_message)
+    agent = MessageAgent(user_message=user_message, orchestrator_message=orchestrator_message)
     result = agent.execute()
     print(result)

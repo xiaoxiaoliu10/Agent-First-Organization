@@ -1,11 +1,17 @@
-question_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following question to the user.
+message_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user [Notice: refer to the information of the initial response if any].
 Conversation:
 {formatted_chat}
 
-Question: {question}
+Initial Response:
+{initial_response}
+
+Message:
+{message}
 """
 
-rag_generator_prompt = """Refer to the provided context to answer the user's question. The response should be based on the conversation history.
+"message_flow"
+
+rag_generator_prompt = """Refer to the provided context to answer the user's question. The response should be based on the conversation history. Respond like daily chat.
 Conversation:
 {formatted_chat}
 

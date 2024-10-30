@@ -3,7 +3,7 @@
         [
             "0",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "Welcome! I'm here to help you! Feel free to ask any questions!"
                 },
@@ -14,7 +14,7 @@
         [
             "1",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "What specific product or service are you looking for?"
                 },
@@ -24,7 +24,7 @@
         [
             "2",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "What features are most important to you?"
                 },
@@ -34,7 +34,7 @@
         [
             "3",
             {
-                "name": "RAGAgent",
+                "name": "RagMsgAgent",
                 "attribute": {
                     "value": "If you are interested, you can book a demo with us! Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon."
                 },
@@ -44,7 +44,7 @@
         [
             "4",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "What's your email address?"
                 },
@@ -54,7 +54,7 @@
         [
             "5",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "What's your name and phone number?"
                 },
@@ -64,7 +64,7 @@
         [
             "6",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "How did you hear about our product/service?",
                     "directed": true
@@ -75,7 +75,7 @@
         [
             "7",
             {
-                "name": "QuestionAgent",
+                "name": "MessageAgent",
                 "attribute": {
                     "value": "Thanks for your interest in our products! Pricing can vary based on the features and promotions. Our personal agent will reach out soon to provide more information."
                 },
