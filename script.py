@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--type', type=str, default="apprentice", choices=["novice", "apprentice"])
     parser.add_argument('--config', type=str, default="./agentorg/orchestrator/examples/customer_service_config.json")
-    parser.add_argument('--config-taskgraph', type=str, default="./agentorg/orchestrator/examples/customer service assistant_taskgraph.json")
+    parser.add_argument('--config-taskgraph', type=str, default="./agentorg/orchestrator/examples/default_taskgraph.json")
     args = parser.parse_args()
     
     if args.type == "novice":

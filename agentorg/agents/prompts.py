@@ -1,4 +1,4 @@
-message_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user [Notice: refer to the information of the initial response if any].
+message_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user [Notice: add information of the initial response which is helpful to respond to the user if any].
 Conversation:
 {formatted_chat}
 

@@ -18,6 +18,7 @@ from agentorg.agents.agent import AGENT_REGISTRY
 from agentorg.agents.message import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import check_phone_validation, check_email_validation, possible_email
 from agentorg.orchestrator.NLU.nlu import NLU
+from agentorg.utils.graph_state import MessageState
 
 
 logger = logging.getLogger(__name__)
@@ -133,8 +134,9 @@ class AgentOrg(BaseBot):
         #### Agent execution
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
-        agent = AGENT_REGISTRY[node_info["name"]](user_message=user_message, orchestrator_message=orchestrator_message)
-        agent_response = agent.execute()
+        message_state = MessageState(user_message=user_message, orchestrator_message=orchestrator_message, message_flow="")
+        agent = AGENT_REGISTRY[node_info["name"]]()
+        agent_response = agent.execute(message_state)
         params["agent_response"] = agent_response
         output = {
             "answer": agent_response["message_flow"],

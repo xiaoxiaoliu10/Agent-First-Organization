@@ -2,10 +2,9 @@ import os
 import logging
 from typing import List, TypedDict, Annotated
 import pickle
-from openai import OpenAI
 
 from langchain.prompts import PromptTemplate
-from langgraph.graph import StateGraph, END, START
+from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
@@ -16,24 +15,11 @@ from .agent import BaseAgent, register_agent
 from .message import ConvoMessage, OrchestratorMessage
 from .prompts import rag_generator_prompt, retrieve_contextualize_q_prompt
 from ..utils.utils import chunk_string
+from ..utils.graph_state import MessageState
+from ..utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
-
-
-MODEL = {
-    "model_type_or_path": "gpt-4o",
-    "context": 16000,
-    "max_tokens": 4096,
-    "tokenizer": "o200k_base"
-    }
-
-class RAGState(TypedDict):
-    # input message
-    user_message: ConvoMessage
-    orchestrator_message: OrchestratorMessage
-    # message flow between different nodes
-    message_flow: Annotated[str, "message flow between different nodes"]
 
 
 class FaissRetriever:
@@ -69,6 +55,7 @@ class FaissRetriever:
         )
         ret_input_chain = contextualize_q_prompt | self.llm | StrOutputParser()
         ret_input = ret_input_chain.invoke({"chat_history": chat_history_str})
+        logger.info(f"Reformulated input for retriever search: {ret_input}")
         docs_and_score = self.retrieve_w_score(ret_input)
         retrieved_text = ""
         for doc, score in docs_and_score:
@@ -92,18 +79,14 @@ class FaissRetriever:
 
 
 class Retriever():
-    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
-        self.user_message = user_message
-        self.orchestrator_message = orchestrator_message
-
-    def retrieve(self, state: RAGState):
+    @staticmethod
+    def retrieve(state: MessageState):
         # get the input message
         user_message = state['user_message']
-        chat_history_str = user_message.history + "\nUser: " + user_message.message
 
         # Search for the relevant documents
         docs = FaissRetriever.load_docs(database_path="./agentorg/data")
-        retrieved_text = docs.search(chat_history_str)
+        retrieved_text = docs.search(user_message.history)
 
         return {
             "user_message": state["user_message"],
@@ -113,12 +96,9 @@ class Retriever():
     
 
 class RAGenerator():
-    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
-        self.user_message = user_message
-        self.orchestrator_message = orchestrator_message
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
-
-    def rag_generator(self, state: RAGState):
+    @staticmethod
+    def rag_generate(state: MessageState):
+        llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         # get the input message
         user_message = state['user_message']
         message_flow = state['message_flow']
@@ -128,7 +108,7 @@ class RAGenerator():
         prompt = PromptTemplate.from_template(rag_generator_prompt)
         input_prompt = prompt.invoke({"question": user_message.message, "formatted_chat": user_message.history, "context": message_flow})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-        final_chain = self.llm | StrOutputParser()
+        final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
 
         return {
@@ -143,28 +123,24 @@ class RAGAgent(BaseAgent):
 
     description = "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information"
 
-    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
+    def __init__(self):
         super().__init__()
-        self.user_message = user_message
-        self.orchestrator_message = orchestrator_message
         self.action_graph = self._create_action_graph()
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
      
     def _create_action_graph(self):
-        workflow = StateGraph(RAGState)
+        workflow = StateGraph(MessageState)
         # Add nodes for each agent
-        retriever_tool = Retriever(user_message=self.user_message, orchestrator_message=self.orchestrator_message)
-        generator_tool = RAGenerator(user_message=self.user_message, orchestrator_message=self.orchestrator_message)
-        workflow.add_node("retriever", retriever_tool.retrieve)
-        workflow.add_node("rag_generator", generator_tool.rag_generator)
+        workflow.add_node("retriever", Retriever.retrieve)
+        workflow.add_node("rag_generator", RAGenerator.rag_generate)
         # Add edges
         workflow.add_edge(START, "retriever")
         workflow.add_edge("retriever", "rag_generator")
         return workflow
 
-    def execute(self):
+    def execute(self, msg_state: MessageState):
         graph = self.action_graph.compile()
-        result = graph.invoke({"user_message": self.user_message, "orchestrator_message": self.orchestrator_message, "message_flow": ""})
+        result = graph.invoke(msg_state)
         return result
     
 

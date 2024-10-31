@@ -1,39 +1,18 @@
-from typing import TypedDict, List, Annotated, Sequence
 import logging
 
-from langgraph.graph import StateGraph, END, START
-from langchain_core.messages import (
-    BaseMessage,
-    HumanMessage,
-    ToolMessage,
-)
+from langgraph.graph import StateGraph, START
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
 from .agent import BaseAgent, register_agent
-from .message import ConvoMessage, OrchestratorMessage
 from .prompts import message_generator_prompt
 from ..utils.utils import chunk_string
+from ..utils.graph_state import MessageState
+from ..utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
-
-
-MODEL = {
-    "model_type_or_path": "gpt-4o",
-    "context": 16000,
-    "max_tokens": 4096,
-    "tokenizer": "o200k_base"
-    }
-
-
-class MessageState(TypedDict):
-    # input message
-    user_message: ConvoMessage
-    orchestrator_message: OrchestratorMessage
-    # message flow between different nodes
-    message_flow: Annotated[str, "message flow between different nodes"]
 
 
 @register_agent
@@ -41,12 +20,10 @@ class MessageAgent(BaseAgent):
 
     description = "Message Agent"
 
-    def __init__(self, user_message: ConvoMessage, orchestrator_message: OrchestratorMessage):
+    def __init__(self):
         super().__init__()
-        self.user_message = user_message
-        self.orchestrator_message = orchestrator_message
-        self.action_graph = self._create_action_graph()
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.action_graph = self._create_action_graph()
 
     def generator(self, state: MessageState):
         # get the input message
@@ -62,7 +39,7 @@ class MessageAgent(BaseAgent):
             return orch_msg_content
         else:
             prompt = PromptTemplate.from_template(message_generator_prompt)
-            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history + "\nUser: " + user_message.message, "initial_response": message_flow})
+            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
         logger.info(f"Prompt: {input_prompt.text}")
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = self.llm | StrOutputParser()
@@ -82,22 +59,15 @@ class MessageAgent(BaseAgent):
         workflow.add_edge(START, "generator")
         return workflow
 
-    def execute(self):
+    def execute(self, msg_state: MessageState):
         graph = self.action_graph.compile()
-        result = graph.invoke({"user_message": self.user_message, "orchestrator_message": self.orchestrator_message, "message_flow": ""})
+        result = graph.invoke(msg_state)
         return result
-        # for output in graph.stream({"user_message": self.user_message, "orchestrator_message": self.orchestrator_message, "message_flow": ""}):
-        #     for key, value in output.items():
-        #         # Node
-        #         print(f"Node '{key}':")
-        #         # Optional: print full state at each node
-        #         print(value)
-        #     print("\n---\n")
 
 
-if __name__ == "__main__":
-    user_message = ConvoMessage(history="", message="How can you help me?")
-    orchestrator_message = OrchestratorMessage(message="What is your name?", attribute={"direct_response": False})
-    agent = MessageAgent(user_message=user_message, orchestrator_message=orchestrator_message)
-    result = agent.execute()
-    print(result)
+# if __name__ == "__main__":
+#     user_message = ConvoMessage(history="", message="How can you help me?")
+#     orchestrator_message = OrchestratorMessage(message="What is your name?", attribute={"direct_response": False})
+#     agent = MessageAgent(user_message=user_message, orchestrator_message=orchestrator_message)
+#     result = agent.execute()
+#     print(result)
