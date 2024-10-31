@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, TypedDict, Annotated
+from typing import List
 import pickle
 
 from langchain.prompts import PromptTemplate
@@ -12,7 +12,6 @@ from langchain_community.vectorstores.faiss import FAISS
 from langchain_community.embeddings import OpenAIEmbeddings
 
 from .agent import BaseAgent, register_agent
-from .message import ConvoMessage, OrchestratorMessage
 from .prompts import rag_generator_prompt, retrieve_contextualize_q_prompt
 from ..utils.utils import chunk_string
 from ..utils.graph_state import MessageState
@@ -142,11 +141,3 @@ class RAGAgent(BaseAgent):
         graph = self.action_graph.compile()
         result = graph.invoke(msg_state)
         return result
-    
-
-if __name__ == "__main__":
-    user_message = ConvoMessage(history="", message="How can you help me?")
-    orchestrator_message = OrchestratorMessage(message="What is your name?", attribute={"direct_response": False})
-    agent = RAGAgent(user_message=user_message, orchestrator_message=orchestrator_message)
-    result = agent.execute()
-    print(result)
