@@ -8,7 +8,7 @@ from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.runnables import RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 
-from agentorg.utils.utils import init_logger
+from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
 import agentorg.agents
 from agentorg.agents.agent import AGENT_REGISTRY
@@ -17,7 +17,7 @@ from agentorg.agents.agent import AGENT_REGISTRY
 logger = logging.getLogger(__name__)
 
 
-class AutoGen:
+class Generator:
     def __init__(self, config, model):
         self.product_kwargs = json.load(open(config))
         self.type = self.product_kwargs.get("type")
@@ -28,30 +28,6 @@ class AutoGen:
         self.model = model
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         self.orche_config_filepath = f"./agentorg/orchestrator/examples/{self.type}_taskgraph_{timestamp}.json"
-
-    @staticmethod
-    def postprocess_json(raw_code):
-        valid_phrases = ['"', '{', '}', '[', ']']
-
-        valid_lines = []
-        for line in raw_code.split('\n'):
-            if len(line) == 0:
-                continue
-            # If the line not starts with any of the valid phrases, skip it
-            should_skip = not any([line.strip().startswith(phrase) for phrase in valid_phrases])
-            if should_skip:
-                continue
-            valid_lines.append(line)
-
-        try:
-            generated_result = "\n".join(valid_lines)
-            result = json.loads(generated_result)
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding generated JSON - {generated_result}")
-            logger.error(f"raw result: {raw_code}")
-            logger.error(f"Error: {e}")
-            return None
-        return result
     
 
     def _generate_tasks(self):
@@ -61,7 +37,7 @@ class AutoGen:
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated tasks with thought: {answer}")
-        self.tasks = AutoGen.postprocess_json(answer)
+        self.tasks = postprocess_json(answer)
 
     def _format_tasks(self):
         # TODO: need to use LLM to match the semantics meaning of the tasks
@@ -80,7 +56,7 @@ class AutoGen:
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated best practice with thought: {answer}")
-        return AutoGen.postprocess_json(answer)
+        return postprocess_json(answer)
     
     def _finetune_best_practice(self, best_practice):
         # based on the best practice
@@ -92,7 +68,7 @@ class AutoGen:
         input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "objectives": self.objective})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
-        return AutoGen.postprocess_json(answer)
+        return postprocess_json(answer)
 
     def generate(self):
         # Step 1: Generate the tasks
