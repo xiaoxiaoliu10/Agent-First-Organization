@@ -11,7 +11,7 @@ Message:
 
 "message_flow"
 
-rag_generator_prompt = """Refer to the provided context to answer the user's question. The response should be based on the conversation history. Respond like daily chat.
+context_generator_prompt = """Refer to the provided context to answer the user's question. The response should be based on the conversation history. Respond like daily chat.
 Conversation:
 {formatted_chat}
 
@@ -25,3 +25,13 @@ retrieve_contextualize_q_prompt = """Given a chat history and the latest user qu
         which can be understood without the chat history. Do NOT answer the question, \
         just reformulate it if needed and otherwise return it as is. \
         {chat_history}"""
+
+choose_agent_prompt = """You are an assistant that has access to the following set of tools. Here are the names and descriptions for each tool:
+{agents_info}
+Based on the conversation history and user's message, choose the appropriate agent to respond to the user's message.
+Conversation:
+{formatted_chat}
+User's Message:
+{message}
+The response must be the name of one of the agents ({agents_name}).
+"""

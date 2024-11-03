@@ -10,7 +10,7 @@ from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg
 from agentorg.orchestrator.generator.autogen import AutoGen
 
-logger = init_logger(log_level=logging.DEBUG, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
+logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
 
 
 def get_api_bot_response(args, history, user_text, parameters):
