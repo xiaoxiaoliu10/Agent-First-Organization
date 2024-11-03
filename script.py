@@ -8,7 +8,7 @@ from langchain_openai.chat_models import ChatOpenAI
 
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg
-from agentorg.orchestrator.generator.autogen import AutoGen
+from project.AgentOrg.agentorg.orchestrator.generator.generator import Generator
 
 logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
 
@@ -31,8 +31,8 @@ if __name__ == "__main__":
     
     if args.type == "novice":
         model = ChatOpenAI(model="gpt-4o", timeout=30000)
-        autogen = AutoGen(args.config, model)
-        args.config_taskgraph = autogen.generate()
+        generator = Generator(args.config, model)
+        args.config_taskgraph = generator.generate()
 
     history = []
     params = {}

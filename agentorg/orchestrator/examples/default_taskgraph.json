@@ -16,7 +16,14 @@
             {
                 "name": "MessageAgent",
                 "attribute": {
-                    "value": "What specific product or service are you looking for?"
+                    "value": "What specific product or service are you looking for?",
+                    "slots": [
+                        {
+                            "name": "product",
+                            "type": "string",
+                            "description": "product or service name"
+                        }
+                    ]
                 },
                 "limit": 1
             }
@@ -36,7 +43,24 @@
             {
                 "name": "RagMsgAgent",
                 "attribute": {
-                    "value": "If you are interested, you can book a demo with us! Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon."
+                    "value": "If you are interested, you can book a demo with us! Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon.",
+                    "slots": [
+                        {
+                            "name": "phone",
+                            "type": "string",
+                            "description": "phone number"
+                        },
+                        {
+                            "name": "email",
+                            "type": "string",
+                            "description": "email address"
+                        },
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "description": "customer name"
+                        }
+                    ]
                 },
                 "limit": 1
             }
@@ -189,5 +213,6 @@
             }
         ]
     ],
-    "nluapi": "http://localhost:55134/predict"
+    "nluapi": "http://localhost:55134/nlu/predict",
+    "slotfillapi": "http://localhost:55134/slotfill/predict"
 }

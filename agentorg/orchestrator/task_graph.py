@@ -9,7 +9,8 @@ from langchain_community.chat_models import ChatOpenAI
 import agentorg.agents
 from agentorg.agents.agent import AGENT_REGISTRY
 from agentorg.utils.utils import normalize, str_similarity
-from agentorg.orchestrator.NLU.nlu import NLU
+from agentorg.utils.graph_state import StatusEnum
+from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class TaskGraphBase:
 
 
 class TaskGraph(TaskGraphBase):
-    def __init__(self, name: str, nluapi: NLU, product_kwargs: dict):
+    def __init__(self, name: str, product_kwargs: dict):
         super().__init__(name, product_kwargs)
         self.unsure_intent = {
                 "intent": "others",
@@ -56,7 +57,8 @@ class TaskGraph(TaskGraphBase):
                 }
             }
         self.initial_node = self.get_initial_flow()
-        self.nluapi = nluapi
+        self.nluapi = NLU(self.product_kwargs.get("nluapi"))
+        self.slotfillapi = SlotFilling(self.product_kwargs.get("slotfillapi"))
 
     def create_graph(self):
         nodes = self.product_kwargs["nodes"]
@@ -104,8 +106,32 @@ class TaskGraph(TaskGraphBase):
             next_node = curr_node
 
         return next_node
+    
+    def _check_skip(self, agent_class, sample_node):
+        agent_desp = agent_class.description
+        skip = False
+        sys_prompt = """Given the conversation history and the proposed agent, you task is to decide whether to skip the agent or not. Reply with 'yes' to skip the agent, or 'no' to continue with the agent.
+        
+        Conversation history:
+        {chat_history_str}
 
-    def _get_node(self, sample_node, available_nodes, available_intents, chat_history_str, params, intent=None):
+        Proposed agent: 
+        The purpose of this agent is to {agent_desp}
+        The prompt of the agent response could be {msg}
+        
+        Answer:
+        """
+        system_prompt = sys_prompt.format(
+            chat_history_str=self.chat_history_str, 
+            agent_desp=agent_desp, 
+            msg=self.graph.nodes[sample_node]["attribute"]
+        )
+        skip_status = self.model.invoke(system_prompt)
+        if "yes" in skip_status.content.lower():
+            skip = True
+        return skip
+
+    def _get_node(self, sample_node, available_nodes, available_intents, params, intent=None):
         logger.info(f"available_intents in _get_node: {available_intents}")
         logger.info(f"intent in _get_node: {intent}")
         candidates_intents = collections.defaultdict(list)
@@ -123,8 +149,7 @@ class TaskGraph(TaskGraphBase):
         params["available_intents"] = available_intents
         agent_class = AGENT_REGISTRY.get(agent_name)
         # TODO: This will be used to check whether we skip the agent or not, which is handled by the task graph framework
-        agent_desp = agent_class.description
-        skip = False
+        skip = self._check_skip(agent_class, sample_node)
         if skip:
             node_info = {"name": None, "attribute": None}
         else:
@@ -149,9 +174,10 @@ class TaskGraph(TaskGraphBase):
         return found_pred_in_avil, real_intent, idx
             
     def get_node(self, inputs):
-        text = inputs["text"]
-        chat_history_str = inputs["chat_history_str"]
+        self.text = inputs["text"]
+        self.chat_history_str = inputs["chat_history_str"]
         params = inputs["parameters"]
+        self.model = inputs["model"]
         nlu_records = []
 
         # get the current node
@@ -162,6 +188,15 @@ class TaskGraph(TaskGraphBase):
         else:
             curr_node = str(curr_node)
         logger.info(f"Intial curr_node: {curr_node}")
+
+        node_status = params.get("node_status", {})
+        status = node_status.get(curr_node, {}).get("status", StatusEnum.COMPELETE)
+        dialog_states = node_status.get(curr_node, {}).get("slots", [])
+        if status == StatusEnum.INCOMPLETE and dialog_states:
+            self.graph.nodes[curr_node]["attribute"]["slots"] = dialog_states
+            node_info = {"name": self.graph.nodes[curr_node]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
+            return node_info, params
+            
 
         # give a initial flow for the most common / important service, in case it miss the highest level intent information, it still have the chance to finally enter this from flow stack
         if self.initial_node:
@@ -177,7 +212,10 @@ class TaskGraph(TaskGraphBase):
                 available_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
         logger.info(f"available_intents: {available_intents}")
         
-        # dialog_states = params.get("dialog_states", {})
+        dialog_states = params.get("dialog_states", {})
+        if not dialog_states:
+            params["dialog_states"] = dialog_states
+        
         if not params.get("available_nodes", None):
             available_nodes = {}
             for node in self.graph.nodes.data():
@@ -219,7 +257,7 @@ class TaskGraph(TaskGraphBase):
                     available_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
                 logger.info(f"available_intents_w_unsure: {available_intents_w_unsure}")
                 
-                pred_intent = self.nluapi.execute(text, available_intents_w_unsure, chat_history_str)
+                pred_intent = self.nluapi.execute(self.text, available_intents_w_unsure, self.chat_history_str)
                 nlu_records.append({"candidate_intents": available_intents_w_unsure, 
                                     "pred_intent": pred_intent, "no_intent": False, "global_intent": True})
                 params["nlu_records"] = nlu_records
@@ -228,7 +266,7 @@ class TaskGraph(TaskGraphBase):
                 next_node, next_intent = self.jump_to_node(pred_intent, intent_idx, available_nodes, curr_node)
                 logger.info(f"curr_node: {next_node}")
                 node_info, params, candidates_intents = \
-                self._get_node(next_node, available_nodes, available_intents, chat_history_str, params, intent=next_intent)
+                self._get_node(next_node, available_nodes, available_intents, params, intent=next_intent)
                 if next_node != curr_node:
                     flow_stack.append(curr_node)
                     params["flow"] = flow_stack
@@ -247,7 +285,7 @@ class TaskGraph(TaskGraphBase):
                 logger.info(f"curr_node: {next_node}")
 
                 node_info, params, candidates_intents = \
-                self._get_node(next_node, available_nodes, available_intents, chat_history_str, params)
+                self._get_node(next_node, available_nodes, available_intents, params)
                 if params.get("nlu_records", None):
                     params["nlu_records"][-1]["no_intent"] = True  # move on to the next node
                 else: # only others available
@@ -273,7 +311,7 @@ class TaskGraph(TaskGraphBase):
                 candidates_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
             logger.info(f"Check intent under current node: {candidates_intents_w_unsure}")
 
-            pred_intent = self.nluapi.execute(text, candidates_intents_w_unsure, chat_history_str)
+            pred_intent = self.nluapi.execute(self.text, candidates_intents_w_unsure, self.chat_history_str)
             nlu_records.append({"candidate_intents": candidates_intents_w_unsure, 
                                 "pred_intent": pred_intent, "no_intent": False, "global_intent": False})
             params["nlu_records"] = nlu_records
@@ -286,7 +324,7 @@ class TaskGraph(TaskGraphBase):
                         break
                 logger.info(f"curr_node: {next_node}")
                 node_info, params, candidates_intents = \
-                self._get_node(next_node, available_nodes, available_intents, chat_history_str, params, intent=pred_intent)
+                self._get_node(next_node, available_nodes, available_intents, params, intent=pred_intent)
                 if node_info["name"]:
                     return node_info, params
                 
@@ -299,7 +337,7 @@ class TaskGraph(TaskGraphBase):
                     logger.info(f"curr_node: {next_node}")
 
                     node_info, params, candidates_intents = \
-                    self._get_node(next_node, available_nodes, available_intents, chat_history_str, params)
+                    self._get_node(next_node, available_nodes, available_intents, params)
                     if node_info["name"]:
                         return node_info, params
                     curr_node = params["curr_node"]
@@ -315,7 +353,7 @@ class TaskGraph(TaskGraphBase):
                     other_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
                 logger.info(f"Check other intent (including unsure): {other_intents}")
                 
-                pred_intent = self.nluapi.execute(text, other_intents, chat_history_str)
+                pred_intent = self.nluapi.execute(self.text, other_intents, self.chat_history_str)
                 nlu_records.append({"candidate_intents": other_intents, 
                                     "pred_intent": pred_intent, "no_intent": False, "global_intent": True})
                 params["nlu_records"] = nlu_records
@@ -324,7 +362,7 @@ class TaskGraph(TaskGraphBase):
                     next_node, next_intent = self.jump_to_node(pred_intent, intent_idx, available_nodes, curr_node)
                     logger.info(f"curr_node: {next_node}")
                     node_info, params, candidates_intents = \
-                    self._get_node(next_node, available_nodes, available_intents, chat_history_str, params, intent=next_intent)
+                    self._get_node(next_node, available_nodes, available_intents, params, intent=next_intent)
                     if next_node != curr_node:
                         flow_stack.append(curr_node)
                         params["flow"] = flow_stack
@@ -341,7 +379,7 @@ class TaskGraph(TaskGraphBase):
                     logger.info(f"curr_node: {next_node}")
 
                     node_info, params, candidates_intents = \
-                    self._get_node(next_node, available_nodes, available_intents, chat_history_str, params)
+                    self._get_node(next_node, available_nodes, available_intents, params)
                     if node_info["name"]:  # It will move to the node that with None as intent
                         return node_info, params
                     # neither local nor global intent found
@@ -360,4 +398,28 @@ class TaskGraph(TaskGraphBase):
         params["nlu_records"] = nlu_records
         params["curr_node"] = curr_node
         node_info = {"name": self.graph.nodes[curr_node]["name"], "attribute": {"value": "", "direct": self.graph.nodes[curr_node].get("direct", False)}}
+        
+        return node_info, params
+
+    def postprocess_node(self, node):
+        print("========================")
+        print(node)
+        node_info = node[0]
+        params = node[1]
+
+        dialog_states = params.get("dialog_states", {})
+        node_attr = node_info["attribute"]
+        if node_attr.get("slots", []):
+            for slot in node_attr["slots"]:
+                if slot["name"] not in dialog_states:
+                    dialog_states[slot["name"]] = slot
+
+        # update the dialog states
+        if dialog_states:
+            dialog_states = self.slotfillapi.execute(self.text, dialog_states, self.chat_history_str)
+
+        node_attr["slots"] = dialog_states
+        node_info["attribute"] = node_attr
+        params["dialog_states"] = dialog_states
+
         return node_info, params

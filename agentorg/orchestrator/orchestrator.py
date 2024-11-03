@@ -18,20 +18,20 @@ from agentorg.agents.agent import AGENT_REGISTRY
 from agentorg.agents.message import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import check_phone_validation, check_email_validation, possible_email
 from agentorg.orchestrator.NLU.nlu import NLU
-from agentorg.utils.graph_state import MessageState
+from agentorg.utils.graph_state import MessageState, StatusEnum
 
 
 logger = logging.getLogger(__name__)
 
 class AgentOrg(BaseBot):
-    def __init__(self, config, **kwargs):
+    def __init__(self, config, model=ChatOpenAI(model="gpt-4o", timeout=30000), **kwargs):
         self.product_kwargs = json.load(open(config))
         self.user_prefix = "USER"
         self.agent_prefix = "ASSISTANT"
         self.__eos_token = "\n"
         self.tools = list(AGENT_REGISTRY.keys())
-        nluapi = NLU(self.product_kwargs.get("nluapi"))
-        self.task_graph = TaskGraph("taskgraph", nluapi, self.product_kwargs)
+        self.task_graph = TaskGraph("taskgraph", self.product_kwargs)
+        self.model = model
 
     def _format_chat_history(self, chat_history, text):
         '''Includes current user utterance'''
@@ -121,15 +121,15 @@ class AgentOrg(BaseBot):
         taskgraph_inputs = {
             "text": text,
             "chat_history_str": chat_history_str,
-            "parameters": params  ## TODO: different params for different components
+            "parameters": params,  ## TODO: different params for different components
+            "model": self.model
         }
         dt = time.time()
-        taskgraph_chain = RunnableLambda(self.task_graph.get_node)
+        taskgraph_chain = RunnableLambda(self.task_graph.get_node) | RunnableLambda(self.task_graph.postprocess_node)
         node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
         params["timing"]["taskgraph"] = time.time() - dt
         logger.info("=============node_info=============")
-        logger.info(node_info) # {'name': 'QuestionAgent', 'attribute': {'value': 'If you are interested, you can book a calendly meeting https://shorturl.at/crFLP with us. Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon.', 'direct': False}}
-
+        logger.info(node_info) # {'name': 'MessageAgent', 'attribute': {'value': 'If you are interested, you can book a calendly meeting https://shorturl.at/crFLP with us. Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon.', 'direct': False, 'slots': {"<name>": {<attributes>}}}}
 
         #### Agent execution
         user_message = ConvoMessage(history=chat_history_str, message=text)
@@ -138,10 +138,20 @@ class AgentOrg(BaseBot):
         agent = AGENT_REGISTRY[node_info["name"]]()
         agent_response = agent.execute(message_state)
         params["agent_response"] = agent_response
+
+        return_answer = agent_response["message_flow"]
+        node_status = params.get("node_status", {})
+        current_node = params.get("curr_node")
+        node_status[current_node] = {
+            "status": agent_response.get("status", StatusEnum.COMPELETE),
+            "slots": agent_response.get("slots", [])
+        }
+
+        params["node_status"] = node_status
+
         output = {
-            "answer": agent_response["message_flow"],
+            "answer": return_answer,
             "parameters": params
         }
-        # res = self.post_process(agent_response, params, input_prompt)
-        # res["parameters"]["timing"]["presalebot_get_response"] = time.time() - st
+
         return output

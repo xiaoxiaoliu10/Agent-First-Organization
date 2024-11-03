@@ -1,11 +1,15 @@
 import os
 import sys
+import re
+import json
 import logging
 from logging.handlers import RotatingFileHandler
 
 import tiktoken
 import phonenumbers
 import Levenshtein
+
+logger = logging.getLogger(__name__)
 
 
 def init_logger(log_level=logging.INFO, filename=None):
@@ -96,3 +100,27 @@ def check_phone_validation(phone, language):
 	else:
 		print("Invalid Phone Number")
 		return False
+	
+
+def postprocess_json(raw_code):
+	valid_phrases = ['"', '{', '}', '[', ']']
+
+	valid_lines = []
+	for line in raw_code.split('\n'):
+		if len(line) == 0:
+			continue
+		# If the line not starts with any of the valid phrases, skip it
+		should_skip = not any([line.strip().startswith(phrase) for phrase in valid_phrases])
+		if should_skip:
+			continue
+		valid_lines.append(line)
+
+	try:
+		generated_result = "\n".join(valid_lines)
+		result = json.loads(generated_result)
+	except json.JSONDecodeError as e:
+		logger.error(f"Error decoding generated JSON - {generated_result}")
+		logger.error(f"raw result: {raw_code}")
+		logger.error(f"Error: {e}")
+		return None
+	return result
