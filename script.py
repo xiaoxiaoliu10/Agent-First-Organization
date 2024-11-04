@@ -8,7 +8,7 @@ from langchain_openai.chat_models import ChatOpenAI
 
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg
-from project.AgentOrg.agentorg.orchestrator.generator.generator import Generator
+from agentorg.orchestrator.generator.generator import Generator
 
 logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
 

@@ -83,7 +83,7 @@ class RetrieveEngine():
         user_message = state['user_message']
 
         # Search for the relevant documents
-        docs = FaissRetriever.load_docs(database_path="./agentorg/data")
+        docs = FaissRetriever.load_docs(database_path="./agentorg/agents/tools/RAG/data")
         retrieved_text = docs.search(user_message.history)
 
         return {

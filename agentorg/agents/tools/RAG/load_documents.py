@@ -11,7 +11,7 @@ class DocumentLoader:
         pass
 
     @staticmethod
-    def save_object(obj: List[Document], filename="../data/documents.pkl"):
+    def save_object(obj: List[Document], filename="data/documents.pkl"):
         with open(filename, 'wb') as f:  # Overwrites any existing file.
             pickle.dump(obj, f)
 
@@ -29,10 +29,18 @@ class DocumentLoader:
         for txt in splitted_text:
             doc = Document(page_content=txt, metadata={"source": url})
             doc_collection.append(doc)
-        print(doc_collection)
         DocumentLoader.save_object(doc_collection)
 
         return
     
+
+url_list = [
+    "https://www.richtechrobotics.com/",
+    "https://www.richtechrobotics.com/matradee-plus",
+    "https://www.richtechrobotics.com/blog/humanoid-bartender-at-mlb",
+    "https://www.richtechrobotics.com/robot-rentals#rent-intro",
+    "https://news.alphastreet.com/richtechs-mission-is-to-transform-the-service-industry-through-collaborative-robotic-solutions-president/"
+]
 loader = DocumentLoader()
-loader.load_url("https://www.richtechrobotics.com")
+for url in url_list:
+    loader.load_url(url)
