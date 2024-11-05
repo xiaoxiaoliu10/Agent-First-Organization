@@ -1,9 +1,76 @@
-generate_tasks_sys_prompt = """Given the type of the assistant the owner need and the information of the owner, your task is to figure out the tasks that this assistant need to handle in terms of user's intent. Return the answer in JSON format.
+generate_tasks_sys_prompt = """Given the type of the assistant the owner need, the introduction and the detailed documentation from owner (if available), your task is to figure out the tasks that this assistant need to handle in terms of user's intent. Return the answer in JSON format.
 
 For Example:
 
 Assistant Type: Customer Service Assistant
 Owner Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
+Documentations: 
+https://www.amazon.com/
+Holiday Deals
+Disability Customer Support
+Same-Day Delivery
+Medical Care
+Customer Service
+Amazon Basics
+Groceries
+Prime
+Buy Again
+New Releases
+Pharmacy
+Shop By Interest
+Amazon Home
+Amazon Business
+Subscribe & Save
+Livestreams
+luwanamazon's Amazon.com
+Best Sellers
+Household, Health & Baby Care
+Sell
+Gift Cards
+
+https://www.amazon.com/bestsellers
+Any Department
+Amazon Devices & Accessories
+Amazon Renewed
+Appliances
+Apps & Games
+Arts, Crafts & Sewing
+Audible Books & Originals
+Automotive
+Baby
+Beauty & Personal Care
+Books
+Camera & Photo Products
+CDs & Vinyl
+Cell Phones & Accessories
+Clothing, Shoes & Jewelry
+Collectible Coins
+Computers & Accessories
+Digital Educational Resources
+Digital Music
+Electronics
+Entertainment Collectibles
+Gift Cards
+Grocery & Gourmet Food
+Handmade Products
+Health & Household
+Home & Kitchen
+Industrial & Scientific
+Kindle Store
+Kitchen & Dining
+Movies & TV
+Musical Instruments
+Office Products
+Patio, Lawn & Garden
+Pet Supplies
+Software
+Sports & Outdoors
+Sports Collectibles
+Tools & Home Improvement
+Toys & Games
+Unique Finds
+Video Games
+
 Reasoning Process:
 Thought 1: Understand the general responsibilities of the assistant type.
 Observation 1: A customer service assistant typically handles tasks such as answering customer inquiries, addressing complaints, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, and managing customer accounts.
@@ -45,7 +112,9 @@ Answer:
 ```
 
 Type of the assistant: {type}
-Owner's information: {documents}
+Owner's information: {intro}
+Documentations: 
+{docs}
 Reasoning Process:
 """
 

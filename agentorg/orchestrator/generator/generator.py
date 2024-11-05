@@ -10,6 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
+from agentorg.orchestrator.generator.loader import Loader
 import agentorg.agents
 from agentorg.agents.agent import AGENT_REGISTRY
 
@@ -22,7 +23,8 @@ class Generator:
         self.product_kwargs = json.load(open(config))
         self.type = self.product_kwargs.get("type")
         self.objective = self.product_kwargs.get("objective")
-        self.documents = self.product_kwargs.get("documents")
+        self.intro = self.product_kwargs.get("intro")
+        self.docs = self.product_kwargs.get("docs")
         self.tasks = self.product_kwargs.get("tasks")
         self.agents = self.product_kwargs.get("agents")
         self.model = model
@@ -33,7 +35,7 @@ class Generator:
     def _generate_tasks(self):
         # based on the type and documents
         prompt = PromptTemplate.from_template(generate_tasks_sys_prompt)
-        input_prompt = prompt.invoke({"type": self.type, "documents": self.documents})
+        input_prompt = prompt.invoke({"type": self.type, "intro": self.intro, "docs": self.documents})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated tasks with thought: {answer}")
@@ -71,6 +73,17 @@ class Generator:
         return postprocess_json(answer)
 
     def generate(self):
+        # Step 0: Load the docs
+        if self.docs:
+            source = self.docs.get("source")
+            num_docs = self.docs.get("num")
+            loader = Loader(source, num_docs)
+            crawled_docs = loader.load()
+            logger.debug(f"Loaded {len(crawled_docs)} documents")
+            self.documents = "\n\n".join([doc['url'] + "\n" + doc["content"] for doc in crawled_docs])
+        else:
+            self.documents = ""
+
         # Step 1: Generate the tasks
         if not self.tasks:
             self._generate_tasks()
@@ -142,7 +155,7 @@ class Generator:
         start_node = []
         start_node.append("0")
         start_node.append({
-            "name": "QuestionAgent",
+            "name": "MessageAgent",
             "attribute": {
                 "value": "Hello! How can I help you today?",
                 "task": "Greetings",
