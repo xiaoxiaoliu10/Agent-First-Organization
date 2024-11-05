@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 @register_agent
 class MessageAgent(BaseAgent):
 
-    description = "Message Agent"
+    description = "The agent that used to deliver the message to the user, either a question or provide some information."
 
     def __init__(self):
         super().__init__()
