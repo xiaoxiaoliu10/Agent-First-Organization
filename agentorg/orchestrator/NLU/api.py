@@ -50,8 +50,6 @@ class NLUOpenAIAPI:
         multiple_choice_index = dict(enumerate(string.ascii_lowercase))
         count = 0
         for intent_k, intent_v in intents.items():
-            print("===========================")
-            print(intent_v)
             if len(intent_v) == 1:
                 intent_name = intent_k
                 idx2intents_mapping[multiple_choice_index[count]] = intent_name
@@ -112,7 +110,7 @@ class NLUOpenAIAPI:
         response = self.get_response(
             system_prompt, debug_text="get intent"
         )
-        print(f"postprocessed intent response: {response}")
+        logger.info(f"postprocessed intent response: {response}")
         try:
             pred_intent_idx = response.split(")")[0]
             pred_intent = idx2intents_mapping[pred_intent_idx]

@@ -1,5 +1,5 @@
 {
-    "type": "customer service assistant",
+    "role": "customer service assistant",
     "objective": [
         "Request customer contact information"
     ],
@@ -9,7 +9,7 @@
         "source": "https://www.richtechrobotics.com/",
         "num": 20
     },
-    "tasks": "",
+    "tasks": [],
     "agents": [
         "RAGAgent",
         "RagMsgAgent",

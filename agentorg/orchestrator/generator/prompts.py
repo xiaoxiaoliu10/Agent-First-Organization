@@ -3,7 +3,7 @@ generate_tasks_sys_prompt = """Given the type of the assistant the owner need, t
 For Example:
 
 Assistant Type: Customer Service Assistant
-Owner Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
+Owner's Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
 Documentations: 
 https://www.amazon.com/
 Holiday Deals
@@ -111,7 +111,7 @@ Answer:
 ]
 ```
 
-Type of the assistant: {type}
+Assistant Type: {role}
 Owner's information: {intro}
 Documentations: 
 {docs}

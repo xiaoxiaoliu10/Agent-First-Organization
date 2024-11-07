@@ -160,7 +160,7 @@ class TaskEditorApp(App):
 class Generator:
     def __init__(self, config, model):
         self.product_kwargs = json.load(open(config))
-        self.type = self.product_kwargs.get("type")
+        self.role = self.product_kwargs.get("role")
         self.objective = self.product_kwargs.get("objective")
         self.intro = self.product_kwargs.get("intro")
         self.docs = self.product_kwargs.get("docs")
@@ -168,14 +168,14 @@ class Generator:
         self.agents = self.product_kwargs.get("agents")
         self.model = model
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        self.orche_config_filepath = f"./agentorg/orchestrator/examples/{self.type}_taskgraph_{timestamp}.json"
-        self.task_planning_filepath = f"./agentorg/orchestrator/examples/{self.type}_taskplanning_{timestamp}.json"
+        self.orche_config_filepath = f"./agentorg/orchestrator/examples/{self.role}_taskgraph_{timestamp}.json"
+        self.task_planning_filepath = f"./agentorg/orchestrator/examples/{self.role}_taskplanning_{timestamp}.json"
     
 
     def _generate_tasks(self):
         # based on the type and documents
         prompt = PromptTemplate.from_template(generate_tasks_sys_prompt)
-        input_prompt = prompt.invoke({"type": self.type, "intro": self.intro, "docs": self.documents})
+        input_prompt = prompt.invoke({"role": self.role, "intro": self.intro, "docs": self.documents})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated tasks with thought: {answer}")
