@@ -124,12 +124,9 @@ websockets==13.1
 wrapt==1.16.0
 wsproto==1.2.0
 yarl==1.15.5
-<<<<<<< HEAD
-=======
 selenium==4.25.0
 unstructured==0.16.3
 faiss-cpu==1.9.0
 tavily-python==0.5.0
 webdriver-manager==4.0.2
 scipy==1.14.1
->>>>>>> 2b9a17f8cab0b6316c149ab6f9e39c2e38a23385
