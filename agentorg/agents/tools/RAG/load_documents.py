@@ -11,7 +11,7 @@ class DocumentLoader:
         pass
 
     @staticmethod
-    def save_object(obj: List[Document], filename="data/documents.pkl"):
+    def save_object(obj: List[Document], filename="richtech/documents.pkl"):
         with open(filename, 'wb') as f:  # Overwrites any existing file.
             pickle.dump(obj, f)
 
@@ -33,7 +33,7 @@ class DocumentLoader:
 
         return
     
-
+# temporary ease of use for customer service tutorial
 url_list = [
     "https://www.richtechrobotics.com/",
     "https://www.richtechrobotics.com/matradee-plus",

@@ -3,7 +3,7 @@
         [
             "0",
             {
-                "name": "MessageAgent",
+                "name": "RagMsgAgent",
                 "attribute": {
                     "value": "Welcome! I'm here to help you! Feel free to ask any questions!"
                 },
@@ -31,7 +31,7 @@
         [
             "2",
             {
-                "name": "MessageAgent",
+                "name": "RagMsgAgent",
                 "attribute": {
                     "value": "What features are most important to you?"
                 },
