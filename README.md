@@ -3,7 +3,8 @@
 2. Create a config file, similar to the `project/AgentOrg/agentorg/orchestrator/examples/customer_service_config.json`
     * The config file should contain the following fields:
         * `role (Required)`: The general role of the chatbot you want to create
-        * `objective (Optional)`: The objective of the chatbot. Normally, the additional target you want the chatbot to achieve beyond the general role
+        * `user_objective (Required)`: The user's goal that you want the chatbot to achieve. Describe in third person.
+        * `builder_objective (Optional)`: The additional target you want the chatbot to achieve beyond the user's goal. Describe in third person.
         * `domain (Optional)`: The domain of the company that you want to create the chatbot for
         * `intro (Required)`: The introduction of the company that you want to create the chatbot for or the summary of the tasks that the chatbot need to handle
         * `docs (Optional, Dict)`: The documentation of the chatbot. The dictionary should contain the following fields:

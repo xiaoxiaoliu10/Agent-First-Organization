@@ -1,10 +1,10 @@
-generate_tasks_sys_prompt = """Given the user's prompt about the assistant's description that user need, the introduction and the detailed documentation from owner (if available), your task is to figure out the tasks that this assistant need to handle in terms of user's intent. Return the answer in JSON format.
+generate_tasks_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the builder's description of the assistant, along with any introductory information and detailed documentation (if available), your task is to identify the specific tasks this assistant needs to handle according to the user's intent. Return the response in JSON format.
 
 For Example:
 
-User's prompt: The user want to create an assistant - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
-User's Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
-Documentations: 
+Builder's prompt: The builder want to create an assistant - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
+Builder's Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
+Builder's documentations: 
 https://www.amazon.com/
 Holiday Deals
 Disability Customer Support
@@ -111,9 +111,9 @@ Answer:
 ]
 ```
 
-User's prompt: The user want to create an assistant - {role}. {description}
-User's information: {intro}
-Documentations: 
+Builder's prompt: The builder want to create an assistant - {role}. {u_objective}
+Builder's information: {intro}
+Builder's documentations: 
 {docs}
 Reasoning Process:
 """
@@ -195,7 +195,7 @@ Thought:
 """
 
 
-finetune_best_practice_sys_prompt = """Given the best practice for addressing a specific task, the available resources and  description of the assistant that user eager to create, your task is to fine-tune the steps to make them only make use of the available resources and embed the objectives in the description. The return answer need to include the resources used for each step and the example response if needed. Return the answer in JSON format.
+finetune_best_practice_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the best practices for addressing a specific task, the available resources, and the builder's objectives, your task is to refine the steps to ensure they only utilize the available resources while embedding the objectives within each step. The response should include the resources used for each step and example responses, if applicable. Return the answer in JSON format.
 
 For example:
 Best Practice: 
@@ -228,7 +228,7 @@ Resources:
     "ProductAgent": "Access the company's database to retrieve information about products, such as availability, pricing, and specifications",
     "UserProfileAgent": "Access the company's database to retrieve information about the user's preferences and history"
 }}
-Objectives: The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts. It also help in persuade customer to sign up the Prime membership.
+Build's objective: The customer service assistant helps in persuading customer to sign up the Prime membership.
 Answer:
 ```json
 [
@@ -267,6 +267,6 @@ Answer:
 
 Best Practice: {best_practice}
 Resources: {resources}
-Description: {description}
+Build's objective: {b_objective}
 Answer:
 """

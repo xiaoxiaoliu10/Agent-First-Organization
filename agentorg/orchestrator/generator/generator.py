@@ -163,7 +163,8 @@ class Generator:
     def __init__(self, config, model, output_dir):
         self.product_kwargs = json.load(open(config))
         self.role = self.product_kwargs.get("role")
-        self.description = self.product_kwargs.get("description")
+        self.u_objective = self.product_kwargs.get("user_objective")
+        self.b_objective = self.product_kwargs.get("builder_objective")
         self.intro = self.product_kwargs.get("intro")
         self.docs = self.product_kwargs.get("docs")
         self.tasks = self.product_kwargs.get("tasks")
@@ -175,7 +176,7 @@ class Generator:
     def _generate_tasks(self):
         # based on the type and documents
         prompt = PromptTemplate.from_template(generate_tasks_sys_prompt)
-        input_prompt = prompt.invoke({"role": self.role, "description": self.description, "intro": self.intro, "docs": self.documents})
+        input_prompt = prompt.invoke({"role": self.role, "u_objective": self.u_objective, "intro": self.intro, "docs": self.documents})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated tasks with thought: {answer}")
@@ -227,7 +228,7 @@ class Generator:
         for agent_name in self.agents:
             agent_desp = AGENT_REGISTRY.get(agent_name).description
             resources[agent_name] = agent_desp
-        input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "description": self.description})
+        input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "b_objective": self.b_objective})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         return postprocess_json(answer)
