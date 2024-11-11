@@ -1,8 +1,11 @@
+import os
 import json
 import logging
 from datetime import datetime
 from tqdm import tqdm as progress_bar
 import subprocess
+import pickle
+from pathlib import Path
 
 from langchain.prompts import PromptTemplate
 from langchain_openai.chat_models import ChatOpenAI
@@ -54,6 +57,7 @@ class InputModal(Screen):
             self.callback(self.result, self.node)
         logger.debug(f"InputModal result: {self.result}")
         self.app.pop_screen()  # Close modal
+
 
 class TaskEditorApp(App):
     """A Textual app to edit tasks and steps in a hierarchical structure."""
@@ -155,27 +159,23 @@ class TaskEditorApp(App):
         logger.debug(log_message)
 
 
-
-
 class Generator:
-    def __init__(self, config, model):
+    def __init__(self, config, model, output_dir):
         self.product_kwargs = json.load(open(config))
         self.role = self.product_kwargs.get("role")
-        self.objective = self.product_kwargs.get("objective")
+        self.description = self.product_kwargs.get("description")
         self.intro = self.product_kwargs.get("intro")
         self.docs = self.product_kwargs.get("docs")
         self.tasks = self.product_kwargs.get("tasks")
         self.agents = self.product_kwargs.get("agents")
         self.model = model
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        self.orche_config_filepath = f"./agentorg/orchestrator/examples/{self.role}_taskgraph_{timestamp}.json"
-        self.task_planning_filepath = f"./agentorg/orchestrator/examples/{self.role}_taskplanning_{timestamp}.json"
+        self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        self.output_dir = output_dir
     
-
     def _generate_tasks(self):
         # based on the type and documents
         prompt = PromptTemplate.from_template(generate_tasks_sys_prompt)
-        input_prompt = prompt.invoke({"role": self.role, "intro": self.intro, "docs": self.documents})
+        input_prompt = prompt.invoke({"role": self.role, "description": self.description, "intro": self.intro, "docs": self.documents})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated tasks with thought: {answer}")
@@ -192,9 +192,29 @@ class Generator:
         self.tasks = new_format_tasks
 
     def _generate_best_practice(self, task):
-        # based on the task
+        # Best practice detection
+        resources = {}
+        for agent_name in self.agents:
+            agent_desp = AGENT_REGISTRY.get(agent_name).description
+            resources[agent_name] = agent_desp
+        prompt = PromptTemplate.from_template(check_best_practice_sys_prompt)
+        input_prompt = prompt.invoke({"task": task["task"], "level": "1", "resources": resources})
+        final_chain = self.model | StrOutputParser()
+        answer = final_chain.invoke(input_prompt)
+        answer = postprocess_json(answer)
+        logger.debug(f"Best practice detection: {answer}")
+        if answer["answer"].lower() == "no":
+            best_practice = [
+                {
+                    "step": 1,
+                    "task": task["task"]
+                }
+            ]
+            return best_practice
+        
+        # Best practice suggestion
         prompt = PromptTemplate.from_template(generate_best_practice_sys_prompt)
-        input_prompt = prompt.invoke({"task": task})
+        input_prompt = prompt.invoke({"task": task["task"]})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated best practice with thought: {answer}")
@@ -207,7 +227,7 @@ class Generator:
         for agent_name in self.agents:
             agent_desp = AGENT_REGISTRY.get(agent_name).description
             resources[agent_name] = agent_desp
-        input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "objectives": self.objective})
+        input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "description": self.description})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         return postprocess_json(answer)
@@ -286,10 +306,22 @@ class Generator:
     def generate(self):
         # Step 0: Load the docs
         if self.docs:
-            source = self.docs.get("source")
-            num_docs = self.docs.get("num")
-            loader = Loader(source, num_docs)
-            crawled_docs = loader.load()
+            filepath = os.path.join(self.output_dir, "documents.pkl")
+            if Path(filepath).exists():
+                logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
+                crawled_docs = pickle.load(open(os.path.join(self.output_dir, "documents.pkl"), "rb"))
+            else:
+                source = self.docs.get("source")
+                num_docs = self.docs.get("num")
+                loader = Loader()
+                urls = loader.get_all_urls(source, num_docs)
+                crawled_urls = loader.to_crawled_obj(urls)
+                Loader.save(filepath, crawled_urls)
+                if num_docs > 50:
+                    limit = num_docs // 5
+                else:
+                    limit = 10
+                crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
             logger.debug(f"Loaded {len(crawled_docs)} documents")
             self.documents = "\n\n".join([doc['url'] + "\n" + doc["content"] for doc in crawled_docs])
         else:
@@ -319,7 +351,8 @@ class Generator:
             format_tasks.append({"task_name": task_name, "steps": steps})
         app = TaskEditorApp(format_tasks)
         hitl_result = app.run()
-        json.dump(hitl_result, open(self.task_planning_filepath, "w"), indent=4)
+        task_planning_filepath = os.path.join(self.output_dir, f'{self.role}_taskplanning_{self.timestamp}.json')
+        json.dump(hitl_result, open(task_planning_filepath, "w"), indent=4)
 
         # Step 4: Pair task with agent
         finetuned_best_practices = []
@@ -338,7 +371,9 @@ class Generator:
         # Step 5: Format the task graph
         task_graph = self._format_task_graph(finetuned_best_practices)
 
-        with open(self.orche_config_filepath, "w") as f:
+        # Step 6: Save the task graph
+        taskgraph_filepath = os.path.join(self.output_dir, f'{self.role}_taskgraph_{self.timestamp}.json')
+        with open(taskgraph_filepath, "w") as f:
             json.dump(task_graph, f, indent=4)
 
-        return self.orche_config_filepath
+        return taskgraph_filepath

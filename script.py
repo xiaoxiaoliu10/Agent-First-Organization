@@ -80,14 +80,18 @@ if __name__ == "__main__":
     parser.add_argument('--type', type=str, default="apprentice", choices=["novice", "apprentice"])
     parser.add_argument('--config', type=str, default="./agentorg/orchestrator/examples/customer_service_config.json")
     parser.add_argument('--config-taskgraph', type=str, default="./agentorg/orchestrator/examples/default_taskgraph.json")
+    parser.add_argument('--output-dir', type=str, default="./examples/test")
     args = parser.parse_args()
+
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir, exist_ok=True)
     
     if args.type == "novice":
         model = ChatOpenAI(model="gpt-4o", timeout=30000)
-        generator = Generator(args.config, model)
-        args.config_taskgraph = generator.generate()
+        generator = Generator(args.config, model, args.output_dir)
+        args.taskgraph_config = generator.generate()
         # Initialize NLU and Slotfill APIs
-        start_apis(args.config_taskgraph)
+        start_apis(args.taskgraph_config)
         
     history = []
     params = {}

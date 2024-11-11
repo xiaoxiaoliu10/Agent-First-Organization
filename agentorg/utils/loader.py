@@ -206,6 +206,11 @@ class Loader:
         urls_candidates = [self.graph.nodes[url_id] for url_id, _ in top_k_websites] 
         return urls_candidates
     
+    @staticmethod
+    def save(file_path: str, docs: List[CrawledURLObject]):
+        with open(file_path, "wb") as f:
+            pickle.dump(docs, f)
+    
     @classmethod
     def chunk(cls, url_objs: List[CrawledURLObject]) -> List[CrawledURLObject]:
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(encoding_name="cl100k_base", chunk_size=200, chunk_overlap=40)

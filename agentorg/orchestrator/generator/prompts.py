@@ -1,9 +1,9 @@
-generate_tasks_sys_prompt = """Given the type of the assistant the owner need, the introduction and the detailed documentation from owner (if available), your task is to figure out the tasks that this assistant need to handle in terms of user's intent. Return the answer in JSON format.
+generate_tasks_sys_prompt = """Given the user's prompt about the assistant's description that user need, the introduction and the detailed documentation from owner (if available), your task is to figure out the tasks that this assistant need to handle in terms of user's intent. Return the answer in JSON format.
 
 For Example:
 
-Assistant Type: Customer Service Assistant
-Owner's Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
+User's prompt: The user want to create an assistant - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
+User's Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
 Documentations: 
 https://www.amazon.com/
 Holiday Deals
@@ -111,11 +111,51 @@ Answer:
 ]
 ```
 
-Assistant Type: {role}
-Owner's information: {intro}
+User's prompt: The user want to create an assistant - {role}. {description}
+User's information: {intro}
 Documentations: 
 {docs}
 Reasoning Process:
+"""
+
+
+check_best_practice_sys_prompt = """You are a userful assistance to detect if the current task needs to be further decomposed if it cannot be solved by the provided resources. Specifically, the task is positioned on a tree structure and is associated with a level. Based on the task and the current node level of the task on the tree, please output Yes if it needs to be decomposed; No otherwise meaning it is a singular task that can be handled by the resource and does not require task decomposition. Please also provide explanations for your choice. 
+
+Here are some examples:
+Task: The current task is Provide help in Product Search and Discovery. The current node level of the task is 1. 
+Resources: 
+{{
+    "MessageAgent": "The agent responsible for interacting with the user with predefined responses",
+    "RAGAgent": "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information",
+    "ProductAgent": "Access the company's database to retrieve information about products, such as availability, pricing, and specifications",
+    "UserProfileAgent": "Access the company's database to retrieve information about the user's preferences and history"
+}}
+Reasoning: This task is a high-level task that involves multiple sub-tasks such as asking for user's preference, providing product recommendations, answering questions about product or policy, and confirming user selections. Each sub-task requires different agent to complete. It will use MessageAgent to ask user's preference, then use ProductAgent to search for the product, finally make use of RAGAgent to answer user's question. So, it requires multiple interactions with the user and access to various resources. Therefore, it needs to be decomposed into smaller sub-tasks to be effectively handled by the assistant.
+Answer: 
+```json
+{{
+    "answer": "Yes"
+}}
+```
+
+Task: The current task is booking a broadway show ticket. The current node level of the task is 1.
+Resources:
+{{
+    "DatabaseAgent": "Access the company's database to retrieve information about ticket availability, pricing, and seating options. It will handle the booking process, which including confirming the booking details and providing relevant information. It can also handle the cancel process.",
+    "MessageAgent": "The agent responsible for interacting with the user with predefined responses",
+    "RAGAgent": "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information"
+}}
+Reasoning: This task involves a single high-level action of booking a ticket for a broadway show. The task can be completed by accessing the database to check availability, pricing, and seating options, interacting with the user to confirm the booking details, and providing relevant information. Since it is a singular task that can be handled by the available resources without further decomposition, the answer is No.
+Answer: 
+```json
+{{
+    "answer": "Yes"
+}}
+```
+
+Task: The current task is {task}. The current node level of the task is {level}.
+Resources: {resources}
+Reasoning:
 """
 
 
@@ -151,10 +191,11 @@ Answer:
 ```
 
 Task: {task}
+Thought:
 """
 
 
-finetune_best_practice_sys_prompt = """Given the best practice for addressing a specific task, the available resources and other objectives of the task, your task is to fine-tune the steps to make them only make use of the available resources and embed the objectives. The return answer need to include the resources used for each step and the example response if needed. Return the answer in JSON format.
+finetune_best_practice_sys_prompt = """Given the best practice for addressing a specific task, the available resources and  description of the assistant that user eager to create, your task is to fine-tune the steps to make them only make use of the available resources and embed the objectives in the description. The return answer need to include the resources used for each step and the example response if needed. Return the answer in JSON format.
 
 For example:
 Best Practice: 
@@ -187,10 +228,7 @@ Resources:
     "ProductAgent": "Access the company's database to retrieve information about products, such as availability, pricing, and specifications",
     "UserProfileAgent": "Access the company's database to retrieve information about the user's preferences and history"
 }}
-Objectives:
-[
-    "Sign up the Prime membership"
-]
+Objectives: The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts. It also help in persuade customer to sign up the Prime membership.
 Answer:
 ```json
 [
@@ -204,7 +242,7 @@ Answer:
         "step": 2,
         "task": "Provide a curated list of products that match the user's criteria."
         "resource": "ProductAgent",
-        "example_response": "Here are some products that match your preferences."
+        "example_response": ""
     }},
     {{
         "step": 3,
@@ -229,6 +267,6 @@ Answer:
 
 Best Practice: {best_practice}
 Resources: {resources}
-Objectives: {objectives}
+Description: {description}
 Answer:
 """
