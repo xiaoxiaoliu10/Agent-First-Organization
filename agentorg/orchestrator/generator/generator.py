@@ -78,7 +78,7 @@ class TaskEditorApp(App):
                 task_node.add_leaf(step)
 
         yield self.task_tree
-        yield Label("Click on a task or step to edit it. Press 'a' to add new item on the same level with the highlighted one, 'd' to delete the highlighted item, 'q' to exit.")
+        yield Label("Click on a task or step to edit it. Press 'a' to add new item on the same level with the highlighted one, 'd' to delete the highlighted item, 's' to save and exit.")
 
     def on_mount(self):
         self.task_tree.focus()
@@ -107,8 +107,8 @@ class TaskEditorApp(App):
         elif event.key == "d" and selected_node and selected_node.parent is not None:
             selected_node.remove()
             await self.update_tasks()
-        elif event.key == "q":
-            self.exit(self.tasks)  # Gracefully exit the app
+        elif event.key == "s":
+            self.exit(self.tasks)
 
     async def action_add_node(self, node: TreeNode):
         # if the node is a step node
@@ -307,21 +307,21 @@ class Generator:
         # Step 0: Load the docs
         if self.docs:
             filepath = os.path.join(self.output_dir, "documents.pkl")
+            source = self.docs.get("source")
+            num_docs = self.docs.get("num")
+            loader = Loader()
             if Path(filepath).exists():
                 logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
-                crawled_docs = pickle.load(open(os.path.join(self.output_dir, "documents.pkl"), "rb"))
+                crawled_urls = pickle.load(open(os.path.join(self.output_dir, "documents.pkl"), "rb"))
             else:
-                source = self.docs.get("source")
-                num_docs = self.docs.get("num")
-                loader = Loader()
                 urls = loader.get_all_urls(source, num_docs)
                 crawled_urls = loader.to_crawled_obj(urls)
                 Loader.save(filepath, crawled_urls)
-                if num_docs > 50:
-                    limit = num_docs // 5
-                else:
-                    limit = 10
-                crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
+            if num_docs > 50:
+                limit = num_docs // 5
+            else:
+                limit = 10
+            crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
             logger.debug(f"Loaded {len(crawled_docs)} documents")
             self.documents = "\n\n".join([doc['url'] + "\n" + doc["content"] for doc in crawled_docs])
         else:
