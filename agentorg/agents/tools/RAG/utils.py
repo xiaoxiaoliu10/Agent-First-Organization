@@ -11,7 +11,7 @@ from langchain_community.vectorstores.faiss import FAISS
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.tools import TavilySearchResults
 
-from ...prompts import context_generator_prompt, retrieve_contextualize_q_prompt
+from ...prompts import context_generator_prompt, retrieve_contextualize_q_prompt, generator_prompt
 from ....utils.utils import chunk_string
 from ....utils.graph_state import MessageState
 from ....utils.model_config import MODEL
@@ -129,6 +129,23 @@ class SearchEngine():
 class ToolGenerator():
     @staticmethod
     def generate(state: MessageState):
+        user_message = state['user_message']
+        
+        llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        prompt = PromptTemplate.from_template(generator_prompt)
+        input_prompt = prompt.invoke({"question": user_message.message, "formatted_chat": user_message.history})
+        chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+        final_chain = llm | StrOutputParser()
+        answer = final_chain.invoke(chunked_prompt)
+
+        return {
+            "user_message": user_message,
+            "orchestrator_message": state["orchestrator_message"],
+            "message_flow": answer
+        }
+
+    @staticmethod
+    def context_generate(state: MessageState):
         llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         # get the input message
         user_message = state['user_message']

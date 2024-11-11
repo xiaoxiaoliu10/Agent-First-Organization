@@ -25,7 +25,7 @@ class RAGAgent(BaseAgent):
         workflow = StateGraph(MessageState)
         # Add nodes for each agent
         workflow.add_node("retriever", RetrieveEngine.retrieve)
-        workflow.add_node("tool_generator", ToolGenerator.generate)
+        workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
         workflow.add_edge(START, "retriever")
         workflow.add_edge("retriever", "tool_generator")

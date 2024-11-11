@@ -26,7 +26,7 @@ class SearchAgent(BaseAgent):
         # Add nodes for each agent
         search_engine = SearchEngine()
         workflow.add_node("search_engine", search_engine.search)
-        workflow.add_node("tool_generator", ToolGenerator.generate)
+        workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
         workflow.add_edge(START, "search_engine")
         workflow.add_edge("search_engine", "tool_generator")
