@@ -10,8 +10,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
-from AgentOrg.agentorg.utils.loader import Loader
-import agentorg.agents
+from agentorg.utils.loader import Loader
 from agentorg.agents.agent import AGENT_REGISTRY
 
 

@@ -1,11 +1,11 @@
 import sqlite3
-from typing import Optional
-from datetime import datetime, date, time
+from datetime import datetime
 import uuid
 import logging
+import pandas as pd
 
-from langchain_core.runnables.config import RunnableConfig
 from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.utils.utils import chunk_string
@@ -20,9 +20,6 @@ DB_PATH = 'show_booking_db.sqlite'
 logger = logging.getLogger(__name__)
 
 
-user_id = "user_be6e1836-8fe9-4938-b2d0-48f810648e72"
-
-
 SLOTS = [
     {
         "name": "show_name",
@@ -31,7 +28,7 @@ SLOTS = [
         "slot_values": {
             "original_value": "Carmen", 
             "verified_value": None, 
-            "prompt": None
+            "prompt": "Please provide the name of the show"
         },
         "confirmed": False
     },
@@ -40,9 +37,9 @@ SLOTS = [
         "slot_type": "string",
         "description": "Location of the show",
         "slot_values": {
-            "original_value": "New York", 
+            "original_value": "San Francisco", 
             "verified_value": None, 
-            "prompt": None
+            "prompt": "Please provide the location of the show"
         },
         "confirmed": False
     },
@@ -51,9 +48,9 @@ SLOTS = [
         "slot_type": "date",
         "description": "Date of the show",
         "slot_values": {
-            "original_value": "2022-12-31", 
+            "original_value": None, 
             "verified_value": None, 
-            "prompt": None
+            "prompt": "Please provide the date of the show"
         },
         "confirmed": False
     },
@@ -62,9 +59,9 @@ SLOTS = [
         "slot_type": "time",
         "description": "Time of the show",
         "slot_values": {
-            "original_value": "19:00", 
+            "original_value": None, 
             "verified_value": None, 
-            "prompt": None
+            "prompt": "Please provide the time of the show"
         },
         "confirmed": False
     }
@@ -74,6 +71,7 @@ SLOTS = [
 class DatabaseActions:
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
+        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         self.slots = []
 
     def init_slots(self, slots: list[Slot]):
@@ -116,40 +114,49 @@ class DatabaseActions:
             logger.error(f"Error occurred while verifying slot in the database agent: {e}")
         return slot
 
-    def search_show(self, msg_state: MessageState) -> MessageState:
-        slot_list = msg_state["slots"]
+    def search_show(self, msg_state: MessageState, user_id: str) -> MessageState:
+        if not user_id:
+            raise ValueError("No user ID configured.")
         # Populate the slots with verified values
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         query = "SELECT * FROM show WHERE 1 = 1"
         params = []
-        for slot in slot_list:
+        for slot in self.slots:
             if slot["confirmed"]:
                 query += f" AND {slot['name']} = ?"
                 params.append(slot["slot_values"]["verified_value"])
         # Execute the query
         cursor.execute(query, params)
         rows = cursor.fetchall()
-        column_names = [column[0] for column in cursor.description]
-        results = [dict(zip(column_names, row)) for row in rows]
-
         cursor.close()
         conn.close()
-        msg_state["status"] = StatusEnum.COMPLETE
-        return results
+        if len(rows) == 0:
+            msg_state["status"] = StatusEnum.INCOMPLETE
+            msg_state["message_flow"] = "Show is not found. Please check whether the information is correct."
+        else:
+            column_names = [column[0] for column in cursor.description]
+            results = [dict(zip(column_names, row)) for row in rows]
+            results_df = pd.DataFrame(results)
+            prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please provide the user with available shows below.\n{context}")
+            input_prompt = prompt.invoke({"context": results_df})
+            chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+            logger.info(f"Chunked prompt for DB agent search function: {chunked_prompt}")
+            final_chain = self.llm | StrOutputParser()
+            answer = final_chain.invoke(chunked_prompt)
+            msg_state["status"] = StatusEnum.COMPLETE
+            msg_state["message_flow"] = answer
+        return msg_state
 
-
-    def book_show(self, config: RunnableConfig, msg_state: MessageState):
-        user_id = config.get("user_id", None)
+    def book_show(self, msg_state: MessageState, user_id: str) -> MessageState:
         if not user_id:
             raise ValueError("No user ID configured.")
-        slot_list = msg_state["slots"]
         # Populate the slots with verified values
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         query = "SELECT * FROM show WHERE 1 = 1"
         params = []
-        for slot in slot_list:
+        for slot in self.slots:
             if slot["confirmed"]:
                 query += f" AND {slot['name']} = ?"
                 params.append(slot["slot_values"]["verified_value"])
@@ -158,34 +165,37 @@ class DatabaseActions:
         rows = cursor.fetchall()
         # Check whether info is enough to book a show
         if len(rows) == 0:
-            cursor.close()
-            conn.close()
             msg_state["status"] = StatusEnum.INCOMPLETE
-            return "Show is not found."
+            msg_state["message_flow"] = "Show is not found. Please check whether the information is correct."
         elif len(rows) > 1:
-            cursor.close()
-            conn.close()
             msg_state["status"] = StatusEnum.INCOMPLETE
-            return "Multiple shows found."
-        row = rows[0]
-        show_id = row["id"]
-        column_names = [column[0] for column in cursor.description]
-        result = dict(zip(column_names, row))
+            msg_state["message_flow"] = "Multiple shows booked. Please provide more details."
+        else:
+            column_names = [column[0] for column in cursor.description]
+            results = dict(zip(column_names, rows[0]))
+            show_id = results["id"]
 
-        # Insert a row into the booking table
-        cursor.execute('''
-            INSERT INTO booking (id, show_id, user_id, created_at)
-            VALUES (?, ?, ?, ?)
-        ''', ("booking_" + str(uuid.uuid4()),  show_id, user_id, datetime.now()))
+            # Insert a row into the booking table
+            cursor.execute('''
+                INSERT INTO booking (id, show_id, user_id, created_at)
+                VALUES (?, ?, ?, ?)
+            ''', ("booking_" + str(uuid.uuid4()),  show_id, user_id, datetime.now()))
 
+            results_df = pd.DataFrame([results])
+            prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please tell the user that he/she just successfully booked the show below.\n{context}")
+            input_prompt = prompt.invoke({"context": results_df})
+            chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+            logger.info(f"Chunked prompt for DB agent booking function: {chunked_prompt}")
+            final_chain = self.llm | StrOutputParser()
+            answer = final_chain.invoke(chunked_prompt)
+            msg_state["status"] = StatusEnum.COMPLETE
+            msg_state["message_flow"] = answer
         cursor.close()
         conn.close()
-        msg_state["status"] = StatusEnum.COMPLETE
-        return result
+        return msg_state
 
-
-    def check_booking(self, config: RunnableConfig):
-        user_id = config.get("user_id", None)
+    ## TODO: filter booking
+    def check_booking(self, msg_state: MessageState, user_id: str) -> MessageState:
         if not user_id:
             raise ValueError("No user ID configured.")
         
@@ -201,35 +211,73 @@ class DatabaseActions:
         """
         cursor.execute(query, (user_id,))
         rows = cursor.fetchall()
-        column_names = [column[0] for column in cursor.description]
-        results = [dict(zip(column_names, row)) for row in rows]
-
         cursor.close()
         conn.close()
+        if len(rows) == 0:
+            answer = "You have not booked any show."
+        else:
+            column_names = [column[0] for column in cursor.description]
+            results = [dict(zip(column_names, row)) for row in rows]
 
-        return results
+            results_df = pd.DataFrame(results)
+            prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please tell the user that he/she has booked shows below.\n{context}")
+            input_prompt = prompt.invoke({"context": results_df})
+            chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+            logger.info(f"Chunked prompt for DB agent check booking function: {chunked_prompt}")
+            final_chain = self.llm | StrOutputParser()
+            answer = final_chain.invoke(chunked_prompt)
+            msg_state["message_flow"] = answer
+        msg_state["status"] = StatusEnum.COMPLETE
+        return msg_state
 
+    ## TODO: filter booking
+    def cancel_booking(self, msg_state: MessageState, user_id: str) -> MessageState:
+        if not user_id:
+            raise ValueError("No user ID configured.")
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
 
-    def cancel_booking(self, config: RunnableConfig):
-        booked_shows = self.check_booking(config)
-        if not booked_shows:
-            raise ValueError("No shows booked.")
-        elif len(booked_shows) > 1:
-            raise ValueError("Multiple shows booked. Please provide more details.")
-        show = booked_shows[0]
-
-        connection = sqlite3.connect("your_database.db")
-        cursor = connection.cursor()
-
-        # Delete a row from the booking table based on show_id
-        cursor.execute('''DELETE FROM booking WHERE show_id = ?
-        ''', (show["id"],))
+        query = """
+        SELECT * FROM
+            booking b
+            JOIN show s ON b.show_id = s.id
+        WHERE
+            b.user_id = ?
+        """
+        cursor.execute(query, (user_id,))
+        rows = cursor.fetchall()
+        if len(rows) == 0:
+            msg_state["status"] = StatusEnum.COMPLETE
+            msg_state["message_flow"] = "You have not booked any show."
+        elif len(rows) > 1:
+            msg_state["status"] = StatusEnum.INCOMPLETE
+            msg_state["message_flow"] = "Multiple shows booked. Please provide more details."
+        else:
+            column_names = [column[0] for column in cursor.description]
+            results = [dict(zip(column_names, row)) for row in rows]
+            show = results[0]
+            connection = sqlite3.connect("your_database.db")
+            cursor = connection.cursor()
+            # Delete a row from the booking table based on show_id
+            cursor.execute('''DELETE FROM booking WHERE show_id = ?
+            ''', (show["id"],))
+            # Respond to user the cancellation
+            results_df = pd.DataFrame(results)
+            prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please tell the user that he/she has cancelled the show below.\n{context}")
+            input_prompt = prompt.invoke({"context": results_df})
+            chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+            logger.info(f"Chunked prompt for DB agent cancel booking function: {chunked_prompt}")
+            final_chain = self.llm | StrOutputParser()
+            answer = final_chain.invoke(chunked_prompt)
+            msg_state["message_flow"] = answer
+            msg_state["status"] = StatusEnum.COMPLETE
 
         connection.commit()
         connection.close()
 
-        return show
+        return msg_state
 
 
-dbf = DatabaseFunctions()
-print(dbf.search_show("Carmen"))
+# dbf = DatabaseActions()
+# print(dbf.temp_search_show())

@@ -190,7 +190,7 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"Intial curr_node: {curr_node}")
 
         node_status = params.get("node_status", {})
-        status = node_status.get(curr_node, {}).get("status", StatusEnum.COMPELETE)
+        status = node_status.get(curr_node, {}).get("status", StatusEnum.COMPLETE)
         dialog_states = node_status.get(curr_node, {}).get("slots", [])
         if status == StatusEnum.INCOMPLETE and dialog_states:
             self.graph.nodes[curr_node]["attribute"]["slots"] = dialog_states

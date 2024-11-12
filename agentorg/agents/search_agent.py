@@ -3,9 +3,9 @@ import logging
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from .agent import BaseAgent, register_agent
-from ..utils.graph_state import MessageState
-from .tools.RAG.utils import SearchEngine, ToolGenerator
+from agentorg.agents.agent import BaseAgent, register_agent
+from agentorg.utils.graph_state import MessageState
+from agentorg.agents.tools.RAG.utils import SearchEngine, ToolGenerator
 
 
 logger = logging.getLogger(__name__)

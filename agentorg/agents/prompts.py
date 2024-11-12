@@ -1,6 +1,6 @@
 ## TODO: refactor message/rag/rag_prompts.py to use these prompts
 ### ================================== Generator Prompts ================================== ###
-message_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user [Notice: add information of the initial response which is helpful to respond to the user if any].
+message_flow_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user [Notice: add information of the initial response which is helpful to respond to the user if any].
 Conversation:
 {formatted_chat}
 
@@ -12,7 +12,16 @@ Message:
 """
 
 
-context_generator_prompt = """Refer to the provided context to answer the user's question. The response should be based on the conversation history. Respond like daily chat.
+message_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user.
+Conversation:
+{formatted_chat}
+
+Message:
+{message}
+"""
+
+
+context_generator_prompt = """Refer to the provided context to answer the user's question. The response should be based on the conversation history.
 Conversation:
 {formatted_chat}
 
@@ -22,7 +31,7 @@ Context: {context}
 """
 
 
-generator_prompt = """Answer the user's question based on the conversation history. Respond like daily chat.
+generator_prompt = """Answer the user's question based on the conversation history.
 Conversation:
 {formatted_chat}
 

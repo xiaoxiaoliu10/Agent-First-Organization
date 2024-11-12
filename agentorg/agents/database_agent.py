@@ -6,13 +6,13 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from .agent import BaseAgent, register_agent
-from .prompts import database_action_prompt
-from ..utils.utils import chunk_string
-from ..utils.graph_state import MessageState
-from ..utils.model_config import MODEL
-from .tools.database.utils import DatabaseActions
-from ..utils.graph_state import Slot
+from agentorg.agents.agent import BaseAgent, register_agent
+from agentorg.agents.prompts import database_action_prompt
+from agentorg.agents.tools.RAG.utils import ToolGenerator
+from agentorg.agents.tools.database.utils import DatabaseActions
+from agentorg.utils.utils import chunk_string
+from agentorg.utils.graph_state import MessageState
+from agentorg.utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ class DatabaseAgent(BaseAgent):
     description = "Answer the user's questions based on search engine results"
 
     def __init__(self):
-        self.config = {"user_id": "abcd"}
+        self.user_id = "user_be6e1836-8fe9-4938-b2d0-48f810648e72"
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         self.actions = {
             "SearchShow": "Search for shows", 
@@ -33,9 +33,23 @@ class DatabaseAgent(BaseAgent):
             "CancelBooking": "Cancel a booking",
             "Others": "Other actions not mentioned above"
         }
+        self.DBActions = DatabaseActions()
         self.action_graph = self._create_action_graph()
 
-    def verify_action(self, user_intent: str):
+    def search_show(self, state: MessageState):
+        return self.DBActions.search_show(state, self.user_id)
+    
+    def book_show(self, state: MessageState):
+        return self.DBActions.book_show(state, self.user_id)
+    
+    def check_booking(self, state: MessageState):
+        return self.DBActions.check_booking(state, self.user_id)
+    
+    def cancel_booking(self, state: MessageState):
+        return self.DBActions.cancel_booking(state, self.user_id)
+
+    def verify_action(self, msg_state: MessageState):
+        user_intent = msg_state["intent"]
         actions_info = "\n".join([f"{name}: {description}" for name, description in self.actions.items()])
         actions_name = ", ".join(self.actions.keys())
 
@@ -59,28 +73,18 @@ class DatabaseAgent(BaseAgent):
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each agent
-        DBFunctions = DatabaseActions()
-        workflow.add_node("find_intent", self.find_user_intent)
-        workflow.add_node("search_show", DBFunctions.search_show)
-        workflow.add_node("book_show", DBFunctions.book_show)
-        workflow.add_node("check_booking", DBFunctions.check_booking)
-        workflow.add_node("cancel_booking", DBFunctions.cancel_booking)
-        workflow.add_node("generator", ToolGenerator.generate)
+        workflow.add_node("SearchShow", self.search_show)
+        workflow.add_node("BookShow", self.book_show)
+        workflow.add_node("CheckBooking", self.check_booking)
+        workflow.add_node("CancelBooking", self.cancel_booking)
+        workflow.add_node("Others", ToolGenerator.generate)
         # Add edges
-        workflow.add_edge(START, "find_intent")
-        workflow.add_edge("find_intent", "search_show", lambda state: state["find_intent"] == "SearchShow")
-        workflow.add_edge("find_intent", "book_show", lambda state: state["find_intent"] == "BookShow")
-        workflow.add_edge("find_intent", "check_booking", lambda state: state["find_intent"] == "CheckBooking")
-        workflow.add_edge("find_intent", "cancel_booking", lambda state: state["find_intent"] == "CancelBooking")
-        workflow.add_edge("find_intent", "generator", lambda state: state["find_intent"] == "Others")
-        workflow.add_edge("search_show", "find_intent")
-        workflow.add_edge("book_show", "find_intent")
-        workflow.add_edge("check_booking", "find_intent")
-        workflow.add_edge("cancel_booking", "find_intent")
-        workflow.add_edge("generator", END)
+        workflow.add_conditional_edges(START, self.verify_action)
         return workflow
 
     def execute(self, msg_state: MessageState):
+        config = {"user_id": self.user_id}
+        self.DBActions.init_slots(msg_state["slots"])
         graph = self.action_graph.compile()
-        result = graph.invoke(msg_state)
+        result = graph.invoke(msg_state, config=config)
         return result
