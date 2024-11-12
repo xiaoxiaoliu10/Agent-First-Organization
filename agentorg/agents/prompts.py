@@ -1,4 +1,5 @@
 ## TODO: refactor message/rag/rag_prompts.py to use these prompts
+### ================================== Generator Prompts ================================== ###
 message_generator_prompt = """Based on the conversation history between a User and Assistant, please paraphrase the following message to the user [Notice: add information of the initial response which is helpful to respond to the user if any].
 Conversation:
 {formatted_chat}
@@ -28,6 +29,7 @@ Conversation:
 Question: {question}
 """
 
+### ================================== RAG Prompts ================================== ###
 
 retrieve_contextualize_q_prompt = """Given a chat history and the latest user question \
         which might reference context in the chat history, formulate a standalone question \
@@ -46,13 +48,18 @@ User's Message:
 The response must be the name of one of the agents ({agents_name}).
 """
 
+### ================================== Database-related Prompts ================================== ###
 
 database_action_prompt = """You are an assistant that has access to the following set of actions. Here are the names and descriptions for each action:
 {actions_info}
-Based on the conversation history and the user's message, please provide the action that the user is intened to take.
-Conversation:
-{formatted_chat}
-User's Message:
-{message}
+Based on the given user intent, please provide the action that is supposed to be taken.
+User's Intent:
+{user_intent}
 The response must be the name of one of the actions ({actions_name}).
+"""
+
+
+database_slot_prompt = """The user has provided a value for the slot {slot}. The value is {value}. 
+If the provided value matches any of the following values: {value_list} (they may not be exactly the same and you can reformulate the value), please provide the reformulated value. Otherwise, respond None. 
+Your response should only be the reformulated value or None.
 """

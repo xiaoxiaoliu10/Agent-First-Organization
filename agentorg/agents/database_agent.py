@@ -11,7 +11,8 @@ from .prompts import database_action_prompt
 from ..utils.utils import chunk_string
 from ..utils.graph_state import MessageState
 from ..utils.model_config import MODEL
-from .tools.database.utils import DatabaseFunctions
+from .tools.database.utils import DatabaseActions
+from ..utils.graph_state import Slot
 
 
 logger = logging.getLogger(__name__)
@@ -34,15 +35,14 @@ class DatabaseAgent(BaseAgent):
         }
         self.action_graph = self._create_action_graph()
 
-    def find_user_intent(self, msg_state: MessageState):
-        user_message = msg_state["user_message"]
+    def verify_action(self, user_intent: str):
         actions_info = "\n".join([f"{name}: {description}" for name, description in self.actions.items()])
         actions_name = ", ".join(self.actions.keys())
 
         prompt = PromptTemplate.from_template(database_action_prompt)
-        input_prompt = prompt.invoke({"message": user_message.message, "formatted_chat": user_message.history, "actions_info": actions_info, "actions_name": actions_name})
+        input_prompt = prompt.invoke({"user_intent": user_intent, "actions_info": actions_info, "actions_name": actions_name})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-        logger.info(f"Chunked prompt for deciding default agent: {chunked_prompt}")
+        logger.info(f"Chunked prompt for deciding choosing DB action: {chunked_prompt}")
         final_chain = self.llm | StrOutputParser()
         try:
             answer = final_chain.invoke(chunked_prompt)
@@ -59,7 +59,7 @@ class DatabaseAgent(BaseAgent):
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each agent
-        DBFunctions = DatabaseFunctions()
+        DBFunctions = DatabaseActions()
         workflow.add_node("find_intent", self.find_user_intent)
         workflow.add_node("search_show", DBFunctions.search_show)
         workflow.add_node("book_show", DBFunctions.book_show)

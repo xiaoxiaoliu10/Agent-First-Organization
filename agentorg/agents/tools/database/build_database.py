@@ -8,7 +8,7 @@ cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE show (
         id VARCHAR(40) PRIMARY KEY,
-        name VARCHAR(100),
+        show_name VARCHAR(100),
         genre VARCHAR(40),
         date DATE,
         time TIME,
@@ -44,7 +44,7 @@ cursor.execute('''
 # Populate sample data
 shows = [
     {
-        "name": "La Traviata",
+        "show_name": "La Traviata",
         "genre": "Opera",
         "date": "2024-11-10",
         "time": "19:30:00",
@@ -55,7 +55,7 @@ shows = [
         "id": "show_8406f0c6-6644-4a19-9448-670c9941b8d8"
     },
     {
-        "name": "La Traviata",
+        "show_name": "La Traviata",
         "genre": "Opera",
         "date": "2024-11-15",
         "time": "19:30:00",
@@ -66,7 +66,7 @@ shows = [
         "id": "show_06d03f1d-c38c-4ab2-b210-3342c76425f5"
     },
     {
-        "name": "Carmen",
+        "show_name": "Carmen",
         "genre": "Opera",
         "date": "2024-11-12",
         "time": "20:00:00",
@@ -77,7 +77,7 @@ shows = [
         "id": "show_c32f2e1f-798a-406d-979b-733c2b37d90c"
     },
     {
-        "name": "The Magic Flute",
+        "show_name": "The Magic Flute",
         "genre": "Opera",
         "date": "2024-11-15",
         "time": "18:30:00",
@@ -88,7 +88,7 @@ shows = [
         "id": "show_84c92d38-1f01-4251-ac57-334fb8244477"
     },
     {
-        "name": "The Magic Flute",
+        "show_name": "The Magic Flute",
         "genre": "Opera",
         "date": "2024-11-20",
         "time": "18:30:00",
@@ -99,7 +99,7 @@ shows = [
         "id": "show_44df967e-e4ef-44ec-923a-a118be06240d"
     },
     {
-        "name": "The Magic Flute",
+        "show_name": "The Magic Flute",
         "genre": "Opera",
         "date": "2024-11-25",
         "time": "18:30:00",
@@ -110,7 +110,7 @@ shows = [
         "id": "show_c7ac8410-e03d-45e8-9b50-6a9c72b87805"
     },
     {
-        "name": "Madama Butterfly",
+        "show_name": "Madama Butterfly",
         "genre": "Opera",
         "date": "2024-11-18",
         "time": "19:00:00",
@@ -121,7 +121,7 @@ shows = [
         "id": "show_851cd9f3-734d-414e-b75c-5a389dc6a380"
     },
     {
-        "name": "Don Giovanni",
+        "show_name": "Don Giovanni",
         "genre": "Opera",
         "date": "2024-11-20",
         "time": "19:30:00",
@@ -132,7 +132,7 @@ shows = [
         "id": "show_0a3babd6-d153-41f7-bab0-8a6a995ffb5a"
     },
     {
-        "name": "Don Giovanni",
+        "show_name": "Don Giovanni",
         "genre": "Opera",
         "date": "2024-11-20",
         "time": "19:30:00",
@@ -143,7 +143,7 @@ shows = [
         "id": "show_2be3c426-2822-45dc-84f0-68609ca53f86"
     },
     {
-        "name": "Don Giovanni",
+        "show_name": "Don Giovanni",
         "genre": "Opera",
         "date": "2024-11-20",
         "time": "19:30:00",
@@ -154,7 +154,7 @@ shows = [
         "id": "show_11604b40-6058-4264-8c80-95d774596d12"
     },
     {
-        "name": "Rigoletto",
+        "show_name": "Rigoletto",
         "genre": "Opera",
         "date": "2024-11-22",
         "time": "20:00:00",
@@ -165,7 +165,7 @@ shows = [
         "id": "show_1ebd551f-3fa6-41c4-88f5-e7a9e82cc876"
     },
     {
-        "name": "Turandot",
+        "show_name": "Turandot",
         "genre": "Opera",
         "date": "2024-11-25",
         "time": "19:00:00",
@@ -176,7 +176,7 @@ shows = [
         "id": "show_81c12485-a9eb-4721-bee4-e4c89b046678"
     },
     {
-        "name": "Aida",
+        "show_name": "Aida",
         "genre": "Opera",
         "date": "2024-11-28",
         "time": "19:30:00",
@@ -187,7 +187,7 @@ shows = [
         "id": "show_ea2f97be-05bf-4640-b6eb-47118a42ab9d"
     },
     {
-        "name": "The Barber of Seville",
+        "show_name": "The Barber of Seville",
         "genre": "Opera",
         "date": "2024-11-30",
         "time": "18:30:00",
@@ -198,7 +198,7 @@ shows = [
         "id": "show_2ec864f2-36a4-4fc3-8e83-2a87cec585d9"
     },
     {
-        "name": "La Boh\u00e8me",
+        "show_name": "La Boh\u00e8me",
         "genre": "Opera",
         "date": "2024-12-02",
         "time": "19:00:00",
@@ -209,7 +209,7 @@ shows = [
         "id": "show_42c86393-4346-49bf-b0b3-f82b3fc78e55"
     },
     {
-        "name": "Tosca",
+        "show_name": "Tosca",
         "genre": "Opera",
         "date": "2024-12-05",
         "time": "19:30:00",
@@ -220,7 +220,7 @@ shows = [
         "id": "show_b43297c2-fec1-4028-b5d0-27b04b22fc2d"
     },
     {
-        "name": "The Marriage of Figaro",
+        "show_name": "The Marriage of Figaro",
         "genre": "Opera",
         "date": "2024-12-08",
         "time": "19:00:00",
@@ -231,7 +231,7 @@ shows = [
         "id": "show_21837fdd-5819-4135-8a83-977259870b78"
     },
     {
-        "name": "Otello",
+        "show_name": "Otello",
         "genre": "Opera",
         "date": "2024-12-10",
         "time": "19:30:00",
@@ -242,7 +242,7 @@ shows = [
         "id": "show_5e6515c5-f2f9-43e7-a34b-9195b063f863"
     },
     {
-        "name": "Lucia di Lammermoor",
+        "show_name": "Lucia di Lammermoor",
         "genre": "Opera",
         "date": "2024-12-12",
         "time": "19:00:00",

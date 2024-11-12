@@ -7,6 +7,21 @@ class StatusEnum(Enum):
     COMPELETE = "complete"
     INCOMPLETE = "incomplete"
 
+
+class SlotValues(TypedDict):
+    original_value: str
+    verified_value: str
+    prompt: str
+
+
+class Slot(TypedDict):
+    name: str
+    slot_type: str
+    description: str
+    slot_values: SlotValues
+    confirmed: bool
+
+
 class MessageState(TypedDict):
     # input message
     user_message: ConvoMessage

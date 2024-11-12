@@ -2,52 +2,132 @@ import sqlite3
 from typing import Optional
 from datetime import datetime, date, time
 import uuid
+import logging
 
 from langchain_core.runnables.config import RunnableConfig
+from langchain.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+from agentorg.utils.utils import chunk_string
+from agentorg.utils.model_config import MODEL
+from agentorg.utils.graph_state import Slot, MessageState
+from agentorg.agents.prompts import database_slot_prompt
+from agentorg.utils.graph_state import StatusEnum
 
 
 DB_PATH = 'show_booking_db.sqlite'
+
+logger = logging.getLogger(__name__)
 
 
 user_id = "user_be6e1836-8fe9-4938-b2d0-48f810648e72"
 
 
-class DatabaseFunctions:
+SLOTS = [
+    {
+        "name": "show_name",
+        "slot_type": "string",
+        "description": "Name of the show",
+        "slot_values": {
+            "original_value": "Carmen", 
+            "verified_value": None, 
+            "prompt": None
+        },
+        "confirmed": False
+    },
+    {
+        "name": "location",
+        "slot_type": "string",
+        "description": "Location of the show",
+        "slot_values": {
+            "original_value": "New York", 
+            "verified_value": None, 
+            "prompt": None
+        },
+        "confirmed": False
+    },
+    {
+        "name": "date",
+        "slot_type": "date",
+        "description": "Date of the show",
+        "slot_values": {
+            "original_value": "2022-12-31", 
+            "verified_value": None, 
+            "prompt": None
+        },
+        "confirmed": False
+    },
+    {
+        "name": "time",
+        "slot_type": "time",
+        "description": "Time of the show",
+        "slot_values": {
+            "original_value": "19:00", 
+            "verified_value": None, 
+            "prompt": None
+        },
+        "confirmed": False
+    }
+]
+
+
+class DatabaseActions:
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
+        self.slots = []
 
-
-    def search_show(self, name: Optional[str] = None, genre: Optional[str] = None, date: Optional[date] = None, time: Optional[time] = None, location: Optional[str] = None, price: Optional[float] = None):
+    def init_slots(self, slots: list[Slot]):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
+        for slot in slots:
+            query = f"SELECT DISTINCT {slot['name']} FROM show"
+            cursor.execute(query)
+            results = cursor.fetchall()
+            value_list = [result[0] for result in results]
+            self.slots.append(self.verify_slot(slot, value_list))
+        cursor.close()
+        conn.close()
 
+    def verify_slot(self, slot: Slot, value_list: list) -> Slot:
+        if slot["confirmed"]:
+            logger.info(f"Slot {slot['name']} already confirmed")
+            return slot
+        if slot["slot_values"]["original_value"] is None:
+            logger.info(f"Slot {slot['name']} has no original value")
+            return slot
+        prompt = PromptTemplate.from_template(database_slot_prompt)
+        input_prompt = prompt.invoke({
+            "slot": {"name": slot["name"], "description": slot["description"], "slot_type": slot["slot_type"]}, 
+            "value": slot["slot_values"]["original_value"], 
+            "value_list": value_list
+        })
+        chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+        logger.info(f"Chunked prompt for verifying slot: {chunked_prompt}")
+        final_chain = self.llm | StrOutputParser()
+        try:
+            answer = final_chain.invoke(chunked_prompt)
+            for value in value_list:
+                if value in answer:
+                    logger.info(f"Chosen slot value in the database agent: {value}")
+                    slot["slot_values"]["verified_value"] = value
+                    slot["confirmed"] = True
+                    return slot
+        except Exception as e:
+            logger.error(f"Error occurred while verifying slot in the database agent: {e}")
+        return slot
+
+    def search_show(self, msg_state: MessageState) -> MessageState:
+        slot_list = msg_state["slots"]
+        # Populate the slots with verified values
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
         query = "SELECT * FROM show WHERE 1 = 1"
         params = []
-
-        if name:
-            query += " AND name = ?"
-            params.append(name)
-
-        if genre:
-            query += " AND genre = ?"
-            params.append(genre)
-
-        if date:
-            query += " AND date = ?"
-            params.append(date)
-
-        if time:
-            query += " AND time = ?"
-            params.append(time)
-
-        if location:
-            query += " AND location = ?"
-            params.append(location)
-
-        if price:
-            query += " AND price = ?"
-            params.append(price)
-
+        for slot in slot_list:
+            if slot["confirmed"]:
+                query += f" AND {slot['name']} = ?"
+                params.append(slot["slot_values"]["verified_value"])
+        # Execute the query
         cursor.execute(query, params)
         rows = cursor.fetchall()
         column_names = [column[0] for column in cursor.description]
@@ -55,40 +135,38 @@ class DatabaseFunctions:
 
         cursor.close()
         conn.close()
-
+        msg_state["status"] = StatusEnum.COMPLETE
         return results
 
 
-    def book_show(self, config: RunnableConfig, name: str, date: Optional[date], time: Optional[time], location: Optional[str]):
+    def book_show(self, config: RunnableConfig, msg_state: MessageState):
         user_id = config.get("user_id", None)
         if not user_id:
             raise ValueError("No user ID configured.")
-        
+        slot_list = msg_state["slots"]
+        # Populate the slots with verified values
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-
-        query = "SELECT * FROM show WHERE name = ?"
-        params = [name]
-
-        if date:
-            query += " AND date = ?"
-            params.append(date)
-        
-        if time:
-            query += " AND time = ?"
-            params.append(time)
-        
-        if location:
-            query += " AND location = ?"
-            params.append(location)
-
+        query = "SELECT * FROM show WHERE 1 = 1"
+        params = []
+        for slot in slot_list:
+            if slot["confirmed"]:
+                query += f" AND {slot['name']} = ?"
+                params.append(slot["slot_values"]["verified_value"])
+        # Execute the query
         cursor.execute(query, params)
         rows = cursor.fetchall()
+        # Check whether info is enough to book a show
         if len(rows) == 0:
-            raise ValueError("Show not found.")
+            cursor.close()
+            conn.close()
+            msg_state["status"] = StatusEnum.INCOMPLETE
+            return "Show is not found."
         elif len(rows) > 1:
-            raise ValueError("Multiple shows found. Please provide more details.")
-        
+            cursor.close()
+            conn.close()
+            msg_state["status"] = StatusEnum.INCOMPLETE
+            return "Multiple shows found."
         row = rows[0]
         show_id = row["id"]
         column_names = [column[0] for column in cursor.description]
@@ -102,11 +180,11 @@ class DatabaseFunctions:
 
         cursor.close()
         conn.close()
-
+        msg_state["status"] = StatusEnum.COMPLETE
         return result
 
 
-    def check_booking(self, config: RunnableConfig = None):
+    def check_booking(self, config: RunnableConfig):
         user_id = config.get("user_id", None)
         if not user_id:
             raise ValueError("No user ID configured.")
