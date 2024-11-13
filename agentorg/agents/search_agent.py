@@ -3,9 +3,9 @@ import logging
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from .agent import BaseAgent, register_agent
-from ..utils.graph_state import MessageState
-from .tools.RAG.utils import SearchEngine, ToolGenerator
+from agentorg.agents.agent import BaseAgent, register_agent
+from agentorg.utils.graph_state import MessageState
+from agentorg.agents.tools.RAG.utils import SearchEngine, ToolGenerator
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class SearchAgent(BaseAgent):
         # Add nodes for each agent
         search_engine = SearchEngine()
         workflow.add_node("search_engine", search_engine.search)
-        workflow.add_node("tool_generator", ToolGenerator.generate)
+        workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
         workflow.add_edge(START, "search_engine")
         workflow.add_edge("search_engine", "tool_generator")

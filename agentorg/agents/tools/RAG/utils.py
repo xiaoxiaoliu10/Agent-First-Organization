@@ -11,10 +11,10 @@ from langchain_community.vectorstores.faiss import FAISS
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.tools import TavilySearchResults
 
-from ...prompts import context_generator_prompt, retrieve_contextualize_q_prompt
-from ....utils.utils import chunk_string
-from ....utils.graph_state import MessageState
-from ....utils.model_config import MODEL
+from agentorg.agents.prompts import context_generator_prompt, retrieve_contextualize_q_prompt, generator_prompt
+from agentorg.utils.utils import chunk_string
+from agentorg.utils.graph_state import MessageState
+from agentorg.utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
@@ -86,11 +86,8 @@ class RetrieveEngine():
         docs = FaissRetriever.load_docs(database_path="./agentorg/agents/tools/RAG/data")
         retrieved_text = docs.search(user_message.history)
 
-        return {
-            "user_message": state["user_message"],
-            "orchestrator_message": state["orchestrator_message"],
-            "message_flow": retrieved_text
-        }
+        state["message_flow"] = retrieved_text
+        return state
 
 
 class SearchEngine():
@@ -119,16 +116,27 @@ class SearchEngine():
         ret_input = ret_input_chain.invoke({"chat_history": state["user_message"].history})
         logger.info(f"Reformulated input for search engine: {ret_input}")
         search_results = self.search_tool.invoke({"query": ret_input})
-        return {
-            "user_message": state["user_message"],
-            "orchestrator_message": state["orchestrator_message"],
-            "message_flow": self.process_search_result(search_results)
-        }
+        state["message_flow"] = self.process_search_result(search_results)
+        return state
     
 
 class ToolGenerator():
     @staticmethod
     def generate(state: MessageState):
+        user_message = state['user_message']
+        
+        llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        prompt = PromptTemplate.from_template(generator_prompt)
+        input_prompt = prompt.invoke({"question": user_message.message, "formatted_chat": user_message.history})
+        chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
+        final_chain = llm | StrOutputParser()
+        answer = final_chain.invoke(chunked_prompt)
+
+        state["message_flow"] = answer
+        return state
+
+    @staticmethod
+    def context_generate(state: MessageState):
         llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         # get the input message
         user_message = state['user_message']
@@ -141,9 +149,6 @@ class ToolGenerator():
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
+        state["message_flow"] = answer
 
-        return {
-            "user_message": user_message,
-            "orchestrator_message": state["orchestrator_message"],
-            "message_flow": answer
-        }
+        return state

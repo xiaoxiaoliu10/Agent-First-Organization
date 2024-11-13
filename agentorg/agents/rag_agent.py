@@ -3,9 +3,9 @@ import logging
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from .agent import BaseAgent, register_agent
-from ..utils.graph_state import MessageState
-from .tools.RAG.utils import RetrieveEngine, ToolGenerator
+from agentorg.agents.agent import BaseAgent, register_agent
+from agentorg.utils.graph_state import MessageState
+from agentorg.agents.tools.RAG.utils import RetrieveEngine, ToolGenerator
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class RAGAgent(BaseAgent):
         workflow = StateGraph(MessageState)
         # Add nodes for each agent
         workflow.add_node("retriever", RetrieveEngine.retrieve)
-        workflow.add_node("tool_generator", ToolGenerator.generate)
+        workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
         workflow.add_edge(START, "retriever")
         workflow.add_edge("retriever", "tool_generator")

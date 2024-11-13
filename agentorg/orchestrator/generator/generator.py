@@ -20,7 +20,6 @@ from textual.widgets.tree import TreeNode
 from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
 from agentorg.utils.loader import Loader
-import agentorg.agents
 from agentorg.agents.agent import AGENT_REGISTRY
 
 

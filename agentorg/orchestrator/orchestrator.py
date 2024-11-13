@@ -143,7 +143,7 @@ class AgentOrg(BaseBot):
         node_status = params.get("node_status", {})
         current_node = params.get("curr_node")
         node_status[current_node] = {
-            "status": agent_response.get("status", StatusEnum.COMPELETE),
+            "status": agent_response.get("status", StatusEnum.COMPLETE),
             "slots": agent_response.get("slots", [])
         }
 

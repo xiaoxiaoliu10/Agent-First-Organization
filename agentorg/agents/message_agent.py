@@ -5,11 +5,11 @@ from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
-from .agent import BaseAgent, register_agent
-from .prompts import message_generator_prompt
-from ..utils.utils import chunk_string
-from ..utils.graph_state import MessageState
-from ..utils.model_config import MODEL
+from agentorg.agents.agent import BaseAgent, register_agent
+from agentorg.agents.prompts import message_generator_prompt, message_flow_generator_prompt
+from agentorg.utils.utils import chunk_string
+from agentorg.utils.graph_state import MessageState
+from agentorg.utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class MessageAgent(BaseAgent):
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         self.action_graph = self._create_action_graph()
 
-    def generator(self, state: MessageState):
+    def generator(self, state: MessageState) -> MessageState:
         # get the input message
         user_message = state['user_message']
         orchestrator_message = state['orchestrator_message']
@@ -37,19 +37,20 @@ class MessageAgent(BaseAgent):
         direct_response = orch_msg_attr.get('direct_response', False)
         if direct_response:
             return orch_msg_content
+        
+        if message_flow:
+            prompt = PromptTemplate.from_template(message_flow_generator_prompt)
+            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
         else:
             prompt = PromptTemplate.from_template(message_generator_prompt)
-            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
+            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history})
         logger.info(f"Prompt: {input_prompt.text}")
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = self.llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
 
-        return {
-            "user_message": user_message,
-            "orchestrator_message": orchestrator_message,
-            "message_flow": answer
-        }
+        state["message_flow"] = answer
+        return state
 
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
