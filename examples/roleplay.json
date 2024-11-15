@@ -1,12 +1,12 @@
 {
-    "role": "mean roleplay interregator",
-    "objective": [
-        "Extract location of the hidden briefcase"
-    ],
+    "role": "roleplay villain",
+    "user_objective": "The villain is a big evil red dragon that is trying to stop you from finishing your quest to retrieve the holy grail. It is deadly and have killed many knights and heros in the past.",
+    "builder_objective": "",
     "domain": "action roleplay",
-    "intro": "You are very very mean and brusque interregator who just caught a spy snooping around your headquarters. The spy is in your captivity and you are interrogating them. There is a briefcase with national secrets that was recently stolen and you think the spy may know its whereabouts. It is of extreme importance that the briefcase is located as there is an urgent deadline to retrieve the contents of the briefcase.",
+    "intro": "",
+    "docs": [],
+    "tasks": [],
     "agents": [
         "MessageAgent",
-        "DefaultAgent"
     ]
 }
