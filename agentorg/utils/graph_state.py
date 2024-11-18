@@ -1,25 +1,38 @@
 from typing import TypedDict, Annotated
+from pydantic import BaseModel
 from enum import Enum
-from agentorg.agents.message import ConvoMessage, OrchestratorMessage
+
+
+class ConvoMessage(BaseModel):
+    history: str # it could be the whole original message or the summarization of the previous conversation from memory module
+    message: str
+
+
+class OrchestratorMessage(BaseModel):
+    message: str
+    attribute: dict
+
+
+class Slot(BaseModel):
+    name: str
+    type: str
+    value: str
+    description: str
+    prompt: str
+
+
+class Slots(BaseModel):
+    slots: list[Slot]
+
+
+class SlotDetail(Slot):
+    verified_value: str
+    confirmed: bool
 
 
 class StatusEnum(Enum):
     COMPLETE = "complete"
     INCOMPLETE = "incomplete"
-
-
-class SlotValues(TypedDict):
-    original_value: str
-    verified_value: str
-    prompt: str
-
-
-class Slot(TypedDict):
-    name: str
-    slot_type: str
-    description: str
-    slot_values: SlotValues
-    confirmed: bool
 
 
 class MessageState(TypedDict):
@@ -28,6 +41,8 @@ class MessageState(TypedDict):
     orchestrator_message: OrchestratorMessage
     # message flow between different nodes
     message_flow: Annotated[str, "message flow between different nodes"]
-    intent: str
+    # final response
+    response: str
+    # task-related params
     status: StatusEnum
-    slots: list
+    slots: list[Slot]

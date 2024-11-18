@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 @register_agent
 class RAGAgent(BaseAgent):
 
-    description = "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information"
+    description = "Answer the user's questions based on the company's internal documentations (unstructured text data), such as the policies, FAQs, and product information"
 
     def __init__(self):
         super().__init__()

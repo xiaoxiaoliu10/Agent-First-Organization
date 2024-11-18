@@ -12,6 +12,7 @@ from openai import OpenAI
 from fastapi import FastAPI, Response
 
 from agentorg.utils.utils import postprocess_json
+from agentorg.utils.graph_state import Slots
 
 
 logger = logging.getLogger(__name__)
@@ -130,24 +131,27 @@ class SlotFillOpenAIAPI:
     def get_response(self, sys_prompt, response_format="text", debug_text="none", params=default_model_params):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
-        completion = self.client.chat.completions.create(
-            model=params.get("model_type_or_path", "gpt-4"),
-            response_format={"type": "json_object"} if response_format=="json" else {"type": "text"},
+        completion = self.client.beta.chat.completions.parse(
+            # model=params.get("model_type_or_path", "gpt-4o-2024-08-06"),
+            model="gpt-4o-2024-08-06",
             messages=[dialog_history],
+            response_format=Slots,
             n=1,
             temperature = 0.7
         )
-        response = completion.choices[0].message.content
-        logger.info(f"response for {debug_text} is \n{response}")
-        return response
+        response = completion.choices[0].message
+        if (response.refusal):
+            return None
+        logger.info(f"response for {debug_text} is \n{response.parsed}")
+        return response.parsed
 
-    def format_input(self, slots: dict, chat_history_str) -> str:
+    def format_input(self, slots: Slots, chat_history_str) -> str:
         """Format input text before feeding it to the model."""
-        for slot, attr in slots.items():
-            if "value" not in attr:
-                attr["value"] = ""
+        # for slot, attr in slots.items():
+        #     if "value" not in attr:
+        #         attr["value"] = ""
 
-        system_prompt = f"Given the conversation, update the following dialogue states value. Return the updated dialogue states in JSON format.\nDialogue Statues:\n{slots}\nConversation:\n{chat_history_str}\n\nAnswer:"
+        system_prompt = f"Given the conversation and definition of dialog states definition, update the value of following dialogue states.\nDialogue Statues:\n{slots}\nConversation:\n{chat_history_str}\n\n"
         return system_prompt
 
     def predict(
@@ -160,12 +164,16 @@ class SlotFillOpenAIAPI:
         system_prompt = self.format_input(
             slots, chat_history_str
         )
+        print(system_prompt)
         response = self.get_response(
             system_prompt, debug_text="get slots"
         )
-        diagstates = postprocess_json(response)
-        logger.info(f"Updated dialogue states: {diagstates}")
-        return diagstates
+        if not response:
+            logger.info(f"Failed to update dialogue states")
+            return slots
+        # diagstates = postprocess_json(response)
+        logger.info(f"Updated dialogue states: {response}")
+        return response
 
 
 app = FastAPI()
@@ -187,4 +195,4 @@ def predict(data: dict, res: Response):
     pred_slots = slotfilling_openai.predict(**data)
 
     logger.info(f"pred_slots: {pred_slots}")
-    return {"slots": pred_slots}
+    return pred_slots

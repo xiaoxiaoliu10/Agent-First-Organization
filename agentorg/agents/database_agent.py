@@ -21,10 +21,9 @@ logger = logging.getLogger(__name__)
 @register_agent
 class DatabaseAgent(BaseAgent):
 
-    description = "Answer the user's questions based on search engine results"
+    description = "Help the user with actions related to customer support like a booking system with structured data, always involving search, insert, update, and delete operations."
 
     def __init__(self):
-        self.user_id = "user_be6e1836-8fe9-4938-b2d0-48f810648e72"
         self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         self.actions = {
             "SearchShow": "Search for shows", 
@@ -37,19 +36,19 @@ class DatabaseAgent(BaseAgent):
         self.action_graph = self._create_action_graph()
 
     def search_show(self, state: MessageState):
-        return self.DBActions.search_show(state, self.user_id)
+        return self.DBActions.search_show(state)
     
     def book_show(self, state: MessageState):
-        return self.DBActions.book_show(state, self.user_id)
+        return self.DBActions.book_show(state)
     
     def check_booking(self, state: MessageState):
-        return self.DBActions.check_booking(state, self.user_id)
+        return self.DBActions.check_booking(state)
     
     def cancel_booking(self, state: MessageState):
-        return self.DBActions.cancel_booking(state, self.user_id)
+        return self.DBActions.cancel_booking(state)
 
     def verify_action(self, msg_state: MessageState):
-        user_intent = msg_state["intent"]
+        user_intent = msg_state["orchestrator_message"].attribute.get("task", "")
         actions_info = "\n".join([f"{name}: {description}" for name, description in self.actions.items()])
         actions_name = ", ".join(self.actions.keys())
 
@@ -83,8 +82,8 @@ class DatabaseAgent(BaseAgent):
         return workflow
 
     def execute(self, msg_state: MessageState):
-        config = {"user_id": self.user_id}
+        self.DBActions.log_in()
         self.DBActions.init_slots(msg_state["slots"])
         graph = self.action_graph.compile()
-        result = graph.invoke(msg_state, config=config)
+        result = graph.invoke(msg_state)
         return result

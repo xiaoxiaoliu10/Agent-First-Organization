@@ -15,7 +15,7 @@ from openai import OpenAI
 from agentorg.orchestrator.base import BaseBot
 from agentorg.orchestrator.task_graph import TaskGraph
 from agentorg.agents.agent import AGENT_REGISTRY
-from agentorg.agents.message import ConvoMessage, OrchestratorMessage
+from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import check_phone_validation, check_email_validation, possible_email
 from agentorg.orchestrator.NLU.nlu import NLU
 from agentorg.utils.graph_state import MessageState, StatusEnum
@@ -134,12 +134,12 @@ class AgentOrg(BaseBot):
         #### Agent execution
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
-        message_state = MessageState(user_message=user_message, orchestrator_message=orchestrator_message, message_flow="")
+        message_state = MessageState(user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("agent_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
         agent = AGENT_REGISTRY[node_info["name"]]()
         agent_response = agent.execute(message_state)
         params["agent_response"] = agent_response
 
-        return_answer = agent_response["message_flow"]
+        return_answer = agent_response.get("response", "")
         node_status = params.get("node_status", {})
         current_node = params.get("curr_node")
         node_status[current_node] = {
@@ -153,5 +153,11 @@ class AgentOrg(BaseBot):
             "answer": return_answer,
             "parameters": params
         }
+
+        # if there is a message flow, use the message agent to generate the response
+        message_flow = params.get("agent_response", {}).get("message_flow")
+        if message_flow:
+            logger.info(f"Skip current response due to message flow: {message_flow}")
+            output = self.get_response({"text": text, 'chat_history': chat_history, 'parameters': params})
 
         return output

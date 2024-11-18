@@ -39,7 +39,7 @@ Thumbs.db
 
 # local database #
 ######################
-agentorg/agents/tools/RAG/data/
+agentorg/data
 
 # local env #
 ######################

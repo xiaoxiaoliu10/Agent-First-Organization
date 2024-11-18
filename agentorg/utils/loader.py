@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import networkx as nx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 
 
 # Configure logging
@@ -215,6 +216,7 @@ class Loader:
     def chunk(cls, url_objs: List[CrawledURLObject]) -> List[CrawledURLObject]:
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(encoding_name="cl100k_base", chunk_size=200, chunk_overlap=40)
         docs = []
+        langchain_docs = []
         for url_obj in url_objs:
             if url_obj.is_error or url_obj.content is None:
                 logger.info(f"Skip url: {url_obj.url} because of error or no content")
@@ -233,14 +235,15 @@ class Loader:
                     is_chunk=True,
                 )
                 docs.append(doc)
-        return docs
+                langchain_docs.append(Document(page_content=txt, metadata={"source": url_obj.url}))
+        return langchain_docs
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--base_url", required=True, type=str, help="base url to crawl")
-    parser.add_argument("--folder_path", required=True, type=str, help="location to save the documents")
+    parser.add_argument("--folder_path", default="./agentorg/data", type=str, help="location to save the documents")
     parser.add_argument("--max_num", type=int, default=10, help="maximum number of urls to crawl")
     parser.add_argument("--top_k", type=int, help="top k websites to return based on pagerank")
     parser.add_argument("--get_chunk", type=bool, default=False, help="whether get chunk of the content")

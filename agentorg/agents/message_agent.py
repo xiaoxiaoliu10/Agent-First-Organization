@@ -49,7 +49,8 @@ class MessageAgent(BaseAgent):
         final_chain = self.llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
 
-        state["message_flow"] = answer
+        state["message_flow"] = ""
+        state["response"] = answer
         return state
 
     def _create_action_graph(self):
@@ -64,11 +65,3 @@ class MessageAgent(BaseAgent):
         graph = self.action_graph.compile()
         result = graph.invoke(msg_state)
         return result
-
-
-# if __name__ == "__main__":
-#     user_message = ConvoMessage(history="", message="How can you help me?")
-#     orchestrator_message = OrchestratorMessage(message="What is your name?", attribute={"direct_response": False})
-#     agent = MessageAgent(user_message=user_message, orchestrator_message=orchestrator_message)
-#     result = agent.execute()
-#     print(result)

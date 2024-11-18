@@ -62,7 +62,7 @@ class FaissRetriever:
 
     @staticmethod
     def load_docs(database_path: str, embeddings: str=None, index_path: str="./index"):
-        document_path = os.path.join(database_path, "documents.pkl")
+        document_path = os.path.join(database_path, "chunked_documents.pkl")
         index_path = os.path.join(database_path, "index")
         logger.info(f"Loaded documents from {document_path}")
         with open(document_path, 'rb') as fread:
@@ -83,7 +83,7 @@ class RetrieveEngine():
         user_message = state['user_message']
 
         # Search for the relevant documents
-        docs = FaissRetriever.load_docs(database_path="./agentorg/agents/tools/RAG/data")
+        docs = FaissRetriever.load_docs(database_path="./agentorg/data")
         retrieved_text = docs.search(user_message.history)
 
         state["message_flow"] = retrieved_text
@@ -132,7 +132,7 @@ class ToolGenerator():
         final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
 
-        state["message_flow"] = answer
+        state["response"] = answer
         return state
 
     @staticmethod
@@ -149,6 +149,7 @@ class ToolGenerator():
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
-        state["message_flow"] = answer
+        state["message_flow"] = ""
+        state["response"] = answer
 
         return state
