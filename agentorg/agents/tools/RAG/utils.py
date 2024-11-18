@@ -8,7 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from langchain_community.vectorstores.faiss import FAISS
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.tools import TavilySearchResults
 
 from agentorg.agents.prompts import context_generator_prompt, retrieve_contextualize_q_prompt, generator_prompt
@@ -71,7 +71,6 @@ class FaissRetriever:
 
         return FaissRetriever(
             texts=documents,
-            embedding_model_name=embeddings,
             index_path=index_path
         )
     
@@ -127,7 +126,7 @@ class ToolGenerator():
         
         llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         prompt = PromptTemplate.from_template(generator_prompt)
-        input_prompt = prompt.invoke({"question": user_message.message, "formatted_chat": user_message.history})
+        input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "question": user_message.message, "formatted_chat": user_message.history})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
@@ -145,7 +144,7 @@ class ToolGenerator():
         
         # generate answer based on the retrieved texts
         prompt = PromptTemplate.from_template(context_generator_prompt)
-        input_prompt = prompt.invoke({"question": user_message.message, "formatted_chat": user_message.history, "context": message_flow})
+        input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "question": user_message.message, "formatted_chat": user_message.history, "context": message_flow})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)

@@ -7,7 +7,7 @@ import subprocess
 import signal
 import atexit
 
-from langchain_openai.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg

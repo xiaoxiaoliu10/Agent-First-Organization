@@ -164,7 +164,6 @@ class SlotFillOpenAIAPI:
         system_prompt = self.format_input(
             slots, chat_history_str
         )
-        print(system_prompt)
         response = self.get_response(
             system_prompt, debug_text="get slots"
         )

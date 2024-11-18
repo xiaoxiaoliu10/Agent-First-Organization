@@ -10,9 +10,11 @@ from agentorg.agents.agent import BaseAgent, register_agent
 from agentorg.agents.prompts import database_action_prompt
 from agentorg.agents.tools.RAG.utils import ToolGenerator
 from agentorg.agents.tools.database.utils import DatabaseActions
+from agentorg.agents.message_agent import MessageAgent
 from agentorg.utils.utils import chunk_string
-from agentorg.utils.graph_state import MessageState
+from agentorg.utils.graph_state import MessageState, StatusEnum
 from agentorg.utils.model_config import MODEL
+
 
 
 logger = logging.getLogger(__name__)
@@ -69,16 +71,28 @@ class DatabaseAgent(BaseAgent):
             logger.error(f"Error occurred while choosing action in the database agent: {e}")
             return "Others"
         
+    def check_task_status(self, state: MessageState):
+        task_status = state.get("status", StatusEnum.COMPLETE)
+        if task_status == StatusEnum.COMPLETE:
+            return END
+        logger.info("Task is not complete, responded by MessageAgent with message flow")
+        return "message_agent"
+        
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
+        msg_agt = MessageAgent()
         # Add nodes for each agent
         workflow.add_node("SearchShow", self.search_show)
         workflow.add_node("BookShow", self.book_show)
         workflow.add_node("CheckBooking", self.check_booking)
         workflow.add_node("CancelBooking", self.cancel_booking)
         workflow.add_node("Others", ToolGenerator.generate)
-        # Add edges
+        workflow.add_node("message_agent", msg_agt.execute)
         workflow.add_conditional_edges(START, self.verify_action)
+        workflow.add_conditional_edges("SearchShow", self.check_task_status)
+        workflow.add_conditional_edges("BookShow", self.check_task_status)
+        workflow.add_conditional_edges("CheckBooking", self.check_task_status)
+        workflow.add_conditional_edges("CancelBooking", self.check_task_status)
         return workflow
 
     def execute(self, msg_state: MessageState):

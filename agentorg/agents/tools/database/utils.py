@@ -52,6 +52,9 @@ SLOTS = [
     }
 ]
 
+NO_SHOW_MESSAGE = "Show is not found. Please check whether the information is correct."
+MULTIPLE_SHOWS_MESSAGE = "There are multiple shows found. Please provide more details."
+
 
 class DatabaseActions:
     def __init__(self, db_path=DB_PATH, user_id: str=USER_ID):
@@ -84,12 +87,6 @@ class DatabaseActions:
         conn.close()
 
     def verify_slot(self, slot: Slot, value_list: list) -> Slot:
-        # if slot["confirmed"]:
-        #     logger.info(f"Slot {slot['name']} already confirmed")
-        #     return slot
-        # if slot["slot_values"]["original_value"] is None:
-        #     logger.info(f"Slot {slot['name']} has no original value")
-        #     return slot
         slot_detail = SlotDetail(**slot, verified_value="", confirmed=False)
         prompt = PromptTemplate.from_template(database_slot_prompt)
         input_prompt = prompt.invoke({
@@ -117,12 +114,13 @@ class DatabaseActions:
         # Populate the slots with verified values
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        query = "SELECT * FROM show WHERE 1 = 1"
+        query = "SELECT show_name, date, time, description, location, price FROM show WHERE 1 = 1"
         params = []
         for slot in self.slots:
             if slot.confirmed:
                 query += f" AND {slot.name} = ?"
                 params.append(slot.verified_value)
+        query += " LIMIT 10"
         # Execute the query
         cursor.execute(query, params)
         rows = cursor.fetchall()
@@ -130,27 +128,21 @@ class DatabaseActions:
         conn.close()
         if len(rows) == 0:
             msg_state["status"] = StatusEnum.INCOMPLETE
-            msg_state["response"] = "Show is not found. Please check whether the information is correct."
+            msg_state["message_flow"] = NO_SHOW_MESSAGE
         else:
             column_names = [column[0] for column in cursor.description]
             results = [dict(zip(column_names, row)) for row in rows]
             results_df = pd.DataFrame(results)
-            # prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please provide the user with available shows below.\n{context}")
-            # input_prompt = prompt.invoke({"context": results_df})
-            # chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-            # logger.info(f"Chunked prompt for DB agent search function: {chunked_prompt}")
-            # final_chain = self.llm | StrOutputParser()
-            # answer = final_chain.invoke(chunked_prompt)
             msg_state["status"] = StatusEnum.COMPLETE
-            # msg_state["message_flow"] = answer
             msg_state["message_flow"] = "Available shows are:\n" + results_df.to_string(index=False)
         return msg_state
 
     def book_show(self, msg_state: MessageState) -> MessageState:
         # Populate the slots with verified values
+        logger.info("Enter book show function")
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        query = "SELECT * FROM show WHERE 1 = 1"
+        query = "SELECT id, show_name, date, time, description, location, price FROM show WHERE 1 = 1"
         params = []
         for slot in self.slots:
             if slot.confirmed:
@@ -159,13 +151,14 @@ class DatabaseActions:
         # Execute the query
         cursor.execute(query, params)
         rows = cursor.fetchall()
+        logger.info(f"Rows found: {len(rows)}")
         # Check whether info is enough to book a show
         if len(rows) == 0:
             msg_state["status"] = StatusEnum.INCOMPLETE
-            msg_state["response"] = "Show is not found. Please check whether the information is correct."
+            msg_state["message_flow"] = NO_SHOW_MESSAGE
         elif len(rows) > 1:
             msg_state["status"] = StatusEnum.INCOMPLETE
-            msg_state["response"] = "Multiple shows booked. Please provide more details."
+            msg_state["message_flow"] = MULTIPLE_SHOWS_MESSAGE
         else:
             column_names = [column[0] for column in cursor.description]
             results = dict(zip(column_names, rows[0]))
@@ -178,14 +171,8 @@ class DatabaseActions:
             ''', ("booking_" + str(uuid.uuid4()),  show_id, self.user_id, datetime.now()))
 
             results_df = pd.DataFrame([results])
-            # prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please tell the user that he/she just successfully booked the show below.\n{context}")
-            # input_prompt = prompt.invoke({"context": results_df})
-            # chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-            # logger.info(f"Chunked prompt for DB agent booking function: {chunked_prompt}")
-            # final_chain = self.llm | StrOutputParser()
-            # answer = final_chain.invoke(chunked_prompt)
             msg_state["status"] = StatusEnum.COMPLETE
-            msg_state["message_flow"] = "The booked show is:\n" + results_df
+            msg_state["message_flow"] = "The booked show is:\n" + results_df.to_string(index=False)
         cursor.close()
         conn.close()
         return msg_state
@@ -267,7 +254,3 @@ class DatabaseActions:
         connection.close()
 
         return msg_state
-
-
-# dbf = DatabaseActions()
-# print(dbf.temp_search_show())

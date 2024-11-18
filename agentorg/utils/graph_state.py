@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from enum import Enum
 
 
+### Message-related classes
+
 class ConvoMessage(BaseModel):
     history: str # it could be the whole original message or the summarization of the previous conversation from memory module
     message: str
@@ -12,6 +14,8 @@ class OrchestratorMessage(BaseModel):
     message: str
     attribute: dict
 
+
+### Slot-related classes
 
 class Slot(BaseModel):
     name: str
@@ -30,12 +34,16 @@ class SlotDetail(Slot):
     confirmed: bool
 
 
+### Task status-related classes
+
 class StatusEnum(Enum):
     COMPLETE = "complete"
     INCOMPLETE = "incomplete"
 
 
 class MessageState(TypedDict):
+    # system configuration
+    sys_instruct: str
     # input message
     user_message: ConvoMessage
     orchestrator_message: OrchestratorMessage

@@ -29,7 +29,7 @@ class MessageAgent(BaseAgent):
         # get the input message
         user_message = state['user_message']
         orchestrator_message = state['orchestrator_message']
-        message_flow = state['message_flow']
+        message_flow = state.get('response', "") + "\n" + state.get("message_flow", "")
 
         # get the orchestrator message content
         orch_msg_content = orchestrator_message.message
@@ -38,12 +38,12 @@ class MessageAgent(BaseAgent):
         if direct_response:
             return orch_msg_content
         
-        if message_flow:
+        if message_flow and message_flow != "\n":
             prompt = PromptTemplate.from_template(message_flow_generator_prompt)
-            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
+            input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
         else:
             prompt = PromptTemplate.from_template(message_generator_prompt)
-            input_prompt = prompt.invoke({"message": orch_msg_content, "formatted_chat": user_message.history})
+            input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history})
         logger.info(f"Prompt: {input_prompt.text}")
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = self.llm | StrOutputParser()

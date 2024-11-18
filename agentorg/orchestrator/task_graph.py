@@ -5,7 +5,7 @@ import json
 
 import networkx as nx
 import numpy as np
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
 import agentorg.agents
@@ -453,7 +453,6 @@ class TaskGraph(TaskGraphBase):
         dialog_states = params.get("dialog_states", [])
         if not dialog_states:
             dialog_states = SLOTS
-        print(dialog_states)
         node_attr = node_info["attribute"]
         # if node_attr.get("slots", []):
         #     for slot in node_attr["slots"]:
