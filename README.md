@@ -1,7 +1,7 @@
 ## How to start?
 1. Install the dependencies by running `pip install -r requirements.txt`
 2. Build databases
-    * Run `python -m agentorg.utils.loader --base_url="https://irishrep.org/" --folder_path="./agentorg/data" --get_chunk=True` to crawl web contents as the retriever database. For other args usage, please refer to `agentorg/utils/loader.py`.
+    * Run `python -m agentorg.utils.loader --base_url="https://example.com" --folder_path="./agentorg/data" --get_chunk=True` to crawl web contents as the retriever database. For other args usage, please refer to `agentorg/utils/loader.py`.
     * Run `python -m agentorg.agents.tools.database.build_database --folder_path="./agentorg/data"` to load the sample SQLite database.
 3. Create a config file, similar to the `project/AgentOrg/agentorg/orchestrator/examples/customer_service_config.json`
     * The config file should contain the following fields:
