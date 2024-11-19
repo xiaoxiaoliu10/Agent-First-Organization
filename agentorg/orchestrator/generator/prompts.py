@@ -1,8 +1,8 @@
-generate_tasks_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the builder's description of the assistant, along with any introductory information and detailed documentation (if available), your task is to identify the specific tasks this assistant needs to handle according to the user's intent. Return the response in JSON format.
+generate_tasks_sys_prompt = """The builder plans to create a chatbot designed to fulfill user's objectives. Given the role of the chatbot, along with any introductory information and detailed documentation (if available), your task is to identify the specific tasks this chatbot needs to handle according to the user's intent. Return the response in JSON format.
 
 For Example:
 
-Builder's prompt: The builder want to create an assistant - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
+Builder's prompt: The builder want to create a chatbot - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
 Builder's Information: Amazon.com is a large e-commerce platform that sells a wide variety of products, ranging from electronics to groceries.
 Builder's documentations: 
 https://www.amazon.com/
@@ -85,33 +85,33 @@ Answer:
 ```json
 [
     {{
-        "intent": "product_search_and_discovery",
+        "intent": "User want to do product search and discovery",
         "task": "Provide help in Product Search and Discovery"
     }},
     {{
-        "intent": "product_inquiry",
+        "intent": "User has product inquiry",
         "task": "Provide help in product inquiry"
     }},
     {{
-        "intent": "product_comparison",
+        "intent": "User want to compare different products",
         "task": "Provide help in product comparison"
     }},
     {{
-        "intent": "billing_and_payment_support",
+        "intent": "User ask for billing and payment support",
         "task": "Provide help in billing and payment support"
     }},
     {{
-        "intent": "order_management",
+        "intent": "User want to manage orders",
         "task": "Provide help in order management"
     }},
     {{
-        "intent": "returns_and_exchanges",
+        "intent": "User has request in returns and exchanges",
         "task": "Provide help in Returns and Exchanges"
     }}
 ]
 ```
 
-Builder's prompt: The builder want to create an assistant - {role}. {u_objective}
+Builder's prompt: The builder want to create a chatbot - {role}. {u_objective}
 Builder's information: {intro}
 Builder's documentations: 
 {docs}
@@ -124,12 +124,11 @@ check_best_practice_sys_prompt = """You are a userful assistance to detect if th
 Here are some examples:
 Task: The current task is Provide help in Product Search and Discovery. The current node level of the task is 1. 
 Resources: 
-{{
-    "MessageAgent": "The agent responsible for interacting with the user with predefined responses",
-    "RAGAgent": "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information",
-    "ProductAgent": "Access the company's database to retrieve information about products, such as availability, pricing, and specifications",
-    "UserProfileAgent": "Access the company's database to retrieve information about the user's preferences and history"
-}}
+MessageAgent: The agent responsible for interacting with the user with predefined responses,
+RAGAgent: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information,
+ProductAgent: Access the company's database to retrieve information about products, such as availability, pricing, and specifications,
+UserProfileAgent: Access the company's database to retrieve information about the user's preferences and history
+
 Reasoning: This task is a high-level task that involves multiple sub-tasks such as asking for user's preference, providing product recommendations, answering questions about product or policy, and confirming user selections. Each sub-task requires different agent to complete. It will use MessageAgent to ask user's preference, then use ProductAgent to search for the product, finally make use of RAGAgent to answer user's question. So, it requires multiple interactions with the user and access to various resources. Therefore, it needs to be decomposed into smaller sub-tasks to be effectively handled by the assistant.
 Answer: 
 ```json
@@ -140,12 +139,11 @@ Answer:
 
 Task: The current task is booking a broadway show ticket. The current node level of the task is 1.
 Resources:
-{{
-    "DatabaseAgent": "Access the company's database to retrieve information about ticket availability, pricing, and seating options. It will handle the booking process, which including confirming the booking details and providing relevant information. It can also handle the cancel process.",
-    "MessageAgent": "The agent responsible for interacting with the user with predefined responses",
-    "RAGAgent": "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information"
-}}
-Reasoning: This task involves a single high-level action of booking a ticket for a broadway show. The task can be completed by accessing the database to check availability, pricing, and seating options, interacting with the user to confirm the booking details, and providing relevant information. Since it is a singular task that can be handled by the available resources without further decomposition, the answer is No.
+DatabaseAgent: Access the company's database to retrieve information about ticket availability, pricing, and seating options. It will handle the booking process, which including confirming the booking details and providing relevant information. It can also handle the cancel process.
+MessageAgent: The agent responsible for interacting with the user with predefined responses,
+RAGAgent: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information.
+
+Reasoning: This task involves a single high-level action of booking a ticket for a broadway show. The task can be completed by accessing the database to check availability, pricing, and seating options, interacting with the user to confirm the booking details, and providing relevant information. Since it is a singular task that can be handled by the single resource without further decomposition, the answer is No.
 Answer: 
 ```json
 {{
@@ -159,10 +157,19 @@ Reasoning:
 """
 
 
-generate_best_practice_sys_prompt = """Given the task that the assistant needs to handle, your task is to generate a step-by-step best practice for addressing this task. Each step should represent a clear interaction with the user. Return the answer in JSON format.
+generate_best_practice_sys_prompt = """Given the background information of the chatbot that builder want to have and the task that it needs to handle, and the builder's available resources to support your decision. Your task is to generate a step-by-step best practice for addressing this task. Each step should represent a clear interaction with the user. Return the answer in JSON format.
 
 For example:
+Background: The builder want to create a chatbot - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
+
 Task: Provide help in Product Search and Discovery
+
+Resources:
+MessageAgent: The agent responsible for interacting with the user with predefined responses,
+RAGAgent: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information,
+ProductAgent: Access the company's database to retrieve information about products, such as availability, pricing, and specifications,
+UserProfileAgent: Access the company's database to retrieve information about the user's preferences and history.
+
 Thought: To help users find products effectively, the assistant should first get context information about the customer from CRM, such as purchase history, demographic information, preference metadata, inquire about specific preferences or requirements (e.g., brand, features, price range) specific for the request. Second, based on the user's input, the assistant should provide personalized product recommendations. Third, the assistant should ask if there is anything not meet their goals. Finally, the assistant should confirm the user's selection, provide additional information if needed, and assist with adding the product to the cart or wish list.
 Answer:
 ```json
@@ -190,7 +197,9 @@ Answer:
 ]
 ```
 
+Background: The builder want to create a chatbot - {role}. {u_objective}
 Task: {task}
+Resources: {resources}
 Thought:
 """
 
@@ -269,4 +278,21 @@ Best Practice: {best_practice}
 Resources: {resources}
 Build's objective: {b_objective}
 Answer:
+"""
+
+
+generate_start_msg = """The builder plans to create a chatbot designed to fulfill user's objectives. Given the role of the chatbot, your task is to generate a starting message for the chatbot. Return the response in JSON format.
+
+For Example:
+
+Builder's prompt: The builder want to create a chatbot - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
+Start Message:
+```json
+{{
+    "message": "Welcome to our Customer Service Assistant! How can I help you today?"
+}}
+```
+
+Builder's prompt: The builder want to create a chatbot - {role}. {u_objective}
+Start Message:
 """

@@ -184,7 +184,7 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"_switch_pred_intent function: curr_pred_intent: {curr_pred_intent}")
         logger.info(f"_switch_pred_intent function: avail_pred_intents: {other_pred_intents}")
 
-        prompt = f"The assistant is currently working on the task: {curr_pred_intent}\nOther available tasks are: {other_pred_intents}\nAccording to the conversation, decide whether the user wants to stop the current task and switch to another one.\nConversation:\n{self.chat_history_str}\n\The response should only be yes or no."
+        prompt = f"The assistant is currently working on the task: {curr_pred_intent}\nOther available tasks are: {other_pred_intents}\nAccording to the conversation, decide whether the user wants to stop the current task and switch to another one.\nConversation:\n{self.chat_history_str}\n\nThe response should only be yes or no."
         llm = ChatOpenAI(model="gpt-4o", timeout=30000)
         final_chain = llm | StrOutputParser()
         response = final_chain.invoke(prompt)        

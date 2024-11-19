@@ -88,10 +88,10 @@ if __name__ == "__main__":
     
     if args.type == "novice":
         model = ChatOpenAI(model="gpt-4o", timeout=30000)
-        generator = Generator(args.config, model, args.output_dir)
-        args.taskgraph_config = generator.generate()
+        generator = Generator(args, args.config, model, args.output_dir)
+        args.config_taskgraph = generator.generate()
         # Initialize NLU and Slotfill APIs
-        start_apis(args.taskgraph_config)
+        start_apis(args.config_taskgraph)
         
     history = []
     params = {}

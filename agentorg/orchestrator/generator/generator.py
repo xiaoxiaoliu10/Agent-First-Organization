@@ -1,11 +1,13 @@
 import os
 import json
+import argparse
 import logging
 from datetime import datetime
 from tqdm import tqdm as progress_bar
 import subprocess
 import pickle
 from pathlib import Path
+import inspect
 
 from langchain.prompts import PromptTemplate
 from langchain_openai.chat_models import ChatOpenAI
@@ -159,7 +161,8 @@ class TaskEditorApp(App):
 
 
 class Generator:
-    def __init__(self, config, model, output_dir):
+    def __init__(self, args, config, model, output_dir):
+        self.args = args
         self.product_kwargs = json.load(open(config))
         self.role = self.product_kwargs.get("role")
         self.u_objective = self.product_kwargs.get("user_objective")
@@ -195,15 +198,28 @@ class Generator:
         # Best practice detection
         resources = {}
         for agent_name in self.agents:
-            agent_desp = AGENT_REGISTRY.get(agent_name).description
-            resources[agent_name] = agent_desp
+            agent = AGENT_REGISTRY.get(agent_name)
+            if not agent:
+                logger.error(f"Agent {agent_name} is not registered in the AGENT_REGISTRY")
+                continue
+            skeleton = {}
+            # Retrieve all methods of the class
+            for name, method in inspect.getmembers(agent, predicate=inspect.isfunction):
+                signature = inspect.signature(method)
+                skeleton[name] = str(signature)
+            agent_resource = "The class skeleton of the agent is as follow: \n" + "\n".join([f"{name}{parameters}" for name, parameters in skeleton.items()])
+            logger.debug(f"Code skeleton of the agent: {agent_resource}")
+            
+            resources[agent_name] = agent_resource
+        resources_str = "\n".join([f"{name}: {desp}" for name, desp in resources.items()])
         prompt = PromptTemplate.from_template(check_best_practice_sys_prompt)
-        input_prompt = prompt.invoke({"task": task["task"], "level": "1", "resources": resources})
+        input_prompt = prompt.invoke({"task": task["task"], "level": "1", "resources": resources_str})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
+        logger.info(f"Best practice detection: {answer}")
         answer = postprocess_json(answer)
-        logger.debug(f"Best practice detection: {answer}")
-        if answer["answer"].lower() == "no":
+        
+        if not answer or answer["answer"].lower() == "no":
             best_practice = [
                 {
                     "step": 1,
@@ -214,7 +230,7 @@ class Generator:
         
         # Best practice suggestion
         prompt = PromptTemplate.from_template(generate_best_practice_sys_prompt)
-        input_prompt = prompt.invoke({"task": task["task"]})
+        input_prompt = prompt.invoke({"role": self.role, "u_objective": self.u_objective, "task": task["task"], "resources": resources_str})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         logger.debug(f"Generated best practice with thought: {answer}")
@@ -225,6 +241,9 @@ class Generator:
         prompt = PromptTemplate.from_template(finetune_best_practice_sys_prompt)
         resources = {}
         for agent_name in self.agents:
+            if not AGENT_REGISTRY.get(agent_name):
+                logger.error(f"Agent {agent_name} is not registered in the AGENT_REGISTRY")
+                continue
             agent_desp = AGENT_REGISTRY.get(agent_name).description
             resources[agent_name] = agent_desp
         input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "b_objective": self.b_objective})
@@ -285,11 +304,17 @@ class Generator:
         # Add the start node
         start_node = []
         start_node.append("0")
+        # generate the start message
+        prompt = PromptTemplate.from_template(generate_start_msg)
+        input_prompt = prompt.invoke({"role": self.role, "u_objective": self.u_objective})
+        final_chain = self.model | StrOutputParser()
+        answer = final_chain.invoke(input_prompt)
+        start_msg = postprocess_json(answer)
         start_node.append({
             "name": "MessageAgent",
             "attribute": {
-                "value": "Hello! How can I help you today?",
-                "task": "Greetings",
+                "value": start_msg['message'],
+                "task": "start message",
                 "directed": False
             },
             "limit": 1,
@@ -301,24 +326,30 @@ class Generator:
             "nodes": nodes,
             "edges": edges
         }
-        return task_graph
+        for key, value in self.product_kwargs.items():
+            task_graph[key] = value
 
-    def generate(self):
-        # Step 0: Load the docs
+        return task_graph
+    
+    def _load_docs(self):
         if self.docs:
             filepath = os.path.join(self.output_dir, "documents.pkl")
-            source = self.docs.get("source")
-            num_docs = self.docs.get("num")
+            total_num_docs = sum([doc.get("num") for doc in self.docs])
             loader = Loader()
             if Path(filepath).exists():
                 logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
                 crawled_urls = pickle.load(open(os.path.join(self.output_dir, "documents.pkl"), "rb"))
             else:
-                urls = loader.get_all_urls(source, num_docs)
-                crawled_urls = loader.to_crawled_obj(urls)
-                Loader.save(filepath, crawled_urls)
-            if num_docs > 50:
-                limit = num_docs // 5
+                crawled_urls_full = []
+                for doc in self.docs:
+                    source = doc.get("source")
+                    num_docs = doc.get("num")
+                    urls = loader.get_all_urls(source, num_docs)
+                    crawled_urls = loader.to_crawled_obj(urls)
+                    crawled_urls_full.extend(crawled_urls)
+                Loader.save(filepath, crawled_urls_full)
+            if total_num_docs > 50:
+                limit = total_num_docs // 5
             else:
                 limit = 10
             crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
@@ -327,6 +358,11 @@ class Generator:
         else:
             self.documents = ""
 
+
+    def generate(self):
+        # Step 0: Load the docs
+        self._load_docs()
+        
         # Step 1: Generate the tasks
         if not self.tasks:
             self._generate_tasks()
@@ -346,8 +382,13 @@ class Generator:
         # Step 3: iterate with user
         format_tasks = []
         for best_practice, task in zip(best_practices, self.tasks):
-            task_name = task['task']
-            steps = [bp["task"] for bp in best_practice]
+            try:
+                task_name = task['task']
+                steps = [bp["task"] for bp in best_practice]
+            except Exception as e:
+                logger.error(f"Error in format task {task}")
+                logger.error(e)
+                continue
             format_tasks.append({"task_name": task_name, "steps": steps})
         app = TaskEditorApp(format_tasks)
         hitl_result = app.run()

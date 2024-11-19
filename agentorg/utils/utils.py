@@ -64,7 +64,7 @@ def str_similarity(string1, string2):
 
 def possible_email(text):
 	possible_domain = ["gmail", "hotmail", "yahoo", "outlook", "icloud", "365", "163", "126"]
-	pattern = '[\w\.-]+@'
+	pattern = r'[\w\.-]+@'
 	if re.search(pattern, text):
 		return True
 	if any(domain in text for domain in possible_domain):
@@ -122,5 +122,5 @@ def postprocess_json(raw_code):
 		logger.error(f"Error decoding generated JSON - {generated_result}")
 		logger.error(f"raw result: {raw_code}")
 		logger.error(f"Error: {e}")
-		return None
+		result = None
 	return result

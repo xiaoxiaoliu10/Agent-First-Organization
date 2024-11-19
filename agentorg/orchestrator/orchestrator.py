@@ -134,7 +134,8 @@ class AgentOrg(BaseBot):
         #### Agent execution
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
-        message_state = MessageState(sys_instruct="You are a customer service assistant", user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("agent_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
+        sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"]
+        message_state = MessageState(sys_instruct=sys_instruct, user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("agent_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
         agent = AGENT_REGISTRY[node_info["name"]]()
         agent_response = agent.execute(message_state)
         params["agent_response"] = agent_response
