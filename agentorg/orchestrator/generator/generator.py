@@ -202,16 +202,18 @@ class Generator:
             if not agent:
                 logger.error(f"Agent {agent_name} is not registered in the AGENT_REGISTRY")
                 continue
-            skeleton = {}
+            agent_desp = AGENT_REGISTRY.get(agent_name).description
             # Retrieve all methods of the class
+            skeleton = {}
             for name, method in inspect.getmembers(agent, predicate=inspect.isfunction):
                 signature = inspect.signature(method)
                 skeleton[name] = str(signature)
-            agent_resource = "The class skeleton of the agent is as follow: \n" + "\n".join([f"{name}{parameters}" for name, parameters in skeleton.items()])
+            agent_resource = agent_desp + "\n"
+            agent_resource += "The class skeleton of the agent is as follow: \n" + "\n".join([f"{name}{parameters}" for name, parameters in skeleton.items()]) + "\n\n"
             logger.debug(f"Code skeleton of the agent: {agent_resource}")
             
             resources[agent_name] = agent_resource
-        resources_str = "\n".join([f"{name}: {desp}" for name, desp in resources.items()])
+        resources_str = "\n".join([f"{name}\n: {desp}" for name, desp in resources.items()])
         prompt = PromptTemplate.from_template(check_best_practice_sys_prompt)
         input_prompt = prompt.invoke({"task": task["task"], "level": "1", "resources": resources_str})
         final_chain = self.model | StrOutputParser()
@@ -237,8 +239,14 @@ class Generator:
         return postprocess_json(answer)
     
     def _finetune_best_practice(self, best_practice):
-        # based on the best practice
-        prompt = PromptTemplate.from_template(finetune_best_practice_sys_prompt)
+        # embed build's objective
+        if not self.b_objective:
+            prompt = PromptTemplate.from_template(embed_builder_obj_sys_prompt)
+            input_prompt = prompt.invoke({"best_practice": best_practice, "b_objective": self.b_objective})
+            final_chain = self.model | StrOutputParser()
+            best_practice = postprocess_json(final_chain.invoke(input_prompt))
+        # mapping resources to the best practice
+        prompt = PromptTemplate.from_template(embed_resources_sys_prompt)
         resources = {}
         for agent_name in self.agents:
             if not AGENT_REGISTRY.get(agent_name):
@@ -246,7 +254,7 @@ class Generator:
                 continue
             agent_desp = AGENT_REGISTRY.get(agent_name).description
             resources[agent_name] = agent_desp
-        input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources, "b_objective": self.b_objective})
+        input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         return postprocess_json(answer)
