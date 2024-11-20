@@ -1,12 +1,10 @@
 import os
 import sys
-import re
 import json
 import logging
 from logging.handlers import RotatingFileHandler
 
 import tiktoken
-import phonenumbers
 import Levenshtein
 
 logger = logging.getLogger(__name__)
@@ -62,45 +60,6 @@ def str_similarity(string1, string2):
 		similarity = 0
 	return similarity
 
-def possible_email(text):
-	possible_domain = ["gmail", "hotmail", "yahoo", "outlook", "icloud", "365", "163", "126"]
-	pattern = r'[\w\.-]+@'
-	if re.search(pattern, text):
-		return True
-	if any(domain in text for domain in possible_domain):
-		return True
-	return False
-
-def check_email_validation(email):
-	# Make a regular expression
-	# for validating an Email
-	regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-	# pass the regular expression
-	# and the string into the fullmatch() method
-	if(re.search(regex, email)):
-		print("Valid Email")
-		return True
- 
-	else:
-		print("Invalid Email")
-		return False
-	
-
-def check_phone_validation(phone, language):
-	phone_number = ""
-	if language == "EN":
-		for match in phonenumbers.PhoneNumberMatcher(phone, "US"):
-			phone_number = phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164)
-	if language == "CN":
-		for match in phonenumbers.PhoneNumberMatcher(phone, "CN"):
-			phone_number = phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164)
-	if phone_number:
-		print("Valid Phone Number")
-		return True
-	else:
-		print("Invalid Phone Number")
-		return False
-	
 
 def postprocess_json(raw_code):
 	valid_phrases = ['"', '{', '}', '[', ']']

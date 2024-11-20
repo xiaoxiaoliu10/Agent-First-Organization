@@ -14,6 +14,7 @@ from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
 from agentorg.orchestrator.NLU.nlu import NLU
 from agentorg.utils.graph_state import MessageState, StatusEnum
 from agentorg.utils.trace import TraceRunName
+from agentorg.agents.tools.database.utils import SLOTS
 
 
 load_dotenv()
@@ -42,6 +43,8 @@ class AgentOrg:
         params = inputs["parameters"]
         params["timing"] = {}
         chat_history_str = self._format_chat_history(chat_history, text)
+        if not params.get("dialog_states"):
+            params["dialog_states"] = SLOTS
 
         ##### Model safety checking
         # check the response, decide whether to give template response or not
@@ -79,9 +82,9 @@ class AgentOrg:
                     "attribute": node_info.get("attribute")
                 },
                 "curr_global_intent": params.get("curr_pred_intent"),
-                "dialog_states": params.get("dialog_states")
+                "dialog_states": params.get("dialog_states"),
+                "node_status": params.get("node_status")
             })
-
         #### Agent execution
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
@@ -95,13 +98,10 @@ class AgentOrg:
 
         params["agent_response"] = agent_response
         return_answer = agent_response.get("response", "")
+        # node status
         node_status = params.get("node_status", {})
         current_node = params.get("curr_node")
-        node_status[current_node] = {
-            "status": agent_response.get("status", StatusEnum.COMPLETE),
-            "slots": agent_response.get("slots", [])
-        }
-
+        node_status[current_node] = agent_response.get("status", StatusEnum.COMPLETE)
         params["node_status"] = node_status
 
         output = {

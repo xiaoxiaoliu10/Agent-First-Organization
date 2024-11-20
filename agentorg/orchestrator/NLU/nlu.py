@@ -35,18 +35,16 @@ class SlotFilling:
     def __init__(self, url):
         self.url = url
 
-    def execute(self, text:str, slots:dict, chat_history_str:str) -> dict:
+    def execute(self, text:str, slots:list, chat_history_str:str) -> dict:
         logger.info(f"extracted slots: {slots}")
         data = {
-            "text": text,
             "slots": slots,
             "chat_history_str": chat_history_str
         }
         response = requests.post(self.url, json=data)
 
         if response.status_code == 200:
-            results = response.json()
-            pred_slots = results['slots']
+            pred_slots = response.json()
             logger.info(f"pred_slots is {pred_slots}")
         else:
             pred_slots = slots

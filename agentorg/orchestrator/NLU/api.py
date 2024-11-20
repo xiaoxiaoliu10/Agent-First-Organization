@@ -3,18 +3,19 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 import logging
+from dotenv import load_dotenv
 import string
-from typing import Dict
-import json
-from http import HTTPStatus
 
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from agentorg.utils.utils import postprocess_json
+from langsmith import traceable, wrappers
+import langsmith as ls
+
 from agentorg.utils.graph_state import Slots
+from agentorg.utils.trace import TraceRunName
 
-
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 default_model_params = {"model_type_or_path": "gpt-4o"}
@@ -23,13 +24,18 @@ SYSTEM_PROMPT_NLU = """According to the conversation, decide what is the user's 
 """
 
 
-class NLUOpenAIAPI:
+class OpenAIAPI:
     def __init__(self):
+        self.client = wrappers.wrap_openai(OpenAI())
+
+
+class NLUOpenAIAPI(OpenAIAPI):
+    def __init__(self):
+        super().__init__()
         self.user_prefix = "USER"
         self.assistant_prefix = "ASSISTANT"
-        self.__eos_token = "\n"
-        self.client = OpenAI()
 
+    @traceable(name=TraceRunName.NLU)
     def get_response(self, sys_prompt, response_format="text", debug_text="none", params=default_model_params):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
@@ -121,18 +127,17 @@ class NLUOpenAIAPI:
         return pred_intent
 
 
-class SlotFillOpenAIAPI:
+class SlotFillOpenAIAPI(OpenAIAPI):
     def __init__(self):
+        super().__init__()
         self.user_prefix = "USER"
         self.assistant_prefix = "ASSISTANT"
-        self.__eos_token = "\n"
-        self.client = OpenAI()
 
-    def get_response(self, sys_prompt, response_format="text", debug_text="none", params=default_model_params):
+    @traceable(name=TraceRunName.SlotFilling)
+    def get_response(self, sys_prompt, debug_text="none"):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
         completion = self.client.beta.chat.completions.parse(
-            # model=params.get("model_type_or_path", "gpt-4o-2024-08-06"),
             model="gpt-4o-2024-08-06",
             messages=[dialog_history],
             response_format=Slots,
@@ -147,16 +152,11 @@ class SlotFillOpenAIAPI:
 
     def format_input(self, slots: Slots, chat_history_str) -> str:
         """Format input text before feeding it to the model."""
-        # for slot, attr in slots.items():
-        #     if "value" not in attr:
-        #         attr["value"] = ""
-
         system_prompt = f"Given the conversation and definition of dialog states definition, update the value of following dialogue states.\nDialogue Statues:\n{slots}\nConversation:\n{chat_history_str}\n\n"
         return system_prompt
 
     def predict(
         self,
-        text,
         slots,
         chat_history_str
     ) -> str:
@@ -170,7 +170,6 @@ class SlotFillOpenAIAPI:
         if not response:
             logger.info(f"Failed to update dialogue states")
             return slots
-        # diagstates = postprocess_json(response)
         logger.info(f"Updated dialogue states: {response}")
         return response
 
@@ -191,7 +190,7 @@ def predict(data: dict, res: Response):
 @app.post("/slotfill/predict")
 def predict(data: dict, res: Response):
     logger.info(f"Received data: {data}")
-    pred_slots = slotfilling_openai.predict(**data)
+    results = slotfilling_openai.predict(**data)
 
-    logger.info(f"pred_slots: {pred_slots}")
-    return pred_slots
+    logger.info(f"pred_slots: {results.slots}")
+    return results.slots
