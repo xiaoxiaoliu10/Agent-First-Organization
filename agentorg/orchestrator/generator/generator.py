@@ -168,7 +168,8 @@ class Generator:
         self.u_objective = self.product_kwargs.get("user_objective")
         self.b_objective = self.product_kwargs.get("builder_objective")
         self.intro = self.product_kwargs.get("intro")
-        self.docs = self.product_kwargs.get("docs")
+        self.task_docs = self.product_kwargs.get("task_docs") 
+        self.rag_docs = self.product_kwargs.get("rag_docs") 
         self.tasks = self.product_kwargs.get("tasks")
         self.agents = self.product_kwargs.get("agents")
         self.model = model
@@ -340,18 +341,18 @@ class Generator:
         return task_graph
     
     def _load_docs(self):
-        if self.docs:
+        if self.task_docs:
             filepath = os.path.join(self.output_dir, "documents.pkl")
-            total_num_docs = sum([doc.get("num") for doc in self.docs])
+            total_num_docs = sum([doc.get("num") if doc.get("num") else 1 for doc in self.task_docs])
             loader = Loader()
             if Path(filepath).exists():
                 logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
                 crawled_urls = pickle.load(open(os.path.join(self.output_dir, "documents.pkl"), "rb"))
             else:
                 crawled_urls_full = []
-                for doc in self.docs:
+                for doc in self.task_docs:
                     source = doc.get("source")
-                    num_docs = doc.get("num")
+                    num_docs = doc.get("num") if doc.get("num") else 1
                     urls = loader.get_all_urls(source, num_docs)
                     crawled_urls = loader.to_crawled_obj(urls)
                     crawled_urls_full.extend(crawled_urls)
@@ -362,7 +363,8 @@ class Generator:
                 limit = 10
             crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
             logger.debug(f"Loaded {len(crawled_docs)} documents")
-            self.documents = "\n\n".join([doc['url'] + "\n" + doc["content"] for doc in crawled_docs])
+            desc = self.task_docs.get('desc') if self.task_docs.get('desc') else ''
+            self.documents = "\n\n".join([f"{doc['url']}\n{desc}\n{doc['content']}" for doc in crawled_docs])
         else:
             self.documents = ""
 

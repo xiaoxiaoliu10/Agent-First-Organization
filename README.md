@@ -14,9 +14,14 @@
         * `builder_objective (Optional)`: The additional target you want the chatbot to achieve beyond the user's goal. Describe in third person.
         * `domain (Optional)`: The domain of the company that you want to create the chatbot for
         * `intro (Required)`: The introduction of the company that you want to create the chatbot for or the summary of the tasks that the chatbot need to handle
-        * `docs (Optional, Dict)`: The documentation of the chatbot. The dictionary should contain the following fields:
+        * `task_docs (Optional, Dict)`: The documents resources for the taskgraph generation to create the chatbot. The dictionary should contain the following fields:
             * `source (Required)`: The source url that you want the chatbot to refer to
-            * `num (Required)`: The number of websites that you want the chatbot to refer to for the source
+            * `desc (Optional)` : Short description of the source and how it is used
+            * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
+        * `rag_docs (Optional, Dict)`: The documents resources for the rag component of chatbot when running chatbot. The dictionary should contain the following fields:
+            * `source (Required)`: The source url that you want the chatbot to refer to
+            * `desc (Optional)` : Short description of the source and how it is used
+            * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
         * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
             * `task_name (Required, Str)`: The task that the chatbot need to handle
             * `steps (Required, List(Str))`: The steps to complete the task
