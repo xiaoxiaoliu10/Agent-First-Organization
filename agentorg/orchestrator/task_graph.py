@@ -1,15 +1,11 @@
 import copy
 import logging
 import collections
-import json
 
 import networkx as nx
 import numpy as np
 from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers import StrOutputParser
 
-import agentorg.agents
-from agentorg.agents.agent import AGENT_REGISTRY
 from agentorg.utils.utils import normalize, str_similarity
 from agentorg.utils.graph_state import StatusEnum
 from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
@@ -60,6 +56,7 @@ class TaskGraph(TaskGraphBase):
                 }
             }
         self.initial_node = self.get_initial_flow()
+        self.model = ChatOpenAI(model="gpt-4o", timeout=30000)
         self.nluapi = NLU(self.product_kwargs.get("nluapi"))
         self.slotfillapi = SlotFilling(self.product_kwargs.get("slotfillapi"))
 
@@ -110,30 +107,6 @@ class TaskGraph(TaskGraphBase):
 
         return next_node
     
-    def _check_skip(self, agent_class, sample_node):
-        agent_desp = agent_class.description
-        skip = False
-        sys_prompt = """Given the conversation history and the proposed agent, you task is to decide whether to skip the agent or not. Reply with 'yes' to skip the agent, or 'no' to continue with the agent.
-        
-        Conversation history:
-        {chat_history_str}
-
-        Proposed agent: 
-        The purpose of this agent is to {agent_desp}
-        The prompt of the agent response could be {msg}
-        
-        Answer:
-        """
-        system_prompt = sys_prompt.format(
-            chat_history_str=self.chat_history_str, 
-            agent_desp=agent_desp, 
-            msg=self.graph.nodes[sample_node]["attribute"]
-        )
-        skip_status = self.model.invoke(system_prompt)
-        if "yes" in skip_status.content.lower():
-            skip = True
-        return skip
-
     def _get_node(self, sample_node, available_nodes, available_intents, params, intent=None):
         logger.info(f"available_intents in _get_node: {available_intents}")
         logger.info(f"intent in _get_node: {intent}")
@@ -150,12 +123,6 @@ class TaskGraph(TaskGraphBase):
         params["curr_node"] = sample_node
         params["available_nodes"] = available_nodes
         params["available_intents"] = available_intents
-        # agent_class = AGENT_REGISTRY.get(agent_name)
-        # TODO: This will be used to check whether we skip the agent or not, which is handled by the task graph framework
-        # skip = self._check_skip(agent_class, sample_node)
-        # if skip:
-            # node_info = {"name": None, "attribute": None}
-        # else:
         node_info = {"name": agent_name, "attribute": self.graph.nodes[sample_node]["attribute"]}
         
         return node_info, params, candidates_intents
@@ -184,13 +151,9 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"_switch_pred_intent function: curr_pred_intent: {curr_pred_intent}")
         logger.info(f"_switch_pred_intent function: avail_pred_intents: {other_pred_intents}")
 
-        prompt = f"The assistant is currently working on the task: {curr_pred_intent}\nOther available tasks are: {other_pred_intents}\nAccording to the conversation, decide whether the user wants to stop the current task and switch to another one.\nConversation:\n{self.chat_history_str}\n\nThe response should only be yes or no."
-        llm = ChatOpenAI(model="gpt-4o", timeout=30000)
-        final_chain = llm | StrOutputParser()
-        response = final_chain.invoke(prompt)        
-        logger.info(prompt)
-        logger.info(response)
-        if "no" in response.lower():
+        prompt = f"The assistant is currently working on the task: {curr_pred_intent}\nOther available tasks are: {other_pred_intents}\nAccording to the conversation, decide whether the user wants to stop the current task and switch to another one.\nConversation:\n{self.chat_history_str}\nThe response should only be yes or no."
+        response = self.model.invoke(prompt)        
+        if "no" in response.content.lower():
             return False
         return True
             
@@ -198,7 +161,6 @@ class TaskGraph(TaskGraphBase):
         self.text = inputs["text"]
         self.chat_history_str = inputs["chat_history_str"]
         params = inputs["parameters"]
-        self.model = inputs["model"]
         nlu_records = []
 
         # get the current node
@@ -214,10 +176,9 @@ class TaskGraph(TaskGraphBase):
         curr_pred_intent = params.get("curr_pred_intent", None)
 
         node_status = params.get("node_status", {})
-        status = node_status.get(curr_node, {}).get("status", StatusEnum.COMPLETE)
-        dialog_states = node_status.get(curr_node, {}).get("slots", [])
+        status = node_status.get(curr_node, StatusEnum.COMPLETE)
+        dialog_states = params.get("dialog_states", [])
         if status == StatusEnum.INCOMPLETE and dialog_states:
-            self.graph.nodes[curr_node]["attribute"]["slots"] = dialog_states
             node_info = {"name": self.graph.nodes[curr_node]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
             return node_info, params
             
@@ -235,10 +196,6 @@ class TaskGraph(TaskGraphBase):
             if self.unsure_intent.get("intent") not in available_intents.keys():
                 available_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
         logger.info(f"available_intents: {available_intents}")
-        
-        dialog_states = params.get("dialog_states", [])
-        if not dialog_states:
-            params["dialog_states"] = dialog_states
         
         if not params.get("available_nodes", None):
             available_nodes = {}
@@ -451,21 +408,9 @@ class TaskGraph(TaskGraphBase):
         params = node[1]
 
         dialog_states = params.get("dialog_states", [])
-        if not dialog_states:
-            dialog_states = SLOTS
-        node_attr = node_info["attribute"]
-        # if node_attr.get("slots", []):
-        #     for slot in node_attr["slots"]:
-        #         if slot["name"] not in dialog_states:
-        #             dialog_states[slot["name"]] = slot
-        
-
         # update the dialog states
         if dialog_states:
             dialog_states = self.slotfillapi.execute(self.text, dialog_states, self.chat_history_str)
-
-        node_attr["slots"] = dialog_states
-        node_info["attribute"] = node_attr
         params["dialog_states"] = dialog_states
 
         return node_info, params

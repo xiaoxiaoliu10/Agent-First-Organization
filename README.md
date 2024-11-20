@@ -1,4 +1,7 @@
 ## How to start?
+0. Set up environment
+    * Add `OPENAI_API_KEY` and `LANGCHAIN_API_KEY` to `.env`
+    * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional]
 1. Install the dependencies by running `pip install -r requirements.txt`
 2. Build databases
     * Run `python -m agentorg.utils.loader --base_url="https://example.com" --folder_path="./agentorg/data" --get_chunk=True` to crawl web contents as the retriever database. For other args usage, please refer to `agentorg/utils/loader.py`.
