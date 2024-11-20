@@ -1,5 +1,6 @@
 ## How to start?
 0. Set up environment
+    * Run on Python 3.10
     * Add `OPENAI_API_KEY` and `LANGCHAIN_API_KEY` to `.env`
     * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional]
 1. Install the dependencies by running `pip install -r requirements.txt`
