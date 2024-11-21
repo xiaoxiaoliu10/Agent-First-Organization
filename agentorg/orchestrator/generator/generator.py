@@ -363,8 +363,7 @@ class Generator:
                 limit = 10
             crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
             logger.debug(f"Loaded {len(crawled_docs)} documents")
-            desc = self.task_docs.get('desc') if self.task_docs.get('desc') else ''
-            self.documents = "\n\n".join([f"{doc['url']}\n{desc}\n{doc['content']}" for doc in crawled_docs])
+            self.documents = "\n\n".join([f"{doc['url']}\n{doc.get('desc') if doc.get('desc') else ''}\n{doc['content']}" for doc in crawled_docs])
         else:
             self.documents = ""
 
