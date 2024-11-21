@@ -249,7 +249,7 @@ class TaskGraph(TaskGraphBase):
                         available_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
                     logger.info(f"available_intents_w_unsure: {available_intents_w_unsure}")
                     
-                    pred_intent = self.nluapi.execute(self.text, available_intents_w_unsure, self.chat_history_str)
+                    pred_intent = self.nluapi.execute(self.text, available_intents_w_unsure, self.chat_history_str, params.get("metadata", {}))
                     nlu_records.append({"candidate_intents": available_intents_w_unsure, 
                                         "pred_intent": pred_intent, "no_intent": False, "global_intent": True})
                     params["nlu_records"] = nlu_records
@@ -306,7 +306,7 @@ class TaskGraph(TaskGraphBase):
                 candidates_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
             logger.info(f"Check intent under current node: {candidates_intents_w_unsure}")
 
-            pred_intent = self.nluapi.execute(self.text, candidates_intents_w_unsure, self.chat_history_str)
+            pred_intent = self.nluapi.execute(self.text, candidates_intents_w_unsure, self.chat_history_str, params.get("metadata", {}))
             nlu_records.append({"candidate_intents": candidates_intents_w_unsure, 
                                 "pred_intent": pred_intent, "no_intent": False, "global_intent": False})
             params["nlu_records"] = nlu_records
@@ -352,7 +352,7 @@ class TaskGraph(TaskGraphBase):
                     other_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
                 logger.info(f"Check other intent (including unsure): {other_intents}")
                 
-                pred_intent = self.nluapi.execute(self.text, other_intents, self.chat_history_str)
+                pred_intent = self.nluapi.execute(self.text, other_intents, self.chat_history_str, params.get("metadata", {}))
                 nlu_records.append({"candidate_intents": other_intents, 
                                     "pred_intent": pred_intent, "no_intent": False, "global_intent": True})
                 params["nlu_records"] = nlu_records
@@ -410,7 +410,7 @@ class TaskGraph(TaskGraphBase):
         dialog_states = params.get("dialog_states", [])
         # update the dialog states
         if dialog_states:
-            dialog_states = self.slotfillapi.execute(self.text, dialog_states, self.chat_history_str)
+            dialog_states = self.slotfillapi.execute(self.text, dialog_states, self.chat_history_str, params.get("metadata", {}))
         params["dialog_states"] = dialog_states
 
         return node_info, params

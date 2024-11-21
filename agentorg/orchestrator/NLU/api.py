@@ -3,19 +3,13 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 import logging
-from dotenv import load_dotenv
 import string
 
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from langsmith import traceable, wrappers
-import langsmith as ls
-
 from agentorg.utils.graph_state import Slots
-from agentorg.utils.trace import TraceRunName
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
 default_model_params = {"model_type_or_path": "gpt-4o"}
@@ -26,7 +20,7 @@ SYSTEM_PROMPT_NLU = """According to the conversation, decide what is the user's 
 
 class OpenAIAPI:
     def __init__(self):
-        self.client = wrappers.wrap_openai(OpenAI())
+        self.client = OpenAI()
 
 
 class NLUOpenAIAPI(OpenAIAPI):
@@ -35,7 +29,6 @@ class NLUOpenAIAPI(OpenAIAPI):
         self.user_prefix = "USER"
         self.assistant_prefix = "ASSISTANT"
 
-    @traceable(name=TraceRunName.NLU)
     def get_response(self, sys_prompt, response_format="text", debug_text="none", params=default_model_params):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
@@ -133,7 +126,6 @@ class SlotFillOpenAIAPI(OpenAIAPI):
         self.user_prefix = "USER"
         self.assistant_prefix = "ASSISTANT"
 
-    @traceable(name=TraceRunName.SlotFilling)
     def get_response(self, sys_prompt, debug_text="none"):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
@@ -157,9 +149,10 @@ class SlotFillOpenAIAPI(OpenAIAPI):
 
     def predict(
         self,
+        text,
         slots,
         chat_history_str
-    ) -> str:
+    ):
 
         system_prompt = self.format_input(
             slots, chat_history_str
