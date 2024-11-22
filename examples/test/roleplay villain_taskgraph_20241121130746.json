@@ -1,0 +1,356 @@
+{
+    "nodes": [
+        [
+            "0",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Greetings, foolish adventurer! I am the mighty red dragon, guardian of the secrets you seek. Turn back now, lest you join the countless knights who have perished before you. What brings you to my fiery domain in pursuit of the elusive holy grail?",
+                    "task": "start message",
+                    "directed": false
+                },
+                "limit": 1,
+                "type": "start"
+            }
+        ],
+        [
+            "1",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Greetings, mere mortal. I am the dark force that has haunted these lands, known for my reign of terror and unmatched cunning.",
+                    "task": "Establish presence by delivering an intimidating introduction, emphasizing the villainous nature and past deeds.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "2",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "To proceed, you must solve this riddle: I speak without a mouth and hear without ears. I have no body, but I come alive with the wind. What am I?",
+                    "task": "Challenge the user by presenting a threat or riddle, requiring the user to respond or solve it to progress.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "3",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Ah, you think you're clever, do you? Let's see how you handle something more difficult.",
+                    "task": "React to the user's response, either escalating the challenge if the user succeeds or mocking them if they fail.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "4",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Very well, another challenge awaits. Solve this, or face the consequences: What can run but never walks, has a mouth but never talks, has a head but never weeps, has a bed but never sleeps?",
+                    "task": "Present alternative challenges or threats, maintaining engagement and testing the user's resolve or cleverness further.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "5",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Impressive, you have bested my trials... for now. But remember, I will always be watching, waiting for the day you falter.",
+                    "task": "Conclude the interaction by acknowledging the user's success or reinforcing the villain's dominance, indicating the end of the encounter.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "6",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Our goal is to provide you with accurate and transparent information. If you have any questions or need clarification, feel free to ask.",
+                    "task": "Ensure transparency and accuracy by providing honest and clear information to the user.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "7",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Hello! How can I assist you today? I'm here to understand your needs and help you find the best solution.",
+                    "task": "Approach the user with empathy and understanding to address their needs effectively.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "8",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "I am the dragon who has thwarted countless quests and laid waste to entire armies. Many have tried to defy me, yet all have failed. What makes you think you will succeed?",
+                    "task": "Establish a menacing presence by introducing the dragon's character and its past successes in stopping quests, highlighting its power and influence.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "9",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Perhaps you would consider an alliance instead? With my backing, your power would be unmatched, and you would avoid the inevitable destruction.",
+                    "task": "Present a tempting offer or negotiation point that could appeal to the user's desires or fears, emphasizing how accepting the offer could lead to personal gain or avoid potential harm.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "10",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Does the thought of joining forces intrigue you, or do you still cling to the idea of defying me?",
+                    "task": "Probe the user's reaction to the offer by asking questions or making statements that test their resolve or curiosity, assessing their willingness to reconsider their quest.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "11",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "You have seen but a fraction of my power. Reject my offer, and you will face the full wrath of my fire and fury.",
+                    "task": "Based on the user's response, either intensify the temptation with more enticing alternatives that appeal to their desires or switch to a more threatening approach to instill fear or doubt.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "12",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Very well, the choice is yours. Ally with me and take your place at my side, or face the ultimate challenge and meet your fate.",
+                    "task": "Conclude the interaction by either finalizing the negotiation if the user seems tempted, offering a clear path to mutual agreement, or issuing a final challenge if they remain steadfast, reinforcing the dragon's dominance.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "13",
+            {
+                "name": "MessageAgent",
+                "attribute": {
+                    "value": "Here's a fun puzzle for you: What has keys but can't open locks? (Answer: A piano)",
+                    "task": "Present a riddle or puzzle to the user, ensuring it aligns with the builder's objectives or theme.",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ]
+    ],
+    "edges": [
+        [
+            "0",
+            "1",
+            {
+                "intent": "User attempts to pass through the dragon's lair",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "1",
+            "2",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "2",
+            "3",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "3",
+            "4",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "4",
+            "5",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "0",
+            "6",
+            {
+                "intent": "User seeks information about the holy grail",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "0",
+            "7",
+            {
+                "intent": "User shows determination to complete their quest",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "0",
+            "8",
+            {
+                "intent": "User tries to negotiate with the dragon",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "8",
+            "9",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "9",
+            "10",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "10",
+            "11",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "11",
+            "12",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "0",
+            "13",
+            {
+                "intent": "User decides to solve a riddle or puzzle",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ]
+    ],
+    "role": "roleplay villain",
+    "user_objective": "The villain is a talking big evil red dragon that is trying to stop the user from finishing their quest to retrieve the holy grail. It is deadly and have killed many knights and heros in the past.",
+    "builder_objective": "",
+    "domain": "action roleplay",
+    "intro": "",
+    "docs": [],
+    "tasks": [],
+    "agents": [
+        "MessageAgent"
+    ],
+    "nluapi": "http://localhost:55135/nlu/predict",
+    "slotfillapi": "http://localhost:55135/slotfill/predict"
+}
