@@ -24,6 +24,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'Tutorials',
+      link: {type: 'doc', id: 'tutorials/intro'},
       items: [
         'tutorials/roleplay-chatbot',
         'tutorials/customer-service',
@@ -36,7 +37,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'Agents',
-      // link: {type: 'doc', id: 'introduction'},
+      link: {type: 'doc', id: 'agents/intro'},
       items: [
         'agents/Agents',
         'agents/MessageAgent',
@@ -47,6 +48,7 @@ const sidebars = {
         'agents/DefaultAgent'
       ],
     },
+    'MessageState',
     {
       type: 'category',
       label: 'examples',

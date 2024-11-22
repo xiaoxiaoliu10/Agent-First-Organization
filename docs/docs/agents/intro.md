@@ -1,7 +1,7 @@
 import DocCardList from '@theme/DocCardList';
 
 
-# Tutorials
+# Agents
 
 
 <DocCardList />

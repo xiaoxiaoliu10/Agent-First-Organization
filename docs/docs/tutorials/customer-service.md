@@ -2,7 +2,9 @@
 sidebar_position: 6
 ---
 
-# Customer Service Bot Tutorial
+# Customer Service Bot
+
+*Enhance your bots with RAG through RAGMsgAgents*
 
 ## Intro
 
@@ -68,7 +70,7 @@ With our Config in place, the vast majority of work is surprisingly already done
 
 Now that we have a Config file, generating the graph is the easy part. All you need to do is run 
 
-`python script.py --type novice --config <config-filepath>`
+`python create.py --config <config-filepath> --output-dir <output-filepath>`
 
  to create the TaskGraph! TaskGraphs is the graph that the bot traverses through, so it does not have to take time and update every time the user runs it. With the bot running on top of TaskGraphs, you would only need to re-generate the TaskGraph any time you update the graph!
 
@@ -76,7 +78,7 @@ Now that we have a Config file, generating the graph is the easy part. All you n
 
 With the TaskGraph in place, we can run the bot on the TaskGraph with 
 
-`python script.py --type apprentice --config-taskgraph <taskgraph-filepath>`
+`python run.py --config-taskgraph <taskgraph-filepath>`
 
 With that in place, that should be all you need!
 
@@ -84,4 +86,13 @@ With that in place, that should be all you need!
 
 ## Sample Conversation
 
-> INSERT SAMPLE HERE
+```
+BOT: Hello! Welcome to our Customer Service Assistant. How may I assist you today with your inquiries about our products, services, or policies?
+
+USER: what robots do you all have?
+
+BOT: Hi there! Could you let me know which type of robot you're curious about? We offer information on worker, delivery, cleaning, and multipurpose robots.
+
+USER: im interested in the worker bots
+
+```

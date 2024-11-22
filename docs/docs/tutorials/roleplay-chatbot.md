@@ -2,13 +2,15 @@
 sidebar_position: 6
 ---
 
-# Roleplay Bot Tutorial
+# Roleplay Bot
+
+*Build a basic no-fuss chatbot with MessageAgents*
 
 ## Intro
 
 In this tutorial, we'll walk through building a basic customer service bot using **Articulate.AI**'s framework. This bot will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and retrieve relevant contact information. The tutorial aims to provide a practical but simple introduction to conversational AI and equip you with the foundational skills needed to create and deploy a functional chatbot.
 
-By the end of this tutorial, you'll know how to set up the AI framework, build a basic conversation flow, and power a bot with it! This tutorial serves as the most basic example into the 
+By the end of this tutorial, you'll know how to set up the AI framework, buil a basic conversation flow, and power a bot with it! This tutorial covers the absolute basics of our framework and sets up for much more!
 
 ## Setting up the Config File
 
@@ -16,7 +18,7 @@ In its core, bot is powered through a [TaskGraph](../TaskGraph.md) which is the 
 
 Like actual conversations, *TaskGraph* can be complicated; that is why we help you convert a simple and intuitive [Config](../Config.md) JSON file into a powerful and advanced *TaskGraph* through our generator. Instead of needing to design an entire graph, all you need to do is to describe the bot and provide some extra information and it will build the graph for you! 
 
-While there are a lot of pre-built agents (and the ability to make custom agents too!), for this simple task, we will only be using two of the most basic agents. [MessageAgent](../agents/MessageAgent.md) and [DefaultAgent](../agents/DefaultAgent.md). Message Agent is the base agent in handling message responses and DefaultAgent is there in case MessageAgent is not deemed suitable. 
+While there are a lot of pre-built agents (and the ability to write custom agents too!), for this simple task, we will only be using two of the most basic agents. [MessageAgent](../agents/MessageAgent.md) and [DefaultAgent](../agents/DefaultAgent.md). Message Agent is the base agent in handling message responses and DefaultAgent is there in case MessageAgent is not deemed suitable. 
 
 Here is the simple structure for a [Config](../Config.md) JSON file:
 
@@ -34,27 +36,19 @@ Here is the simple structure for a [Config](../Config.md) JSON file:
 
 For this task, we are only using a simple chatbot so we can ignore the docs, intros, and tasks.
 
-Now, lets see it with the Customer Service Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics cleaning company RichTech.
+Now, lets see it with the Roleplay Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics cleaning company RichTech.
 
 ```json
 {
-    "role": "customer service assistant",
-    "objective": [
-        "Request customer contact information"
-    ],
-    "domain": "robotics and automation",
-    "intro": "Richtech Robotics's headquarter is in Las Vegas; the other office is in Austin. Richtech Robotics provide worker robots (ADAM, ARM, ACE), delivery robots (Matradee, Matradee X, Matradee L, Richie), cleaning robots (DUST-E SX, DUST-E MX) and multipurpose robots (skylark). Their products are intended for business purposes, but not for home purpose; the ADAM robot is available for purchase and rental for multiple purposes. This robot bartender makes tea, coffee and cocktails. Richtech Robotics also operate the world's first robot milk tea shop, ClouTea, in Las Vegas (www.cloutea.com), where all milk tea beverages are prepared by the ADAM robot. The delivery time will be one month for the delivery robot, 2 weeks for standard ADAM, and two months for commercial cleaning robot. ",
-    "docs": {
-        "source": "https://www.richtechrobotics.com/",
-        "num": 20
-    },
+    "role": "roleplay villain",
+    "user_objective": "The villain is a talking big evil red dragon that is trying to stop the user from finishing their quest to retrieve the holy grail. It is deadly and have killed many knights and heros in the past.",
+    "builder_objective": "",
+    "domain": "action roleplay",
+    "intro": "",
+    "docs": [],
     "tasks": [],
     "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "DefaultAgent"
+        "MessageAgent"
     ]
 }
 ```
@@ -65,7 +59,7 @@ With our Config in place, the vast majority of work is surprisingly already done
 
 Now that we have a Config file, generating the graph is the easy part. All you need to do is run 
 
-`python script.py --type novice --config <config-filepath>`
+`python create.py --config <config-filepath> --output-dir <output-filepath>`
 
  to create the TaskGraph! TaskGraphs is the graph that the bot traverses through, so it does not have to take time and update every time the user runs it. With the bot running on top of TaskGraphs, you would only need to re-generate the TaskGraph any time you update the graph!
 
@@ -73,12 +67,28 @@ Now that we have a Config file, generating the graph is the easy part. All you n
 
 With the TaskGraph in place, we can run the bot on the TaskGraph with 
 
-`python script.py --type apprentice --config-taskgraph <taskgraph-filepath>`
+`python run.py --config-taskgraph <taskgraph-filepath>`
 
 With that in place, that should be all you need!
 
 ---
 
 ## Sample Conversation
+```
+> Bot: Greetings, foolish adventurer! I am the mighty red dragon, guardian of the secrets you seek. Turn back now, lest you join the countless knights who have perished before you. What brings you to my fiery domain in pursuit of the elusive holy grail?
 
-> INSERT SAMPLE HERE
+> User: I am questing for the holy grail for the hand of the princess!
+
+> Bot: Greetings, intrepid seeker! How may I be of service to you today? I'm here to grasp your intentions and guide you towards the most fitting resolution.
+
+> User: You: I want the grail.
+
+> Bot: Ah, you dare to claim the grail, do you? Know this, brave soul: many have tried and met their doom at my claws. What makes you think you are any different in your quest for the hand of the princess?
+
+> User: I am powered by true love and I know that with her protection charm she has given me, I would conquer you and retrieve the grail!   
+> Bot: Ah, you dare to claim the grail, do you? Know this, brave soul: many have tried and met their doom at my claws. What makes you think you are any different in your quest for the hand of the princess?
+
+> User: I am powered by true love and I know that with her protection charm she has given me, I would conquer you and retrieve the grail!   
+
+> Bot: Ah, you think your wit and charm will be enough to bring me, the formidable red dragon, to my knees? Many have tried to outsmart and sway me with their clever words, only to meet their end in my fiery domain. What makes you so confident that your quest for the holy grail and the princess's hand will lead to a different fate?
+```
