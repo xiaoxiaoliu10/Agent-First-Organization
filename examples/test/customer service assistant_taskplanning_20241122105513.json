@@ -1,0 +1,61 @@
+[
+    {
+        "task_name": "Provide detailed information about worker, delivery, cleaning, and multipurpose robots",
+        "steps": [
+            "Greet the user and inquire about the specific type of robot information they are interested in (e.g., worker, delivery, cleaning, or multipurpose robots).",
+            "Use the RAGAgent to retrieve detailed information from the company's internal documentation based on the user's specified interest.",
+            "Present the retrieved information to the user using the MessageAgent, ensuring clarity and completeness.",
+            "Ask the user if they need further details or have additional questions about any specific robot type.",
+            "Provide additional information or clarification as needed, and confirm if the user is satisfied with the information provided or if they require further assistance."
+        ]
+    },
+    {
+        "task_name": "Assist with inquiries regarding purchase and rental options for the ADAM robot",
+        "steps": [
+            "Greet the user and inquire about their specific needs regarding the purchase or rental of the ADAM robot.",
+            "Use the RagMsgAgent to retrieve and provide detailed information on the purchase and rental options for the ADAM robot from the company's internal documentation.",
+            "Ask the user if they have any additional questions or need further clarification about the options provided.",
+            "If the user has further questions, use the RAGAgent to delve deeper into specific details as requested by the user, and provide the necessary information.",
+            "Confirm with the user if they are ready to proceed with a transaction or need assistance with anything else related to the ADAM robot.",
+            "Provide instructions or next steps for completing the purchase or rental process if the user is ready to proceed."
+        ]
+    },
+    {
+        "task_name": "Provide information on delivery times and shipping details for various robots",
+        "steps": [
+            "Provide information on delivery times and shipping details for various robots"
+        ]
+    },
+    {
+        "task_name": "Support inquiries related to ClouTea shop operations and offerings",
+        "steps": [
+            "Greet the user and ask how you can assist them with their ClouTea shop inquiries.",
+            "Identify the type of inquiry the user has (e.g., product information, service policies, issue resolution) and clarify any specific details needed.",
+            "Use the RAGAgent to search the company's internal documentation for relevant information regarding the user's inquiry.",
+            "Provide the user with the information obtained from the RAGAgent, ensuring it is clear and directly addresses their inquiry.",
+            "Ask the user if they need further assistance or have any additional questions regarding ClouTea shop operations or offerings.",
+            "Offer to escalate the issue or provide additional help if the user is not satisfied or if the inquiry requires further action.",
+            "Thank the user for reaching out and provide any final instructions or information they may need."
+        ]
+    },
+    {
+        "task_name": "Assist with resolving transaction-related issues",
+        "steps": [
+            "Inquire about the specific transaction issue the user is facing (e.g., payment failure, incorrect billing, etc.).",
+            "Use RAGAgent to retrieve relevant policies or FAQ information related to the user's issue and provide possible solutions or next steps.",
+            "Ask the user if the provided information resolves their issue or if they need further assistance.",
+            "If the issue is unresolved, use RAGAgent to provide alternative solutions or escalate the issue to a human representative if necessary.",
+            "Confirm with the user once the issue is resolved, and offer additional help if needed."
+        ]
+    },
+    {
+        "task_name": "Provide information about company policies and offer customer support",
+        "steps": [
+            "Greet the user and inquire about the specific company policy or support issue they need help with.",
+            "Use the RAGAgent to retrieve information from the company's internal documentation related to the user's inquiry.",
+            "Provide the user with the relevant information or policy details using the MessageAgent.",
+            "Ask the user if they need further clarification or have additional questions.",
+            "If the user has more questions, repeat steps 2-4. If the user is satisfied, offer additional support options or thank them for using the service."
+        ]
+    }
+]

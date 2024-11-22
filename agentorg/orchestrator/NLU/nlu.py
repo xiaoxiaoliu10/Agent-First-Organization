@@ -1,8 +1,12 @@
-import os
-from typing import Dict
 import requests
 import logging
+from dotenv import load_dotenv
 
+import langsmith as ls
+
+from agentorg.utils.trace import TraceRunName
+
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
@@ -10,7 +14,7 @@ class NLU:
     def __init__(self, url):
         self.url = url
 
-    def execute(self, text:str, intents:dict, chat_history_str:str):
+    def execute(self, text:str, intents:dict, chat_history_str:str, metadata:dict) -> str:
         logger.info(f"candidates intents by using NLU API: {intents}")
         data = {
             "text": text,
@@ -18,7 +22,11 @@ class NLU:
             "chat_history_str": chat_history_str
         }
         response = requests.post(self.url, json=data)
-
+        with ls.trace(name=TraceRunName.NLU, inputs=data) as rt:
+            rt.end(
+                outputs=response.json(),
+                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+            )
         if response.status_code == 200:
             results = response.json()
             pred_intent = results['intent']
@@ -35,7 +43,7 @@ class SlotFilling:
     def __init__(self, url):
         self.url = url
 
-    def execute(self, text:str, slots:dict, chat_history_str:str) -> dict:
+    def execute(self, text:str, slots:list, chat_history_str:str, metadata: dict) -> dict:
         logger.info(f"extracted slots: {slots}")
         data = {
             "text": text,
@@ -43,10 +51,13 @@ class SlotFilling:
             "chat_history_str": chat_history_str
         }
         response = requests.post(self.url, json=data)
-
+        with ls.trace(name=TraceRunName.SlotFilling, inputs=data) as rt:
+            rt.end(
+                outputs=response.json(),
+                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+            )
         if response.status_code == 200:
-            results = response.json()
-            pred_slots = results['slots']
+            pred_slots = response.json()
             logger.info(f"pred_slots is {pred_slots}")
         else:
             pred_slots = slots

@@ -11,14 +11,12 @@ from langchain_openai import ChatOpenAI
 
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg
-from agentorg.orchestrator.generator.generator import Generator
+from create import API_PORT
+
 
 logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
 
 process = None  # Global reference for the FastAPI subprocess
-API_PORT = 55135
-NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu/predict"
-SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill/predict"
 
 def terminate_subprocess():
     """Terminate the FastAPI subprocess."""
@@ -53,7 +51,7 @@ def start_apis(config_taskgraph):
     command = [
         "uvicorn",
         "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
-        "--port", "55135",
+        "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "info"
     ]
@@ -68,30 +66,15 @@ def start_apis(config_taskgraph):
         )
     logger.info(f"Started FastAPI process with PID: {process.pid}")
 
-    task_graph["nluapi"] = NLUAPI_ADDR
-    task_graph["slotfillapi"] = SLOTFILLAPI_ADDR
-
-    with open(config_taskgraph, "w") as f:
-        json.dump(task_graph, f, indent=4)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--type', type=str, default="apprentice", choices=["novice", "apprentice"])
-    parser.add_argument('--config', type=str, default="./agentorg/orchestrator/examples/customer_service_config.json")
     parser.add_argument('--config-taskgraph', type=str, default="./agentorg/orchestrator/examples/default_taskgraph.json")
-    parser.add_argument('--output-dir', type=str, default="./examples/test")
     args = parser.parse_args()
 
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir, exist_ok=True)
-    
-    if args.type == "novice":
-        model = ChatOpenAI(model="gpt-4o", timeout=30000)
-        generator = Generator(args, args.config, model, args.output_dir)
-        args.config_taskgraph = generator.generate()
-        # Initialize NLU and Slotfill APIs
-        start_apis(args.config_taskgraph)
+    # Initialize NLU and Slotfill APIs
+    start_apis(args.config_taskgraph)
         
     history = []
     params = {}
