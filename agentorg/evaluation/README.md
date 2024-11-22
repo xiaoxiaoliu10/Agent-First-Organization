@@ -1,6 +1,6 @@
 # Task-Oriented Dialogue System Evaluation Script
 
-This directory is designed to evaluate a task-oriented dialogue system by generating synthetic conversations, extracting task completion metrics, and producing a labeled synthetic dataset.
+This directory is designed to evaluate a task-oriented dialogue system by generating synthetic conversations, extracting task completion metrics, and producing a labeled synthetic dataset. The evaluation can be run by running `full_eval.py`. The inputs and outputs to the script are shown below.
 
 ---
 

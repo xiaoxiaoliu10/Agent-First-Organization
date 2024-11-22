@@ -23,13 +23,13 @@ def evaluate(config):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_api', type=str, default="http://adaptation.cs.columbia.edu:55231/qa/richtech/v1alpha1")
-    parser.add_argument('--model_params', type=dict, default={})
-    parser.add_argument('--num_convos', type=str, default=2)
-    parser.add_argument('--num_goals', type=str, default=2)
-    parser.add_argument('--max_turns', type=str, default=6)
-    parser.add_argument('--documents_dir', type=str, default='/local2/rs4235/AgentOrg/agentorg/evaluation/temp_files')
-    parser.add_argument('--config', type=str, default="./temp_files/richtech_config.json")
+    parser.add_argument('--model_api', type=str)
+    parser.add_argument('--model_params', type=dict)
+    parser.add_argument('--num_convos', type=str)
+    parser.add_argument('--num_goals', type=str)
+    parser.add_argument('--max_turns', type=str)
+    parser.add_argument('--documents_dir', type=str)
+    parser.add_argument('--config', type=str)
     args = parser.parse_args()
 
     assert args.model_api is not None, "Model api must be provided"
