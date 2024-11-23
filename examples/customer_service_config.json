@@ -8,6 +8,10 @@
         "source": "https://www.richtechrobotics.com/",
         "num": 20
     }],
+    "rag_docs": [{
+        "source": "https://www.richtechrobotics.com/",
+        "num": 20
+    }],
     "tasks": [],
     "agents": [
         "RAGAgent",

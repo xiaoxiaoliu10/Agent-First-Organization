@@ -1,21 +1,38 @@
 import os
-import json
-import argparse
-import time
 import logging
+import string
 import subprocess
 import signal
 import atexit
+from typing import Dict
+import json
+from http import HTTPStatus
+import argparse
 
-from langchain_openai import ChatOpenAI
+import uvicorn
 
-from agentorg.utils.utils import init_logger
+from openai import OpenAI
+from fastapi import FastAPI, Response
+
 from agentorg.orchestrator.orchestrator import AgentOrg
 from create import API_PORT
 from agentorg.utils.model_config import MODEL
 
 
-logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
+logger = logging.getLogger(__name__)
+app = FastAPI()
+
+# CONFIG_TASKGRAPH = None
+
+# @app.on_event("startup")
+# def load_config():
+#     global CONFIG_TASKGRAPH
+#     parser = argparse.ArgumentParser(description="Start FastAPI with custom config.")
+#     parser.add_argument("--config_taskgraph", type=str, required=True, help="Path to the task graph configuration.")
+#     args, _ = parser.parse_known_args()  # Allows FastAPI/uvicorn to pass unknown args
+#     CONFIG_TASKGRAPH = args.config_taskgraph
+#     if not CONFIG_TASKGRAPH:
+#         raise ValueError("CONFIG_TASKGRAPH argument is required.")
 
 process = None  # Global reference for the FastAPI subprocess
 
@@ -47,6 +64,7 @@ def get_api_bot_response(args, history, user_text, parameters):
 def start_apis():
     """Start the FastAPI subprocess and update task graph API URLs."""
     global process
+    
     command = [
         "uvicorn",
         "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
@@ -56,7 +74,7 @@ def start_apis():
     ]
 
     # Redirect FastAPI logs to a file
-    with open("./logs/api.log", "w") as log_file:
+    with open("./logs/model_api.log", "w") as log_file:
         process = subprocess.Popen(
             command,
             stdout=log_file,  # Redirect stdout to a log file
@@ -66,39 +84,26 @@ def start_apis():
     logger.info(f"Started FastAPI process with PID: {process.pid}")
 
 
+@app.post("/eval/chat")
+def predict(data: Dict):
+    history = data['history']
+    params = data['parameters']
+    user_text = history[-1]['content']
+    answer, params = get_api_bot_response(args, history[:-1], user_text, params)
+    return {"answer": answer, "parameters": params}
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Start FastAPI with custom config.")
     parser.add_argument('--input-dir', type=str, default="./examples/test")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
+    parser.add_argument('--port', type=int, default=8000, help="Port to run the FastAPI app")
+    
     args = parser.parse_args()
     os.environ["DATA_DIR"] = args.input_dir
     MODEL["model_type_or_path"] = args.model
 
-    # Initialize NLU and Slotfill APIs
     start_apis()
-        
-    history = []
-    params = {}
-    config = json.load(open(os.path.join(args.input_dir, "taskgraph.json")))
-    user_prefix = "USER"
-    agent_prefix = "ASSISTANT"
-    for node in config['nodes']:
-        if node[1].get("type", "") == 'start':
-            start_message = node[1]['attribute']["value"]
-            break
-    history.append({"role": agent_prefix, "content": start_message})
-    print(f"Bot: {start_message}")
-    try:
-        while True:
-            user_text = input("You: ")
-            if user_text.lower() == "quit":
-                break
-            start_time = time.time()
-            output, params = get_api_bot_response(args, history, user_text, params)
-            history.append({"role": user_prefix, "content": user_text})
-            history.append({"role": agent_prefix, "content": output})
-            print(f"getAPIBotResponse Time: {time.time() - start_time}")
-            print(f"Bot: {output}")
-    finally:
-        terminate_subprocess()  # Ensure the subprocess is terminated
+
+    #run server
+    uvicorn.run(app, host="0.0.0.0", port=args.port)

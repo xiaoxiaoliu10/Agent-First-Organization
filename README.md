@@ -1,13 +1,12 @@
-## How to start?
+# How to start?
+## Preparation
 0. Set up environment
     * Run on Python 3.10
-    * Add `OPENAI_API_KEY` and `LANGCHAIN_API_KEY` to `.env`
-    * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional]
-1. Install the dependencies by running `pip install -r requirements.txt`
-2. Build databases
-    * Run `python -m agentorg.utils.loader --base_url="https://example.com" --folder_path="./agentorg/data" --get_chunk=True` to crawl web contents as the retriever database. For other args usage, please refer to `agentorg/utils/loader.py`.
-    * Run `python -m agentorg.agents.tools.database.build_database --folder_path="./agentorg/data"` to load the sample SQLite database.
-3. Create a config file, similar to the `project/AgentOrg/agentorg/orchestrator/examples/customer_service_config.json`
+    * Add `OPENAI_API_KEY` to `.env`
+    * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional] (In order to use Trace function, you need to create a LangChain account from [here](https://langchain.com/) and create a API key in the settings.)
+    * Set `LANGCHAIN_API_KEY` to `.env` if enable Trace.
+1. Create venv and Install the dependencies by running `pip install -r requirements.txt`
+2. Create a config file, similar to the `project/AgentOrg/agentorg/orchestrator/examples/customer_service_config.json`
     * The config file should contain the following fields:
         * `role (Required)`: The general role of the chatbot you want to create
         * `user_objective (Required)`: The user's goal that you want the chatbot to achieve. Describe in third person.
@@ -26,10 +25,66 @@
             * `task_name (Required, Str)`: The task that the chatbot need to handle
             * `steps (Required, List(Str))`: The steps to complete the task
         * `agents (Required, List(AgentClassName))`: The agents pre-defined under agentorg/agents folder that you want to use for the chatbot. Each agent will be defined as a class decorated with @register_agent. Please refer to the agentorg/agents/message_agent.py for an example.
-4. Run the create.py to generate taskgraph: `python create.py --config <filepath of the above config> --output-dir <location to save the taskgraph config file>`
-    * It will first generate a task plan based on the config file and you could modify it in an interactive way from the command line. Made the necessary changes and press `s` to save the task plan under `output-dir` folder and continue the task graph generation process.
-    * Then it will generate the task graph based on the task plan and save it under `output-dir` folder as well.
-5. Run the run.py to start chatting: `python run.py --config-taskgraph <filepath of the above generated task graph file> `
-    * It will first automatically start the nluapi and slotapi services
-    * Then it will start the chatbot and you could chat with the chatbot
-6. You could also made changes directly to the task graph file. For example, train your own nlu model and slot model and start their apis. Then, update the corresponding path in the task graph config file. 
+
+## Build Chatbot
+> **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
+
+**1. Create Taskgraph and Initialize Agent**
+```
+python create.py --config ./examples/customer_service_config.json --output-dir ./examples/customer_service
+```
+
+* Fields:
+  * `--config`: The path to the config file
+  * `--output-dir`: The directory to save the generated files
+  * `--model`: The openai model type used to generate the taskgraph. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+
+* It will first generate a task plan based on the config file and you could modify it in an interactive way from the command line. Made the necessary changes and press `s` to save the task plan under `output-dir` folder and continue the task graph generation process.
+* Then it will generate the task graph based on the task plan and save it under `output-dir` folder as well.
+* It will also initialize the Agents listed in the config file to prepare the documents needed by each agent. The function `init_agent(args)` is customizable based on the agents you defined. Currently, it will automatically build the `RAGAgent` and the `DatabaseAgent` by using the function `build_rag()` and `build_database()` respectively. The needed documents will be saved under the `output-dir` folder.
+
+
+**2. Start Chatting**
+```
+python run.py --input-dir ./examples/customer_service
+```
+
+* Fields:
+  * `--input-dir`: The directory that contains the generated files
+  * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+  
+* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUOpenAIAPI` and `SlotFillOpenAIAPI` services defined under `./agentorg/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
+* Then it will start the chatbot and you could chat with the chatbot
+
+
+**3. Evaluation**
+
+  * First, create api for the previous chatbot you built. It will start a api on the default port 8000.
+    ```
+    python model_api.py  --input-dir ./examples/customer_service
+    ```
+
+    * Fields:
+      * `--input-dir`: The directory that contains the generated files
+      * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+      * `--port`: The port number to start the api. Default is 8000.
+
+  * Then, start the evaluation process: 
+    ```
+    python eval.py \
+    --model_api http://127.0.0.1:8001/eval/chat \
+    --config ./examples/customer_service_config.json \
+    --documents_dir ./examples/customer_service \
+    --output-dir ./examples/customer_service
+    ```
+    * Fields:
+      * `--model_api`: The api url that you created in the previous step
+      * `--config`: The path to the config file
+      * `--documents_dir`: The directory that contains the generated files
+      * `--output-dir`: The directory to save the evaluation results
+      * `--num_convos`: Number of synthetic conversations to simulate. Default is 5.
+      * `--num_goals`: Number of goals/tasks to simulate. Default is 5.
+      * `--max_turns`: Maximum number of turns per conversation. Default is 5.
+      * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+  
+  * For more details, check out the [Evaluation README](./agentorg/evaluation/README.md).
