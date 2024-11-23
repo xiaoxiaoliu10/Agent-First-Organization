@@ -4,7 +4,10 @@ from pathlib import Path
 import os
 
 
-def main(db_path):
+def build_database(folder_path):
+    db_path = Path(folder_path) / "show_booking_db.sqlite"
+    if os.path.exists(db_path):
+        os.remove(db_path)
     # Creating the database with a .sqlite extension
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -330,14 +333,10 @@ def main(db_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--folder_path", default="./agentorg/data", type=str, help="location to save the documents")
+    parser.add_argument("--folder_path", required=True, type=str, help="location to save the documents")
     args = parser.parse_args()
 
     if not os.path.exists(args.folder_path):
         os.makedirs(args.folder_path)
-    
-    file_path = Path(args.folder_path) / "show_booking_db.sqlite"
-    if os.path.exists(file_path):
-        os.remove(file_path)
 
-    main(file_path)
+    build_database(args.folder_path)

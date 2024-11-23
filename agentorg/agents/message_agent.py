@@ -22,7 +22,7 @@ class MessageAgent(BaseAgent):
 
     def __init__(self):
         super().__init__()
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.action_graph = self._create_action_graph()
 
     def generator(self, state: MessageState) -> MessageState:

@@ -30,7 +30,7 @@ class FaissRetriever:
         self.texts = texts
         self.index_path = index_path
         self.embedding_model_name = embedding_model_name
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.retriever = self._init_retriever()
 
     def _init_retriever(self, **kwargs):
@@ -82,7 +82,7 @@ class RetrieveEngine():
         user_message = state['user_message']
 
         # Search for the relevant documents
-        docs = FaissRetriever.load_docs(database_path="./agentorg/data")
+        docs = FaissRetriever.load_docs(database_path=os.environ.get("DATA_DIR"))
         retrieved_text = docs.search(user_message.history)
 
         state["message_flow"] = retrieved_text
@@ -91,7 +91,7 @@ class RetrieveEngine():
 
 class SearchEngine():
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.search_tool = TavilySearchResults(
             max_results=5,
             search_depth="advanced",
@@ -124,9 +124,9 @@ class ToolGenerator():
     def generate(state: MessageState):
         user_message = state['user_message']
         
-        llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         prompt = PromptTemplate.from_template(generator_prompt)
-        input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "question": user_message.message, "formatted_chat": user_message.history})
+        input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "formatted_chat": user_message.history})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
         answer = final_chain.invoke(chunked_prompt)
@@ -136,7 +136,7 @@ class ToolGenerator():
 
     @staticmethod
     def context_generate(state: MessageState):
-        llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         # get the input message
         user_message = state['user_message']
         message_flow = state['message_flow']
@@ -144,9 +144,10 @@ class ToolGenerator():
         
         # generate answer based on the retrieved texts
         prompt = PromptTemplate.from_template(context_generator_prompt)
-        input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "question": user_message.message, "formatted_chat": user_message.history, "context": message_flow})
+        input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "formatted_chat": user_message.history, "context": message_flow})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
+        logger.info(f"Prompt: {input_prompt.text}")
         answer = final_chain.invoke(chunked_prompt)
         state["message_flow"] = ""
         state["response"] = answer

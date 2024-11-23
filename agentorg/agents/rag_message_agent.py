@@ -7,6 +7,7 @@ from agentorg.agents.agent import BaseAgent, register_agent
 from agentorg.agents.message_agent import MessageAgent
 from agentorg.agents.rag_agent import RAGAgent
 from agentorg.utils.graph_state import MessageState
+from agentorg.utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class RagMsgAgent(BaseAgent):
     def __init__(self):
         super().__init__()
         self.action_graph = self._create_action_graph()
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
      
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)

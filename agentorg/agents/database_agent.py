@@ -25,7 +25,7 @@ class DatabaseAgent(BaseAgent):
     description = "Help the user with actions related to customer support like a booking system with structured data, always involving search, insert, update, and delete operations."
 
     def __init__(self):
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.actions = {
             "SearchShow": "Search for shows", 
             "BookShow": "Book a show", 

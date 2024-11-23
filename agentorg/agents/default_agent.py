@@ -21,7 +21,7 @@ class DefaultAgent(BaseAgent):
 
     def __init__(self):
         super().__init__()
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.base_choice = "MessageAgent"
         self.available_agents = {name: AGENT_REGISTRY[name].description for name in AGENT_REGISTRY.keys() if name != "DefaultAgent"}
 

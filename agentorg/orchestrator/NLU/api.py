@@ -9,10 +9,9 @@ from openai import OpenAI
 from fastapi import FastAPI, Response
 
 from agentorg.utils.graph_state import Slots
+from agentorg.utils.model_config import MODEL
 
 logger = logging.getLogger(__name__)
-
-default_model_params = {"model_type_or_path": "gpt-4o"}
 
 SYSTEM_PROMPT_NLU = """According to the conversation, decide what is the user's intent in the last turn? \nHere are the definitions for each intent:\n{definition}\nHere are some sample utterances from user that indicate each intent:\n{exemplars}\nConversation:\n{formatted_chat}\n\nOnly choose from the following options.\n{intents_choice}\n\nAnswer:
 """
@@ -29,11 +28,11 @@ class NLUOpenAIAPI(OpenAIAPI):
         self.user_prefix = "USER"
         self.assistant_prefix = "ASSISTANT"
 
-    def get_response(self, sys_prompt, response_format="text", debug_text="none", params=default_model_params):
+    def get_response(self, sys_prompt, response_format="text", debug_text="none", params=MODEL):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
         completion = self.client.chat.completions.create(
-            model=params.get("model_type_or_path", "gpt-4"),
+            model=params.get("model_type_or_path", "gpt-4o"),
             response_format={"type": "json_object"} if response_format=="json" else {"type": "text"},
             messages=[dialog_history],
             n=1,
@@ -126,11 +125,11 @@ class SlotFillOpenAIAPI(OpenAIAPI):
         self.user_prefix = "USER"
         self.assistant_prefix = "ASSISTANT"
 
-    def get_response(self, sys_prompt, debug_text="none"):
+    def get_response(self, sys_prompt, debug_text="none", params=MODEL):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
         completion = self.client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model=params.get("model_type_or_path", "gpt-4o"),
             messages=[dialog_history],
             response_format=Slots,
             n=1,

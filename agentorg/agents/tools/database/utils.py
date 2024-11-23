@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from datetime import datetime
 import uuid
@@ -15,7 +16,7 @@ from agentorg.agents.prompts import database_slot_prompt
 from agentorg.utils.graph_state import StatusEnum
 
 
-DB_PATH = 'agentorg/data/show_booking_db.sqlite'
+DB_PATH = os.environ.get("DATA_DIR", 'show_booking_db.sqlite')
 USER_ID = "user_be6e1836-8fe9-4938-b2d0-48f810648e72"
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ MULTIPLE_SHOWS_MESSAGE = "There are multiple shows found. Please provide more de
 class DatabaseActions:
     def __init__(self, db_path=DB_PATH, user_id: str=USER_ID):
         self.db_path = db_path
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.user_id = user_id
 
     def log_in(self):

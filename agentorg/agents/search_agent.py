@@ -6,6 +6,7 @@ from langchain_openai import ChatOpenAI
 from agentorg.agents.agent import BaseAgent, register_agent
 from agentorg.utils.graph_state import MessageState
 from agentorg.agents.tools.RAG.utils import SearchEngine, ToolGenerator
+from agentorg.utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class SearchAgent(BaseAgent):
     def __init__(self):
         super().__init__()
         self.action_graph = self._create_action_graph()
-        self.llm = ChatOpenAI(model="gpt-4o", timeout=30000)
+        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
      
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
