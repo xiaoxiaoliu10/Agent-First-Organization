@@ -187,6 +187,8 @@ class Loader:
             url_to_id_mapping[url.url] = url.id
 
         for url in urls:
+            if url.is_error:
+                continue
             for url_key in url_to_id_mapping:
                 if url_key in url.content:
                     edge = [url.id, url_to_id_mapping[url_key]]
@@ -204,8 +206,9 @@ class Loader:
         logger.info(f"pagerank results: {sorted_pr}")
         # get the top websites
         top_k_websites = sorted_pr[:top_k]
-        urls_candidates = [self.graph.nodes[url_id] for url_id, _ in top_k_websites] 
-        return urls_candidates
+        urls_candidates = [self.graph.nodes[url_id] for url_id, _ in top_k_websites]
+        urls_cleaned = [doc for doc in urls_candidates if doc]
+        return urls_cleaned
     
     @staticmethod
     def save(file_path: str, docs: List[CrawledURLObject]):
@@ -238,31 +241,3 @@ class Loader:
                 langchain_docs.append(Document(page_content=txt, metadata={"source": url_obj.url}))
         return langchain_docs
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--base_url", required=True, type=str, help="base url to crawl")
-    parser.add_argument("--folder_path", default="./agentorg/data", type=str, help="location to save the documents")
-    parser.add_argument("--max_num", type=int, default=10, help="maximum number of urls to crawl")
-    parser.add_argument("--top_k", type=int, help="top k websites to return based on pagerank")
-    parser.add_argument("--get_chunk", type=bool, default=False, help="whether get chunk of the content")
-    args = parser.parse_args()
-
-    if not os.path.exists(args.folder_path):
-        os.makedirs(args.folder_path)
-    
-    file_path = Path(args.folder_path) / "documents.pkl"
-    loader = Loader()
-    urls = loader.get_all_urls(args.base_url, args.max_num)
-    crawled_urls = loader.to_crawled_obj(urls)
-    if args.top_k:
-        crawled_urls = loader.get_candidates_websites(crawled_urls, args.top_k)
-    pickle.dump(crawled_urls, open(file_path, "wb"))
-    logger.info(f"Documents are saved at {file_path}")
-
-    if args.get_chunk:
-        chunked_docs = Loader.chunk(crawled_urls)
-        file_path = Path(args.folder_path) / "chunked_documents.pkl"
-        pickle.dump(chunked_docs, open(file_path, "wb"))
-        logger.info(f"Chunked documents are saved at {file_path}")

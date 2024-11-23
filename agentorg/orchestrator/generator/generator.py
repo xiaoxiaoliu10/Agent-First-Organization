@@ -79,7 +79,7 @@ class TaskEditorApp(App):
                 task_node.add_leaf(step)
 
         yield self.task_tree
-        yield Label("Click on a task or step to edit it. Press 'a' to add new item on the same level with the highlighted one, 'd' to delete the highlighted item, 's' to save and exit.")
+        yield Label("Click on a task or step to edit it. Press 'a' to add new item, 'd' to delete, 's' to save and exit.")
 
     def on_mount(self):
         self.task_tree.focus()
@@ -342,12 +342,12 @@ class Generator:
     
     def _load_docs(self):
         if self.task_docs:
-            filepath = os.path.join(self.output_dir, "documents.pkl")
+            filepath = os.path.join(self.output_dir, "task_documents.pkl")
             total_num_docs = sum([doc.get("num") if doc.get("num") else 1 for doc in self.task_docs])
             loader = Loader()
             if Path(filepath).exists():
-                logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
-                crawled_urls = pickle.load(open(os.path.join(self.output_dir, "documents.pkl"), "rb"))
+                logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'task_documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
+                crawled_urls_full = pickle.load(open(os.path.join(self.output_dir, "task_documents.pkl"), "rb"))
             else:
                 crawled_urls_full = []
                 for doc in self.task_docs:
@@ -361,9 +361,9 @@ class Generator:
                 limit = total_num_docs // 5
             else:
                 limit = 10
-            crawled_docs = loader.get_candidates_websites(crawled_urls, limit)
+            crawled_docs = loader.get_candidates_websites(crawled_urls_full, limit)
             logger.debug(f"Loaded {len(crawled_docs)} documents")
-            self.documents = "\n\n".join([f"{doc['url']}\n{doc.get('desc') if doc.get('desc') else ''}\n{doc['content']}" for doc in crawled_docs])
+            self.documents = "\n\n".join([f"{doc['url']}\n{doc['content']}" for doc in crawled_docs])
         else:
             self.documents = ""
 
@@ -401,7 +401,7 @@ class Generator:
             format_tasks.append({"task_name": task_name, "steps": steps})
         app = TaskEditorApp(format_tasks)
         hitl_result = app.run()
-        task_planning_filepath = os.path.join(self.output_dir, f'{self.role}_taskplanning_{self.timestamp}.json')
+        task_planning_filepath = os.path.join(self.output_dir, f'taskplanning.json')
         json.dump(hitl_result, open(task_planning_filepath, "w"), indent=4)
 
         # Step 4: Pair task with agent
@@ -422,7 +422,7 @@ class Generator:
         task_graph = self._format_task_graph(finetuned_best_practices)
 
         # Step 6: Save the task graph
-        taskgraph_filepath = os.path.join(self.output_dir, f'{self.role}_taskgraph_{self.timestamp}.json')
+        taskgraph_filepath = os.path.join(self.output_dir, f'taskgraph.json')
         with open(taskgraph_filepath, "w") as f:
             json.dump(task_graph, f, indent=4)
 
