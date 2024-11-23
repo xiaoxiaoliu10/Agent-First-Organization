@@ -4,13 +4,15 @@ import json
 import requests
 from openai import OpenAI
 from dotenv import load_dotenv
+
+from agentorg.utils.model_config import MODEL
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"], organization=os.environ["OPENAI_ORGANIZATION_KEY"]
+    api_key=os.environ["OPENAI_API_KEY"]
 )
 
-def chatgpt_chatbot(messages, model):
+def chatgpt_chatbot(messages, model=MODEL["model_type_or_path"]):
     completion = client.chat.completions.create(
         model=model,
         messages=messages,
@@ -26,9 +28,9 @@ def flip_hist_content_only(hist):
         if turn['role'] == 'system':
             continue
         elif turn['role'] == 'user':
-            new_hist.append({'role': 'assistant', 'content': turn['content']})
+            new_hist.append({'role': 'ASSISTANT', 'content': turn['content']})
         else:
-            new_hist.append({'role': 'user', 'content': turn['content']})
+            new_hist.append({'role': 'USER', 'content': turn['content']})
     return new_hist
 
 # flip roles in convo history, keep all other keys the same
@@ -86,7 +88,7 @@ def filter_convo(convo, delim = '\n', filter_turns = True):
 def generate_goal(doc_content):
     message = f"Pretend you have just read the following website:\n{doc_content}\nThis website also has a chatbot. What is some information you want to get from this chatbot or a goal you might have when chatting with this chatbot based on the website content? Answer the question in the first person. Only give the answer to the question in your response."
     
-    return chatgpt_chatbot([{'role': 'user', 'content': message}], model='gpt-4o')
+    return chatgpt_chatbot([{'role': 'user', 'content': message}], model=MODEL["model_type_or_path"])
 
 def generate_goals(documents, params):
     goals = []

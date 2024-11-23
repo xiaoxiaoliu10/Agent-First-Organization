@@ -1,14 +1,13 @@
 import json
 import random
-from get_documents import load_docs
-from chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, 
-                           flip_hist, generate_goals, format_chat_history_str,
-                           flip_hist_content_only)
+from agentorg.evaluation.get_documents import load_docs
+from agentorg.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, 
+                                               flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
 
 def check_goal_completion(goal, convo):
     convo_str = format_chat_history_str(flip_hist_content_only(convo[2:]))
     prompt = f"Here is a conversation between a user and a customer service chatbot assistant:\n{convo_str}\n\nThe user's goal is the following: {goal}\nOutput False if the user needs to learn more information regarding their goal. Output True otherwise. Only onput True or False and nothing else."
-    output = chatgpt_chatbot([{'role': 'user', 'content': prompt}], model='gpt-4o')
+    output = chatgpt_chatbot([{'role': 'user', 'content': prompt}])
     return output == "True"
 
 def conversation(model_api, goal, summary, model_params, synthetic_data_params):
@@ -19,7 +18,7 @@ def conversation(model_api, goal, summary, model_params, synthetic_data_params):
     history.append({'role': 'user', 'content': start_text})
     
     for i in range(synthetic_data_params['max_turns']):
-        output = chatgpt_chatbot(history, 'gpt-4o') 
+        output = chatgpt_chatbot(history) 
         history.append({'role': 'assistant', 'content': output})
         response_data = query_chatbot(model_api, history, model_params)
         answer = response_data["answer"]

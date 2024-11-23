@@ -1,8 +1,8 @@
 import json
 import random
-from extract_conversation_info import build_intent_graph
-from chatgpt_utils import chatgpt_chatbot, query_chatbot, flip_hist, filter_convo, generate_goals
-from get_documents import load_docs
+from agentorg.evaluation.extract_conversation_info import build_intent_graph
+from agentorg.evaluation.chatgpt_utils import chatgpt_chatbot, query_chatbot, flip_hist, filter_convo, generate_goals
+from agentorg.evaluation.get_documents import load_docs
 
 def sampling_paths(start_node, graph, path_length, max_turns, intents):
     children = list(graph.successors(start_node))
@@ -30,7 +30,7 @@ def interact(intent_path, summary, model_api, model_params):
     history.append({'role': 'user', 'content': start_text})
     for i in range(len(intent_path)):
         intent = intent_path[i]
-        output = chatgpt_chatbot(history, 'gpt-4o') 
+        output = chatgpt_chatbot(history) 
         history.append({'role': 'assistant', 'content': output, 'intent': intent})
         response_data = query_chatbot(model_api, filter_convo(history), model_params)
         answer = response_data["answer"]

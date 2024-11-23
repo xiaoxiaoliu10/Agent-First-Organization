@@ -1,6 +1,7 @@
 import json
 import networkx as nx
-from chatgpt_utils import chatgpt_chatbot, format_chat_history_str, flip_hist_content_only, filter_convo
+
+from agentorg.evaluation.chatgpt_utils import chatgpt_chatbot, format_chat_history_str, flip_hist_content_only, filter_convo
 
 def get_edges_and_counts(data):
     edge_counts = {}
@@ -24,7 +25,7 @@ def build_intent_graph(data):
 def check_bot_goal(convo, bot_goal):
     convo_str = format_chat_history_str(flip_hist_content_only(convo[:-1]))
     prompt = f"Here is a conversation between a user and a customer service chatbot assistant:\n{convo_str}\n\nThe chatbot's goal is the following: {bot_goal}\nOutput True if the bot was able to achieve its goal. Output False otherwise. Only output True or False and nothing else."
-    output = chatgpt_chatbot([{'role': 'user', 'content': prompt}], model='gpt-4o')
+    output = chatgpt_chatbot([{'role': 'user', 'content': prompt}])
     return output == "True"
 
 def num_user_turns(convo):
