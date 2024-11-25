@@ -25,6 +25,7 @@ const config = {
   organizationName: 'luyunan0404', // Usually your GitHub org/user name.
   projectName: 'AgentOrg', // Usually your repo name.
   deploymentBranch: 'main',
+  trailingSlash: false,
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
