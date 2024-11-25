@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 const FeatureList = [
   {
     title: 'Mixed-Control Agent',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    Svg: require('@site/static/img/AgentOrg-1.svg').default,
     description: (
       <>
         The agents are designed to handle different goals from user needs and builder objectives, ensuring more dynamic and goal-driven interactions.
@@ -14,7 +14,7 @@ const FeatureList = [
   },
   {
     title: 'Compositional Task Organization',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    Svg: require('@site/static/img/AgentOrg-2.svg').default,
     description: (
       <>
         The complex real-world tasks are proposed to be broken down into modular, reusable components handled by each worker, enhancing efficiency and scalability.
@@ -23,7 +23,7 @@ const FeatureList = [
   },
   {
     title: 'Human Intervention',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    Svg: require('@site/static/img/AgentOrg-3.svg').default,
     description: (
       <>
         Integrates human oversight and interactive refinement, ensuring critical decisions are accurate and user preferences are prioritized.
@@ -32,7 +32,7 @@ const FeatureList = [
   },
   {
     title: 'Continual Learning',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    Svg: require('@site/static/img/AgentOrg-4.svg').default,
     description: (
       <>
         The agents evolve and improve over time by learning from interactions, maintaining their relevance and effectiveness in dynamic environments.

@@ -1,23 +1,19 @@
----
-sidebar_position: 6
----
-
 # Booking Service Bot
 
 *Connect your bots to databases through DatabaseAgents*
 
 ## Intro
 
-In this tutorial, we'll walk through building a simple booking service bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as find room availabilities, booking rooms, retrieve booking details, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
+In this tutorial, we'll walk through building a booking performance bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as find show's availabilities, booking shows, retrieve performance schedule, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
 
-By the end of this tutorial, you'll know how to use external tooling agents specifically integrating with a database. This tutorial demonstrates non-chat related agents and serves as an entry into deeper and more complex capabilities.
+By the end of this tutorial, you'll know how to use external tooling agents specifically integrating with a database. This tutorial demonstrates a agent served as an entry into deeper and more complex capabilities.
 
 
 ## Setting up the Config File
 
 [Previously](./customer-service.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be interacting with database and writing record into database. This could be done through the built-in [DatabaseAgent](../Agents/DatabaseAgent.md).
 
-Here is the really simple structure for a *Config* JSON file:
+As a refresher, here is the structure for a *Config* JSON file:
 
 * `role (Required)`: The general "role" of the chatbot you want to create. For instance, "customer service assistant", "data analyst", "shopping assistant", etc.
 * `user_objective (Required)`: The user's goal that the chatbot wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."
@@ -37,7 +33,7 @@ Here is the really simple structure for a *Config* JSON file:
     * `steps (Required, List(Str))`: The steps to complete the task
 * `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
 
-Now, lets see it with the Booking Assistant Service Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics cleaning company RichTech.
+Now, lets see it with the Booking Assistant example. Here, we have a sample Config file of a Booking Assistant for a performance company - The Irish Repertory Theatre.
 
 ```json
 {
@@ -50,10 +46,6 @@ Now, lets see it with the Booking Assistant Service Bot example. Here, we have a
         "source": "https://irishrep.org/",
         "num": 10
     }],
-    "rag_docs": [{
-        "source": "https://irishrep.org/",
-        "num": 30
-    }],
     "tasks": [],
     "agents": [
         "MessageAgent",
@@ -62,7 +54,6 @@ Now, lets see it with the Booking Assistant Service Bot example. Here, we have a
     ]
 }
 ```
-
 With our Config in place, the vast majority of work is surprisingly already done! The rest is simply bringing the bot to life.
 
 ## Generating a TaskGraph
@@ -71,7 +62,12 @@ Now that we have a Config file, generating the graph is the easy part. All you n
 
 `python create.py --config ./examples/booking_assistant_config.json --output-dir ./examples/booking_system`
 
- to create the TaskGraph! TaskGraphs is the graph that the bot traverses through, so it does not have to take time and update every time the user runs it. With the bot running on top of TaskGraphs, you would only need to re-generate the TaskGraph any time you update the graph!
+It will first enter into a *task planning* interactive panel where you can see the generated tasks this bot will handle and the following steps to complete the specific tasks. You can also modify the tasks and steps as needed. Once you are satisfied with result, you could press `s` to save the *task planning* file then it will further generate the final *TaskGraph* file. 
+
+TaskGraph provides the graph that the bot will traverse through during the conversation. It provides a guideline for the conversation to make it more controllable and reliable. The details can be viewed at [here](../Taskgraph/Generation.md).
+
+It will also prepare the database for the bot. The details can be viewed at [DatabaseAgent](../Agents/DatabaseAgent.md).
+>**Notice**: The database content we used in this tutorial is a fake database for demonstration purposes. You can replace it with your own database content.
 
 ## Running the Bot
 
@@ -79,82 +75,33 @@ With the TaskGraph in place, we can run the bot on the TaskGraph with
 
 `python run.py --input-dir ./examples/booking_system`
 
-With that in place, that should be all you need!
+It will initialize the service (e.g. NLU apis) you need to start the bot and you can start interacting with it!
 
 ---
 
-## Sample Conversation
+## Evaluation
+For a task-oriented dialogue system, you could use the evaluation script to automatically generate synthetic conversations, extracting task completion metrics for evaluating the whole system. For more details, please refer to the [evaluation](../Evaluation/UserSimulator.md) documentation.
+1. First, create an API for the Agent you built. It will start an API on the default port 8000.
+    ```
+    python model_api.py  --input-dir ./examples/booking_system
+    ```
 
-```
-Bot: Hello! I'm your Booking Assistant. Looking to book tickets for a show? I can provide information on events, venues, and ticket availability, and help you with the booking process. Need recommendations? Just let me know your preferences!
+2. Then, start the evaluation process:
+   ```
+    python eval.py \
+    --model_api http://127.0.0.1:8000/eval/chat \
+    --config ./examples/booking_assistant_config.json \
+    --documents_dir ./examples/booking_system \
+    --output-dir ./examples/booking_system
+    ```
 
-User: hat are the current shows running?
+## Evaluation Results
+The evaluation will generate the following outputs in the specified output directory:
+1. **Simulated Synthetic Dataset (`simulate_data.json`)**  
+   - JSON file containing simulated conversations generated based on the user's objective to evaluate the task success rate.
+  
+2. **Labeled Synthetic Dataset (`labeled_data.json`)**  
+   - JSON file containing labeled conversations generated based on the taskgraph to evaluate the NLU performance.
 
-Bot: It looks like there is a show currently running with the following schedule:
-
-- Wednesday: 3pm & 8pm
-- Thursday: 7pm
-- Friday: 8pm
-- Saturday: 3pm & 8pm
-- Sunday: 3pm
-
-The show has a running time of 70 minutes with no intermission, and it uses haze and smoke effects. If you need more information or assistance with booking, feel free to ask!
-
-User: What is the name of that show?
-
-Bot: The name of the show currently running with the provided schedule is not explicitly mentioned in the context provided. However, based on the information about the cast and creative team, it appears to be the show featuring Brutus Jones played by Obi Abili. If you have any more questions or need assistance, feel free to ask!
-
-User: what is the name of the show running at Wednesday 3pm?
-
-Bot: The name of the show running at Wednesday 3pm is "The Emperor Jones," featuring Brutus Jones played by Obi Abili. If you need more information or assistance with booking, feel free to ask!
-
-User: What is the name of the show running at Thursday 7pm?
-
-Bot: The name of the show running at Thursday 7pm is "The Emperor Jones," featuring Brutus Jones played by Obi Abili. If you need more information or assistance with booking, feel free to ask!
-
-User: Are there space left for the Thursday 7PM show?
-
-== freezes ==
-```
-
-```
-Bot: Hello! I'm your Booking Assistant. Looking to book tickets for a show? I can provide information on events, venues, and ticket availability, and help you with the booking process. Need recommendations? Just let me know your preferences!
-
-User: Can you tell me about the shows currently?
-
-Bot: Currently, there are several shows and performances available. Here are some highlights:
-
-1. **Only Murders in the Building** - You can currently catch this show, which is part of a series featuring notable performances.
-
-2. **Holiday Schedule Performances** - There are special holiday schedules with additional performances on certain dates. For instance, there will be performances on Monday, December 19 at 7pm, Tuesday, December 20 at 2pm and 7pm, and additional shows on Tuesday, December 27 at 7pm, and Friday, December 30 with a matinee at 2pm and an evening show at 7pm.
-
-3. **Special Events** - There are special events like the $22 on 22nd On-Sale, which started on November 17, 2022, at 1pm, and an Opening Night event on December 8, 2022, at 7pm.
-
-If you have specific preferences or need more information about a particular show, feel free to ask!
-
-User: What are the availability for "Only Murders in the Building"?
-
-Bot: Currently, I don't have specific information on the ticket availability for "Only Murders in the Building." However, you can purchase tickets through the Irish Repertory Theatre website or by calling the box office at (212) 727-2737. If you have any preferences or need further assistance with the booking process, feel free to ask!
-
-User: What is the next show? 
-
-Bot: The next show mentioned in the context is the American Premiere of "After Luke," which is part of the Irish Repertory Theatre's 2008-2009 season. Would you like more information about this show or any other assistance?
-
-User: I want to watch a show right now, what is the next show I could book?
-
-Bot: Could you let me know what type of event you're interested in, as well as your preferred date and location?
-
-User: What type of events are there? my schedule is flexible so date and location doesn't matter
-
-Bot: Could you share your preferences regarding the type of event, location, or any particular interests you have?
-
-User: What type of events are there? I am open to any event, location, or interests
-
-Bot: Here's a list of events that align with your preferences. Let me know if any of these catch your interest.
-
-User: Nothing was shown?
-
-Bot: Is there a particular event you want more details about, or would you like me to provide additional options?
-
-**user quits**
-```
+3. **Goal Completion Metrics (`goal_completion.json`)**  
+   - JSON file summarizing task completion statistics based on the bot's ability to achieve specified goals.

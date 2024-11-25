@@ -1,32 +1,26 @@
----
-sidebar_position: 6
----
-
 # Roleplay Bot
 
-*Build a basic no-fuss chatbot with MessageAgents*
+*Build a basic chatbot with MessageAgents*
 
 ## Intro
 
-In this tutorial, we'll walk through building a basic customer service bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and retrieve relevant contact information. The tutorial aims to provide a practical but simple introduction to conversational AI and equip you with the foundational skills needed to create and deploy a functional chatbot.
+In this tutorial, we'll walk through building a roleplay bot using **AgentOrg**'s framework. This bot will pretend to be a role you assigned to it and have a practice conversation with you based on the objective you set.
 
-By the end of this tutorial, you'll know how to set up the AI framework, buil a basic conversation flow, and power a bot with it! This tutorial covers the absolute basics of our framework and sets up for much more!
+By the end of this tutorial, you'll know how to set up the config file, build a basic conversation flow, and power a bot with it! This tutorial covers the absolute basics of our framework and sets up for much more!
 
 ## Setting up the Config File
 
 In its core, bot is powered through a [TaskGraph](../TaskGraph/intro) which is the structure that links various tasks together to fulfill the overall role of the bot. Every "node" represents a task which has an [Agent](../Agents/Agents.md) that is selected to complete task, and would engages the user for their response. With the user response, the TaskGraph will decide which next node to travel to.
 
-Like actual conversations, *TaskGraph* can be complicated; that is why we help you convert a simple and intuitive [Config](../Config.md) JSON file into a powerful and advanced *TaskGraph* through our generator. Instead of needing to design an entire graph, all you need to do is to describe the bot and provide some extra information and it will build the graph for you! 
-
 While there are a lot of pre-built agents (and the ability to write custom agents too!), for this simple task, we will only be using two of the most basic agents. [MessageAgent](../Agents/MessageAgent.md) and [DefaultAgent](../Agents/DefaultAgent.md). Message Agent is the base agent in handling message responses and DefaultAgent is there in case MessageAgent is not deemed suitable. 
 
 Here is the simple structure for a [Config](../Config.md) JSON file:
 
-* `role (Required)`: The general "role" of the chatbot you want to create. For instance, "customer service assistant", "data analyst", "shopping assistant", etc.
+* `role (Required)`: The general "role" of the chatbot you want to create. For instance, "roleplay bot", "customer service assistant", "data analyst", "shopping assistant", etc.
 * `user_objective (Required)`: The user's goal that the chatbot wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."
 * `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
 
-Now, lets see it with the Roleplay Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics cleaning company RichTech.
+Now, lets see it with the Roleplay Bot example.
 
 ```json
 {
@@ -47,23 +41,26 @@ With our Config in place, the vast majority of work is surprisingly already done
 
 ## Generating a TaskGraph
 
-Now that we have a Config file, generating the graph is the easy part. All you need to do is run 
+Now that we have a Config file, generating the graph is the easy part. All you need to do is run the following command:
 
 `python create.py --config ./examples/roleplay.json --output-dir ./examples/roleplay`
 
- to create the TaskGraph! TaskGraphs is the graph that the bot traverses through, so it does not have to take time and update every time the user runs it. With the bot running on top of TaskGraphs, you would only need to re-generate the TaskGraph any time you update the graph!
+It will first enter into a *task planning* interactive panel where you can see the generated tasks this bot will handle and the following steps to complete the specific tasks. You can also modify the tasks and steps as needed. Once you are satisfied with result, you could press `s` to save the *task planning* file then it will further generate the final *TaskGraph* file. 
+
+TaskGraph provides the graph that the bot will traverse through during the conversation. It provides a guideline for the conversation to make it more controllable and reliable. The details can be viewed at [here](../Taskgraph/Generation.md). 
 
 ## Running the Bot
 
-With the TaskGraph in place, we can run the bot on the TaskGraph with 
+With the TaskGraph in place, we can run the bot with the following command: 
 
 `python run.py --input-dir ./examples/roleplay`
 
-With that in place, that should be all you need!
+It will initialize the service (e.g. NLU apis) you need to start the bot and you can start interacting with it!
 
 ---
 
 ## Sample Conversation
+Here is a sample conversation of the roleplay bot:
 ```
 > Bot: Greetings, foolish adventurer! I am the mighty red dragon, guardian of the secrets you seek. Turn back now, lest you join the countless knights who have perished before you. What brings you to my fiery domain in pursuit of the elusive holy grail?
 
