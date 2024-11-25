@@ -41,6 +41,6 @@ class BaseAgent(ABC):
         return f"{self.__class__.__name__}"
     
     @abstractmethod
-    def execute(self):
+    def execute(self, msg_state: MessageState):
         pass
 ```
