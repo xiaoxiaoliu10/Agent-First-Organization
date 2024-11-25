@@ -32,11 +32,11 @@ This directory is designed to evaluate a task-oriented dialogue system by genera
 
 ## **Outputs**
 
-1. **Labeled Synthetic Dataset (`simulate_data.json`)**  
-   - JSON file containing simulated conversations generated during the evaluation process.
+1. **Simulated Synthetic Dataset (`simulate_data.json`)**  
+   - JSON file containing simulated conversations generated based on the user's objective to evaluate the task success rate.
   
 2. **Labeled Synthetic Dataset (`labeled_data.json`)**  
-   - JSON file containing labeled conversations generated during the evaluation process.
+   - JSON file containing labeled conversations generated based on the taskgraph to evaluate the NLU performance.
 
 3. **Goal Completion Metrics (`goal_completion.json`)**  
    - JSON file summarizing task completion statistics based on the bot's ability to achieve specified goals.

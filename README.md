@@ -72,7 +72,7 @@ python run.py --input-dir ./examples/customer_service
   * Then, start the evaluation process: 
     ```
     python eval.py \
-    --model_api http://127.0.0.1:8001/eval/chat \
+    --model_api http://127.0.0.1:8000/eval/chat \
     --config ./examples/customer_service_config.json \
     --documents_dir ./examples/customer_service \
     --output-dir ./examples/customer_service
@@ -85,6 +85,6 @@ python run.py --input-dir ./examples/customer_service
       * `--num_convos`: Number of synthetic conversations to simulate. Default is 5.
       * `--num_goals`: Number of goals/tasks to simulate. Default is 5.
       * `--max_turns`: Maximum number of turns per conversation. Default is 5.
-      * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+      * `--model`: The openai model type used to synthesize user's utterance. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
   
   * For more details, check out the [Evaluation README](./agentorg/evaluation/README.md).

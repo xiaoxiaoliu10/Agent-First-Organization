@@ -47,7 +47,7 @@ def extract_task_completion_metrics(data, bot_goal=None):
         if bot_goal is not None and check_bot_goal(convo, bot_goal):
             bot_goal_completions += 1
     metrics = {'user_task_completion': goal_completetions/num_convos,
-               'user_task_completion_efficency': completion_efficiency/num_convos}
+               'user_task_completion_efficiency': completion_efficiency/num_convos}
     if bot_goal is not None:
         metrics['bot_goal_completion'] = bot_goal_completions/num_convos
     return metrics
