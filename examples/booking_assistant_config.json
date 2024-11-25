@@ -12,8 +12,6 @@
     ],
     "tasks": [],
     "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
         "MessageAgent",
         "DatabaseAgent",
         "DefaultAgent"

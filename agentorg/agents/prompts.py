@@ -65,12 +65,11 @@ retrieve_contextualize_q_prompt = """Given a chat history and the latest user qu
 
 choose_agent_prompt = """You are an assistant that has access to the following set of tools. Here are the names and descriptions for each tool:
 {agents_info}
-Based on the conversation history and user's message, choose the appropriate agent to respond to the user's message.
+Based on the conversation history, choose the appropriate agent to respond to the user's message.
 Conversation:
 {formatted_chat}
-User's Message:
-{message}
 The response must be the name of one of the agents ({agents_name}).
+Answer:
 """
 
 ### ================================== Database-related Prompts ================================== ###

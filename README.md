@@ -5,6 +5,7 @@
     * Add `OPENAI_API_KEY` to `.env`
     * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional] (In order to use Trace function, you need to create a LangChain account from [here](https://langchain.com/) and create a API key in the settings.)
     * Set `LANGCHAIN_API_KEY` to `.env` if enable Trace.
+    * If you are going to use the `SearchAgent`, you need to set up the `TAVILY_API_KEY` to `.env` as well. (In order to use Tavily, you need to create a Tavily account from [here](https://docs.tavily.com/) and create a API key by click [Get API Key](https://app.tavily.com/home).)
 1. Create venv and Install the dependencies by running `pip install -r requirements.txt`
 2. Create a config file, similar to the `project/AgentOrg/agentorg/orchestrator/examples/customer_service_config.json`
     * The config file should contain the following fields:
