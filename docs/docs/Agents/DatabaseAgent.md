@@ -55,7 +55,7 @@ After each round of conversation, slots are extracted and matched against their 
 
 ## Action Verification
 
-As defined in [TaskGraph](../TaskGraph.md), there is an attribute `task` for each node, which will be used to determine the corresponding database action. In the sample database agent, we define several actions:
+As defined in [TaskGraph](../Taskgraph/Generation.md), there is an attribute `task` for each node, which will be used to determine the corresponding database action. In the sample database agent, we define several actions:
 
 - SearchShow: Search for shows
 - BookShow: Book a show

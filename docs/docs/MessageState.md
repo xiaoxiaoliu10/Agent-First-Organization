@@ -22,12 +22,12 @@ class MessageState(TypedDict):
 
 - `sys_instruct`: The system-level instructions for the orchestrator.
 - `user_message`: A `ConvoMessage` object containing the user's query and chat history.
-- `orchestrator_message`: An `OrchestratorMessage` object contains value and attributes of a node in [TaskGraph](./TaskGraph.md).
+- `orchestrator_message`: An `OrchestratorMessage` object contains value and attributes of a node in [TaskGraph](./Taskgraph/Generation.md).
 - `response`: The final response for the user after execution.
 - `status`: A `StatusEnum` object indicating whether the task has been completed
 - `slots`: A list of `Slot` objects to collect information during the conversation.
 
-Note: The field `status` and `slots` are mainly used for the [DatabaseAgent](./agents/DatabaseAgent.md). For the list of `Slot` objects, they should be defined as:
+Note: The field `status` and `slots` are mainly used for the [DatabaseAgent](./Agents/DatabaseAgent.md). For the list of `Slot` objects, they should be defined as:
 ```py
 class Slot(BaseModel):
     name: str
