@@ -10,7 +10,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Articulate.AI',
+  title: 'AgentOrg',
   tagline: 'A New Generation of AI Agents',
   favicon: 'img/articulate-ai.png',
 
@@ -46,7 +46,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/luyunan0404/AgentOrg',
+            'https://github.com/luyunan0404/AgentOrg/tree/main/docs',
         },
         blog: {
           showReadingTime: true,
@@ -57,7 +57,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/luyunan0404/AgentOrg',
+            'https://github.com/luyunan0404/AgentOrg/tree/main/docs',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',

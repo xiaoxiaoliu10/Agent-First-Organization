@@ -8,39 +8,34 @@ sidebar_position: 6
 
 ## Intro
 
-In this tutorial, we'll walk through building a simple booking service bot using **Articulate.AI**'s framework. This bot will be able to handle common customer inquiries, such as find room availabilities, booking rooms, retrieve booking details, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
+In this tutorial, we'll walk through building a simple booking service bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as find room availabilities, booking rooms, retrieve booking details, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
 
 By the end of this tutorial, you'll know how to use external tooling agents specifically integrating with a database. This tutorial demonstrates non-chat related agents and serves as an entry into deeper and more complex capabilities.
 
-## Supplying Information
-
-As with our previous tutorial, we need to identify sources and load the data. After we identified our site (https://irishrep.org/) and the number of pages (30), we could load the data simply with this script:
-
-```python -m agentorg.utils.loader --base_url="https://irishrep.org/" --folder_path="./agentorg/data" --get_chunk=True --max-num 30```
-
-## Building our Database
-
-For this tutorial, in order to demonstrate how we can have tooling agents manipulate databases, we need to have a database first so it can operate on it. As this is not a guide on databases, we won't go into much details but for the purposes of this tutorial, we will be using a prebuilt SQLLite database built from this schema below!
-
-```python -m agentorg.agents.tools.database.build_database --folder_path="./agentorg/data"```
 
 ## Setting up the Config File
 
-[Previously](./customer-support.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be writing. This could be done through the built-in [DatabaseAgent](../agents/DatabaseAgent.md).
+[Previously](./customer-service.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be interacting with database and writing record into database. This could be done through the built-in [DatabaseAgent](../Agents/DatabaseAgent.md).
 
 Here is the really simple structure for a *Config* JSON file:
 
-* `role (Required)`: The general "role" of the chatbot you want to create
-* `objective (Optional)`: The objective of the chatbot. This is like the "goal" or "target" you want your chatbot to fulfill or achieve while serving in its role.
-* `domain (Optional)`: The domain of the company that you want to create the chatbot for
-* `intro (Required)`: The introduction of the company that you want to create the chatbot for or the summary of the tasks that the chatbot need to handle
-* `docs (Optional, Dict)`: The documents resources for the chatbot. The dictionary should contain the following fields:
+* `role (Required)`: The general "role" of the chatbot you want to create. For instance, "customer service assistant", "data analyst", "shopping assistant", etc.
+* `user_objective (Required)`: The user's goal that the chatbot wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."
+* `builder_objective (Optional)`: The additional target you want the chatbot to achieve beyond the user's goal. Can contain hidden objectives or subtle objectives which is hidden from the user. Describe in third person. For instance, "The customer service assistant helps to request customer's contact information."
+* `domain (Optional)`: The domain that you want to create the chatbot for. For instance, "robotics and automation", "Ecommerce", "Healthcare", etc.
+* `intro (Optional)`: The introduction of the above domain that you want to create the chatbot for. It should contain the information about the domain, the products, services, and policies, etc.
+* `task_docs (Optional, List[Dict])`: The documents resources for the taskgraph generation to create the chatbot. Each item in the list should contain the following fields:
     * `source (Required)`: The source url that you want the chatbot to refer to
-    * `num (Required)`: The number of websites that you want the chatbot to refer to for the source
+    * `desc (Optional)` : Short description of the source and how it is used
+    * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
+* `rag_docs (Optional, List[Dict])`: If you want to use RAGAgent, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
+    * `source (Required)`: The source url that you want the chatbot to refer to
+    * `desc (Optional)` : Short description of the source and how it is used
+    * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
 * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
     * `task_name (Required, Str)`: The task that the chatbot need to handle
     * `steps (Required, List(Str))`: The steps to complete the task
-* `agents (Required, List(AgentClassName))`: The agents pre-defined under agentorg/agents folder that you want to use for the chatbot. 
+* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
 
 Now, lets see it with the Booking Assistant Service Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics cleaning company RichTech.
 
@@ -61,8 +56,6 @@ Now, lets see it with the Booking Assistant Service Bot example. Here, we have a
     }],
     "tasks": [],
     "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
         "MessageAgent",
         "DatabaseAgent",
         "DefaultAgent"
@@ -76,7 +69,7 @@ With our Config in place, the vast majority of work is surprisingly already done
 
 Now that we have a Config file, generating the graph is the easy part. All you need to do is run 
 
-`python create.py --config <config-filepath> --output-dir <output-filepath>`
+`python create.py --config ./examples/booking_assistant_config.json --output-dir ./examples/booking_system`
 
  to create the TaskGraph! TaskGraphs is the graph that the bot traverses through, so it does not have to take time and update every time the user runs it. With the bot running on top of TaskGraphs, you would only need to re-generate the TaskGraph any time you update the graph!
 
@@ -84,7 +77,7 @@ Now that we have a Config file, generating the graph is the easy part. All you n
 
 With the TaskGraph in place, we can run the bot on the TaskGraph with 
 
-`python run.py --config-taskgraph <taskgraph-filepath>`
+`python run.py --input-dir ./examples/booking_system`
 
 With that in place, that should be all you need!
 

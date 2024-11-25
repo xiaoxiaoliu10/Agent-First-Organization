@@ -4,41 +4,46 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Mixed-Initiative Framework',
+    title: 'Mixed-Control Agent',
     Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Deliver personalized, accurate responses by treating each user as unique. 
-        Go beyond generic, population-based insights through dynamic user interaction.
+        The agents are designed to handle different goals from user needs and builder objectives, ensuring more dynamic and goal-driven interactions.
       </>
     ),
   },
   {
-    title: 'All-in-One Controllable Task Management',
+    title: 'Compositional Task Organization',
     Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Streamline multiple tasks within a unified system based on <code>NLU</code>. 
-        Powered by <code>TaskGraph</code>, different <code>Agents</code> manage specific tasks, 
-        each broken down into best-practice steps for maximum control and efficiency.
+        The complex real-world tasks are proposed to be broken down into modular, reusable components handled by each worker, enhancing efficiency and scalability.
       </>
     ),
   },
   {
-    title: 'Iterative optimization',
+    title: 'Human Intervention',
     Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Continuously improve <code>TaskGraph</code> performance using conversation history. 
-        Refine processes for more efficient, customized guidance over time.
+        Integrates human oversight and interactive refinement, ensuring critical decisions are accurate and user preferences are prioritized.
       </>
     ),
   },
+  {
+    title: 'Continual Learning',
+    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    description: (
+      <>
+        The agents evolve and improve over time by learning from interactions, maintaining their relevance and effectiveness in dynamic environments.
+      </>
+    ),
+  }
 ];
 
 function Feature({Svg, title, description}) {
   return (
-    <div className={clsx('col col--4')}>
+    <div className={clsx('col col--3')}>
       <div className="text--center">
         <Svg className={styles.featureSvg} role="img" />
       </div>

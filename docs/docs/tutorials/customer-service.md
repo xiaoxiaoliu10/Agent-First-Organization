@@ -8,7 +8,7 @@ sidebar_position: 6
 
 ## Intro
 
-In this tutorial, we'll walk through building a basic customer service bot using **Articulate.AI**'s framework. This bot will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and retrieve relevant contact information. The tutorial aims to build on top of a [simple conversational AI](./roleplay-chatbot.md) to include RAG and information retrieval in order to equip you with the foundational skills needed to create and deploy a functional customer service bot.
+In this tutorial, we'll walk through building a basic customer service bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and retrieve relevant contact information. The tutorial aims to build on top of a [simple conversational AI](./roleplay-chatbot.md) to include RAG and information retrieval in order to equip you with the foundational skills needed to create and deploy a functional customer service bot.
 
 By the end of this tutorial, you'll know how to set up the AI framework, supply RAG-able data, build a basic conversation flow, and power a bot with it. Whether you're building your first bot or refining your skills, this tutorial will guide you in creating a responsive and helpful customer service chatbot. 
 
@@ -27,17 +27,23 @@ Building on top of a primitive conversational bot, for the customer service bot,
 
 As a refresher, here is the simple structure for a [Config](../Config.md) JSON file:
 
-* `role (Required)`: The general "role" of the chatbot you want to create
-* `objective (Optional)`: The objective of the chatbot. This is like the "goal" or "target" you want your chatbot to fulfill or achieve while serving in its role.
-* `domain (Optional)`: The domain of the company that you want to create the chatbot for
-* `intro (Required)`: The introduction of the company that you want to create the chatbot for or the summary of the tasks that the chatbot need to handle
-* `docs (Optional, Dict)`: The documents resources for the chatbot. The dictionary should contain the following fields:
+* `role (Required)`: The general "role" of the chatbot you want to create. For instance, "customer service assistant", "data analyst", "shopping assistant", etc.
+* `user_objective (Required)`: The user's goal that the chatbot wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."
+* `builder_objective (Optional)`: The additional target you want the chatbot to achieve beyond the user's goal. Can contain hidden objectives or subtle objectives which is hidden from the user. Describe in third person. For instance, "The customer service assistant helps to request customer's contact information."
+* `domain (Optional)`: The domain that you want to create the chatbot for. For instance, "robotics and automation", "Ecommerce", "Healthcare", etc.
+* `intro (Optional)`: The introduction of the above domain that you want to create the chatbot for. It should contain the information about the domain, the products, services, and policies, etc.
+* `task_docs (Optional, List[Dict])`: The documents resources for the taskgraph generation to create the chatbot. Each item in the list should contain the following fields:
     * `source (Required)`: The source url that you want the chatbot to refer to
-    * `num (Required)`: The number of websites that you want the chatbot to refer to for the source
+    * `desc (Optional)` : Short description of the source and how it is used
+    * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
+* `rag_docs (Optional, List[Dict])`: If you want to use RAGAgent, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
+    * `source (Required)`: The source url that you want the chatbot to refer to
+    * `desc (Optional)` : Short description of the source and how it is used
+    * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
 * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
     * `task_name (Required, Str)`: The task that the chatbot need to handle
     * `steps (Required, List(Str))`: The steps to complete the task
-* `agents (Required, List(AgentClassName))`: The agents pre-defined under agentorg/agents folder that you want to use for the chatbot. 
+* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
 
 Now, lets see it with the Customer Service Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics cleaning company RichTech.
 
@@ -70,7 +76,7 @@ With our Config in place, the vast majority of work is surprisingly already done
 
 Now that we have a Config file, generating the graph is the easy part. All you need to do is run 
 
-`python create.py --config <config-filepath> --output-dir <output-filepath>`
+`python create.py --config ./examples/customer_service_config.json --output-dir ./examples/customer_service`
 
  to create the TaskGraph! TaskGraphs is the graph that the bot traverses through, so it does not have to take time and update every time the user runs it. With the bot running on top of TaskGraphs, you would only need to re-generate the TaskGraph any time you update the graph!
 
@@ -78,21 +84,10 @@ Now that we have a Config file, generating the graph is the easy part. All you n
 
 With the TaskGraph in place, we can run the bot on the TaskGraph with 
 
-`python run.py --config-taskgraph <taskgraph-filepath>`
+`python run.py --input-dir ./examples/customer_service`
 
 With that in place, that should be all you need!
 
 ---
 
 ## Sample Conversation
-
-```
-BOT: Hello! Welcome to our Customer Service Assistant. How may I assist you today with your inquiries about our products, services, or policies?
-
-USER: what robots do you all have?
-
-BOT: Hi there! Could you let me know which type of robot you're curious about? We offer information on worker, delivery, cleaning, and multipurpose robots.
-
-USER: im interested in the worker bots
-
-```
