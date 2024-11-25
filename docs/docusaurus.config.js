@@ -15,15 +15,16 @@ const config = {
   favicon: 'img/articulate-ai.png',
 
   // Set the production url of your site here
-  url: 'https://articulateai.com/',
+  url: 'https://luyunan0404.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/AgentOrg/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'luyunan0404', // Usually your GitHub org/user name.
   projectName: 'AgentOrg', // Usually your repo name.
+  deploymentBranch: 'main',
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
