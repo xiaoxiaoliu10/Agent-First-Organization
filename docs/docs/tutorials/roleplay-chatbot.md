@@ -10,7 +10,7 @@ By the end of this tutorial, you'll know how to set up the config file, build a 
 
 ## Setting up the Config File
 
-In its core, bot is powered through a [TaskGraph](../TaskGraph/intro) which is the structure that links various tasks together to fulfill the overall role of the bot. Every "node" represents a task which has an [Agent](../Agents/Agents.md) that is selected to complete task, and would engages the user for their response. With the user response, the TaskGraph will decide which next node to travel to.
+In its core, bot is powered through a [TaskGraph](../Taskgraph/intro.md) which is the structure that links various tasks together to fulfill the overall role of the bot. Every "node" represents a task which has an [Agent](../Agents/Agents.md) that is selected to complete task, and would engages the user for their response. With the user response, the TaskGraph will decide which next node to travel to.
 
 While there are a lot of pre-built agents (and the ability to write custom agents too!), for this simple task, we will only be using two of the most basic agents. [MessageAgent](../Agents/MessageAgent.md) and [DefaultAgent](../Agents/DefaultAgent.md). Message Agent is the base agent in handling message responses and DefaultAgent is there in case MessageAgent is not deemed suitable. 
 

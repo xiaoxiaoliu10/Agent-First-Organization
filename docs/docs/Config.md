@@ -1,6 +1,6 @@
 # Config
 
-**Config** files are the simple and recommended way to build your [TaskGraph](TaskGraph/intro). A standard JSON document, the [Generator](Taskgraph/Generation) can create and breakdown the role into a series of tasks and steps which are then matched with the appropriate [Agents](Agents/intro) and connected with the proper tasks to create a TaskGraph. 
+**Config** files are the simple and recommended way to build your [TaskGraph](./Taskgraph/intro.md). A standard JSON document, the [Generator](Taskgraph/Generation) can create and breakdown the role into a series of tasks and steps which are then matched with the appropriate [Agents](Agents/intro) and connected with the proper tasks to create a TaskGraph. 
 
 Here is the structure for a **Config** JSON file:
 
