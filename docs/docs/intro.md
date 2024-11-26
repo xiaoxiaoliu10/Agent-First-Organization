@@ -1,4 +1,4 @@
-# AgentOrg Intro
+# Introduction
 AgentOrg provides a framework for developing Agents to complete complex tasks powered by LLMs. The framework is designed to be modular and extensible, allowing developers to customize agents that can interact with each other in a variety of ways under the supervision of the orchestrator managed by *Taskgraph*. The framework is built on top of the [LangChain](https://www.langchain.com/) platform, which provides a flexible LangGraph framework and LangChain Expression Language (LCEL) to chain different module together.
 
 In this framework, we propose opportunities for innovation across **four** key areas: 
