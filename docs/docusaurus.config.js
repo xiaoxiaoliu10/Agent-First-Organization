@@ -12,7 +12,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'AgentOrg',
   tagline: 'A New Generation of AI Agents',
-  favicon: 'img/articulate-ai.png',
+  favicon: 'img/articulateai.png',
 
   // Set the production url of your site here
   url: 'https://luyunan0404.github.io',
@@ -37,6 +37,11 @@ const config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
+
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
 
   presets: [
     [

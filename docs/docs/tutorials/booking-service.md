@@ -78,6 +78,38 @@ With the TaskGraph in place, we can run the bot on the TaskGraph with
 It will initialize the service (e.g. NLU apis) you need to start the bot and you can start interacting with it!
 
 ---
+## Sample Conversation
+
+
+> **ASSISTANT**: Hello! I'm your Booking Assistant. Ready to help you find and book tickets for your next event. What show or event are you interested in today?
+> 
+> **USER**: I'm in based in New York City and was wanted to know what shows are running?
+> 
+> **ASSISTANT**: New York City is home to a vibrant theater scene, with many shows currently running on Broadway. Some of the popular options include "The Lion King" at the Minskoff Theatre, "Wicked" at the Gershwin Theatre, and "Hamilton" at the Richard Rodgers Theatre. If you have specific preferences or need more information about a particular show, feel free to let me know, and I'll be happy to help!
+> 
+> **USER**: What are the times for Hamilton?
+> 
+> **ASSISTANT**:\
+> "Hamilton" is being performed at the Richard Rodgers Theatre in New York. Here are some upcoming showtimes:
+> 
+> - October 19, 2024, at 1:00 PM and 7:00 PM
+> - October 26, 2024, at 1:00 PM and 7:00 PM
+> 
+> If you need more details or want to book tickets, let me know!
+> 
+> **USER**: I should be free on the 10/26 7PM what are the ticket availability during that date?
+> 
+> **ASSISTANT**: I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase for "Hamilton" on October 26, 2024, at 7:00 PM. If you would like to proceed with booking or need further assistance, please let me know!
+> 
+> **USER**: Could I get 3 tickets for that day?
+> 
+> **ASSISTANT**: Yes, you can get 3 tickets for "Hamilton" on October 26, 2024, at 7:00 PM. I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase. Would you like me to proceed with booking those tickets for you?
+> 
+> **USER**: Yes, thank you!
+> 
+> **ASSISTANT**: Great! I'll proceed with booking 3 tickets for "Hamilton" on October 26, 2024, at 7:00 PM for you. I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase. Please provide your payment details to complete the booking process. If you have any questions or need further assistance, feel free to ask!
+
+---
 
 ## Evaluation
 For a task-oriented dialogue system, you could use the evaluation script to automatically generate synthetic conversations, extracting task completion metrics for evaluating the whole system. For more details, please refer to the [evaluation](../Evaluation/UserSimulator.md) documentation.

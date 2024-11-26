@@ -23,6 +23,7 @@ class MessageState(TypedDict):
 - `sys_instruct`: The system-level instructions for the orchestrator.
 - `user_message`: A `ConvoMessage` object containing the user's query and chat history.
 - `orchestrator_message`: An `OrchestratorMessage` object contains value and attributes of a node in [TaskGraph](./Taskgraph/Generation.md).
+- `message_flow`: Annotated[str, "message flow between different nodes"]
 - `response`: The final response for the user after execution.
 - `status`: A `StatusEnum` object indicating whether the task has been completed
 - `slots`: A list of `Slot` objects to collect information during the conversation.

@@ -7,7 +7,8 @@ Agents serve as the fundamental building block of the **AgentOrg** framework and
 Each Agent represent a group of GraphNodes on a LangGraph and can be subgraphed.
 :::
 
-BaseAgent is the parent class of all agents is the BaseAgent and consists of a `description` attribute and `execute()` abstract method.
+BaseAgent is the parent class of all agents is the BaseAgent and consists of a `description` attribute and `execute()` abstract method. Each node consists of a chain of relevants Agents by the orchestrator
+on execution which the on execution, processes the MessageState input into an MessageState output.
 
 ### Attributes
 #### Description
@@ -18,7 +19,7 @@ Some examples:
     - ""Answer the user's questions based on the company's internal documentations (unstructured text data), such as the policies, FAQs, and product information" ([RAGAgent](./RAGAgent.md))
 
 #### Execute
-`execute()` takes in [MessageState](../MessageState.md) and returns an `invoke`'d LangChain StateGraph. This is crucial to connect various Agents (through LangChain subgraph behavior) and is called by the Orchestrator during runtime.
+`execute()` takes in [MessageState](../MessageState.mdx) and returns an `invoke`'d LangChain StateGraph. This is crucial to connect various Agents (through LangChain subgraph behavior) and is called by the Orchestrator during runtime.
 
 An example:
 ```py

@@ -1,6 +1,6 @@
 # Customer Service Bot
 
-*Enhance your bots with RAG*
+*Enhance your bots with Retrieval Augemnted Generation (RAG)*
 
 ## Intro
 
@@ -94,21 +94,50 @@ It will initialize the service (e.g. NLU apis) you need to start the bot and you
 ---
 
 ## Sample Conversation
-```
-> Bot: 
-
-> User: hi, can u tell me how ADAM is being used in different places?
-
-> Bot: Hi! The ADAM robot is quite versatile and is used in various settings like hotels and bars. In hotels, it can serve as a bartender, preparing drinks like coffee, tea, and cocktails, which enhances guest experience by providing quick and efficient service. It can also help with room service by delivering beverages directly to guests, saving time for staff and improving service speed.  In bars, ADAM can mix drinks consistently and accurately, which can streamline operations during busy hours. Its ability to take orders and prepare multiple beverages at once can help reduce wait times for customers, leading to higher satisfaction.  Thank you for your interest in our robotic products. Could you please specify which product or feature you would like more information about?
-
-> User: thanks for the info! im curious, are there any specific venues or events where ADAM has been a big hit? like any success stories?
-
-> Bot: Absolutely! ADAM has made quite an impression at several notable events. For instance, it became the first AI-powered humanoid robot to bartend at a major US sports event during the MASL USA vs. Mexico All Star Game at Toyota Arena. There, ADAM served ice-cold craft beers, quickly becoming a crowd favorite. Fans and tech enthusiasts documented the experience, showcasing ADAM's ability to interact with people and enhance the event atmosphere.  Additionally, ADAM is also being utilized in locations like Globe Life Field, where it brings efficiency to stadium bars by serving a wide variety of customizable drinks alongside human bartenders. This not only helps alleviate wait times but also adds a unique experience for the attendees.  If you're interested in more specific applications or other venues, feel free to ask
-
-> User: thats really helpful, thanks! im also curious, how easy is it for staff to learn to work alongside ADAM? is there a lot of training involved?
-
-> Bot: ADAM is designed to be user-friendly, which makes it relatively easy for staff to learn to work alongside it. The interface is intuitive, allowing employees to quickly understand how to operate the robot, take orders, and manage the drink preparation process. Most staff can get up to speed with minimal training, often within a few hours. Additionally, Richtech Robotics provides support and training resources to ensure a smooth integration into existing workflows. This way, staff can focus on enhancing the customer experience while ADAM handles the drink preparation efficiently.
-```
+> **ASSISTANT**: Hello! Welcome to our Customer Service Assistant. I'm here to provide you with information about our products, services, and policies. How can I assist you today?
+> 
+> **USER**: What products do you offer?
+> 
+> **ASSISTANT**:\
+> We offer a range of innovative robots designed for business purposes. Our lineup includes:
+> 
+> 1. **Worker Robots:** 
+>    - ADAM: A versatile robot capable of tasks like food and beverage preparation.
+>    - ARM and ACE: Designed for various operational needs.
+> 
+> 2. **Delivery Robots:** 
+>    - Matradee, Matradee X, Matradee L, and Richie: These robots are perfect for automating delivery tasks.
+> 
+> 3. **Cleaning Robots:** 
+>    - DUST-E SX and DUST-E MX: Ideal for maintaining cleanliness in commercial spaces.
+> 
+> 4. **Multipurpose Robot:**
+>    - Skylark: This robot can handle multiple tasks including easy ordering, vending, and cleaning operations.
+> 
+> If you have any specific questions about a product or need further assistance, feel free to ask!
+> 
+> **USER**: I am interested in Cleaning Robots, can you tell me mor eabout the differences between DUST-E SX and DUST-E MX?
+> 
+> **ASSISTANT**:\
+> Certainly! Both the DUST-E SX and DUST-E MX are designed for professional cleaning, but they cater to different needs:
+> 
+> 1. **DUST-E SX:**
+>    - Designed for smaller environments.
+>    - It's a compact solution for medium to small-sized buildings.
+>    - Offers the same high-quality cleaning as the MX but in a smaller size, making it ideal for tighter or more confined spaces.
+> 
+> 2. **DUST-E MX:**
+>    - Ideal for larger environments with tight chokepoints.
+>    - Cleans at a rate of approximately 22,000 square feet per hour.
+>    - Equipped with 40+ sensors for safety, providing a 360° view to handle unexpected obstacles.
+>    - Features an easy-to-use touchscreen for operation and convenient dirty water disposal.
+> 
+> Both models provide excellent consistency and professional-grade cleaning. If you need more specific details or wish to book a demo, feel free to let me know!
+> 
+> **USER**: DUST-E SX seems more aligned with our needs, can we book a demo?
+>
+> **ASSISTANT**: Certainly! You can book a demo for the DUST-E SX by visiting the following link: [Book a Demo](https://www.richtechrobotics.com/dust-e-mx#section_contact-form). If you need further assistance or have any questions, feel free to ask!
+---
 
 ## Evaluation
 For a task-oriented dialogue system, you could use the evaluation script to automatically generate synthetic conversations, extracting task completion metrics for evaluating the whole system. For more details, please refer to the [evaluation](../Evaluation/UserSimulator.md) documentation.

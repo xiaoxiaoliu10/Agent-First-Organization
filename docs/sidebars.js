@@ -40,6 +40,7 @@ const sidebars = {
         'Taskgraph/Generation'
       ],
     },
+    'Orchestrator',
     'MessageState',
     {
       type: 'category',
