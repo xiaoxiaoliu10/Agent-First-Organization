@@ -210,8 +210,7 @@ class TaskGraph(TaskGraphBase):
 
         node_status = params.get("node_status", {})
         status = node_status.get(curr_node, StatusEnum.COMPLETE)
-        dialog_states = params.get("dialog_states", [])
-        if status == StatusEnum.INCOMPLETE and dialog_states:
+        if status == StatusEnum.INCOMPLETE:
             node_info = {"name": self.graph.nodes[curr_node]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
             return node_info, params
             

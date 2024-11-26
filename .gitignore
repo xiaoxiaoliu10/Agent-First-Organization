@@ -39,7 +39,7 @@ Thumbs.db
 
 # local database #
 ######################
-agentorg/data
+examples/
 
 # local env #
 ######################

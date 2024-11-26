@@ -55,6 +55,7 @@ SLOTS = [
 
 NO_SHOW_MESSAGE = "Show is not found. Please check whether the information is correct."
 MULTIPLE_SHOWS_MESSAGE = "There are multiple shows found. Please provide more details."
+NO_BOOKING_MESSAGE = "You have not booked any show."
 
 
 class DatabaseActions:
@@ -75,7 +76,10 @@ class DatabaseActions:
         return result is not None
 
     def init_slots(self, slots: list[Slot]):
+        if not slots:
+            slots = SLOTS
         self.slots = []
+        self.slot_prompts = []
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         for slot in slots:
@@ -84,8 +88,11 @@ class DatabaseActions:
             results = cursor.fetchall()
             value_list = [result[0] for result in results]
             self.slots.append(self.verify_slot(slot, value_list))
+            if not self.slots[-1].confirmed:
+                self.slot_prompts.append(slot["prompt"])
         cursor.close()
         conn.close()
+        return SLOTS
 
     def verify_slot(self, slot: Slot, value_list: list) -> Slot:
         slot_detail = SlotDetail(**slot, verified_value="", confirmed=False)
@@ -139,7 +146,6 @@ class DatabaseActions:
         return msg_state
 
     def book_show(self, msg_state: MessageState) -> MessageState:
-        # Populate the slots with verified values
         logger.info("Enter book show function")
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -159,7 +165,10 @@ class DatabaseActions:
             msg_state["message_flow"] = NO_SHOW_MESSAGE
         elif len(rows) > 1:
             msg_state["status"] = StatusEnum.INCOMPLETE
-            msg_state["message_flow"] = MULTIPLE_SHOWS_MESSAGE
+            if self.slot_prompts:
+                msg_state["message_flow"] = self.slot_prompts[0]
+            else:
+                msg_state["message_flow"] = MULTIPLE_SHOWS_MESSAGE
         else:
             column_names = [column[0] for column in cursor.description]
             results = dict(zip(column_names, rows[0]))
@@ -178,8 +187,8 @@ class DatabaseActions:
         conn.close()
         return msg_state
 
-    ## TODO: filter booking
     def check_booking(self, msg_state: MessageState) -> MessageState:
+        logger.info("Enter check booking function")
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -195,24 +204,17 @@ class DatabaseActions:
         cursor.close()
         conn.close()
         if len(rows) == 0:
-            answer = "You have not booked any show."
+            msg_state["message_flow"] = NO_BOOKING_MESSAGE
         else:
             column_names = [column[0] for column in cursor.description]
             results = [dict(zip(column_names, row)) for row in rows]
-
             results_df = pd.DataFrame(results)
-            prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please tell the user that he/she has booked shows below.\n{context}")
-            input_prompt = prompt.invoke({"context": results_df})
-            chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-            logger.info(f"Chunked prompt for DB agent check booking function: {chunked_prompt}")
-            final_chain = self.llm | StrOutputParser()
-            answer = final_chain.invoke(chunked_prompt)
-            msg_state["message_flow"] = answer
+            msg_state["message_flow"] = "Booked shows are:\n" + results_df.to_string(index=False)
         msg_state["status"] = StatusEnum.COMPLETE
         return msg_state
 
-    ## TODO: filter booking
     def cancel_booking(self, msg_state: MessageState) -> MessageState:
+        logger.info("Enter cancel booking function")
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -227,31 +229,24 @@ class DatabaseActions:
         rows = cursor.fetchall()
         if len(rows) == 0:
             msg_state["status"] = StatusEnum.COMPLETE
-            msg_state["message_flow"] = "You have not booked any show."
+            msg_state["message_flow"] = NO_BOOKING_MESSAGE
         elif len(rows) > 1:
             msg_state["status"] = StatusEnum.INCOMPLETE
-            msg_state["message_flow"] = "Multiple shows booked. Please provide more details."
+            if self.slot_prompts:
+                msg_state["message_flow"] = self.slot_prompts[0]
+            else:
+                msg_state["message_flow"] = MULTIPLE_SHOWS_MESSAGE
         else:
             column_names = [column[0] for column in cursor.description]
             results = [dict(zip(column_names, row)) for row in rows]
             show = results[0]
-            connection = sqlite3.connect("your_database.db")
-            cursor = connection.cursor()
             # Delete a row from the booking table based on show_id
             cursor.execute('''DELETE FROM booking WHERE show_id = ?
             ''', (show["id"],))
             # Respond to user the cancellation
             results_df = pd.DataFrame(results)
-            prompt = PromptTemplate.from_template("You are the booking agent of many shows. Please tell the user that he/she has cancelled the show below.\n{context}")
-            input_prompt = prompt.invoke({"context": results_df})
-            chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
-            logger.info(f"Chunked prompt for DB agent cancel booking function: {chunked_prompt}")
-            final_chain = self.llm | StrOutputParser()
-            answer = final_chain.invoke(chunked_prompt)
-            msg_state["message_flow"] = answer
+            msg_state["message_flow"] = "The cancelled show is:\n" + results_df.to_string(index=False)
             msg_state["status"] = StatusEnum.COMPLETE
-
-        connection.commit()
-        connection.close()
-
+        conn.close()
+        cursor.commit()
         return msg_state

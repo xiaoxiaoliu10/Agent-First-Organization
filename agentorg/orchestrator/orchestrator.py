@@ -15,7 +15,6 @@ from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
 from agentorg.orchestrator.NLU.nlu import NLU
 from agentorg.utils.graph_state import MessageState, StatusEnum
 from agentorg.utils.trace import TraceRunName
-from agentorg.agents.tools.database.utils import SLOTS
 
 
 load_dotenv()
@@ -44,7 +43,7 @@ class AgentOrg:
         params = inputs["parameters"]
         params["timing"] = {}
         chat_history_str = self._format_chat_history(chat_history, text)
-        params["dialog_states"] = params.get("dialog_states", SLOTS)
+        params["dialog_states"] = params.get("dialog_states", [])
         metadata = params.get("metadata", {})
         metadata["conv_id"] = metadata.get("conv_id", str(uuid.uuid4()))
         metadata["turn_id"] = metadata.get("turn_id", 0) + 1
@@ -113,6 +112,7 @@ class AgentOrg:
         current_node = params.get("curr_node")
         node_status[current_node] = agent_response.get("status", StatusEnum.COMPLETE)
         params["node_status"] = node_status
+        params["dialog_states"] = agent_response.get("slots", [])
 
         output = {
             "answer": return_answer,
@@ -124,11 +124,5 @@ class AgentOrg:
                 outputs={"metadata": params.get("metadata"), **output},
                 metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
             )
-
-        # if there is a message flow, use the message agent to generate the response
-        message_flow = params.get("agent_response", {}).get("message_flow")
-        if message_flow:
-            logger.info(f"Skip current response due to message flow: {message_flow}")
-            output = self.get_response({"text": text, 'chat_history': chat_history, 'parameters': params})
 
         return output

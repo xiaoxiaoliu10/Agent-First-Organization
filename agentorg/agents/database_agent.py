@@ -1,6 +1,6 @@
 import logging
 
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -11,7 +11,7 @@ from agentorg.agents.tools.RAG.utils import ToolGenerator
 from agentorg.agents.tools.database.utils import DatabaseActions
 from agentorg.agents.message_agent import MessageAgent
 from agentorg.utils.utils import chunk_string
-from agentorg.utils.graph_state import MessageState, StatusEnum
+from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
 
 
@@ -69,34 +69,27 @@ class DatabaseAgent(BaseAgent):
         except Exception as e:
             logger.error(f"Error occurred while choosing action in the database agent: {e}")
             return "Others"
-        
-    def check_task_status(self, state: MessageState):
-        task_status = state.get("status", StatusEnum.COMPLETE)
-        if task_status == StatusEnum.COMPLETE:
-            return END
-        logger.info("Task is not complete, responded by MessageAgent with message flow")
-        return "message_agent"
+
         
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
-        msg_agt = MessageAgent()
         # Add nodes for each agent
         workflow.add_node("SearchShow", self.search_show)
         workflow.add_node("BookShow", self.book_show)
         workflow.add_node("CheckBooking", self.check_booking)
         workflow.add_node("CancelBooking", self.cancel_booking)
         workflow.add_node("Others", ToolGenerator.generate)
-        workflow.add_node("message_agent", msg_agt.execute)
+        workflow.add_node("tool_generator", ToolGenerator.context_generate)
         workflow.add_conditional_edges(START, self.verify_action)
-        workflow.add_conditional_edges("SearchShow", self.check_task_status)
-        workflow.add_conditional_edges("BookShow", self.check_task_status)
-        workflow.add_conditional_edges("CheckBooking", self.check_task_status)
-        workflow.add_conditional_edges("CancelBooking", self.check_task_status)
+        workflow.add_edge("SearchShow", "tool_generator")
+        workflow.add_edge("BookShow", "tool_generator")
+        workflow.add_edge("CheckBooking", "tool_generator")
+        workflow.add_edge("CancelBooking", "tool_generator")
         return workflow
 
     def execute(self, msg_state: MessageState):
         self.DBActions.log_in()
-        self.DBActions.init_slots(msg_state["slots"])
+        msg_state["slots"] = self.DBActions.init_slots(msg_state["slots"])
         graph = self.action_graph.compile()
         result = graph.invoke(msg_state)
         return result
