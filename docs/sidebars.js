@@ -40,7 +40,6 @@ const sidebars = {
         'Taskgraph/Generation'
       ],
     },
-    'Orchestrator',
     'MessageState',
     {
       type: 'category',
@@ -50,7 +49,6 @@ const sidebars = {
         'Agents/Agents',
         'Agents/MessageAgent',
         'Agents/RAGAgent',
-        'Agents/RAGMsgAgent',
         'Agents/DatabaseAgent',
         'Agents/SearchAgent',
         'Agents/DefaultAgent'

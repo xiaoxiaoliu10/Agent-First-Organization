@@ -65,16 +65,15 @@ def generator(self, state: MessageState) -> MessageState:
     direct_response = orch_msg_attr.get('direct_response', False)
 ```
 
-#### 2. Check for predefined automatic response
+#### 2. Check for Predefined Static Response
 Next, it then checks if it has a predefined static response to respond at the node that should be done without generation.
 ```py
     if direct_response:
         return orch_msg_content
 ```
 
-3. #### Generate Response
-Then, it checks if an `orchestrator_message`(`node['attribute']['value']` in [TaskGraph](../Taskgraph/intro.md)) exists. `orchestrator_message` holds the pre-generated text for which the response would be built off on. Otherwise, it will generate from scratch
-    ex. 
+#### 3. Generate Response
+Then, it checks if an `orchestrator_message`(`node['attribute']['value']` in [TaskGraph](../Taskgraph/intro.md)) exists. If exists, `orchestrator_message` holds the pre-generated text for which the response would be built off on. Otherwise, it will generate from scratch
 
 ```py
     if message_flow and message_flow != "\n":
@@ -85,7 +84,7 @@ Then, it checks if an `orchestrator_message`(`node['attribute']['value']` in [Ta
         input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history})
 ```
 
-4. #### Connect to the LangChain
+#### 4. Connect to the LangChain
 Lastly, it generates and processes the text into a string output and returns the updated MessageState.
 ```py
     logger.info(f"Prompt: {input_prompt.text}")

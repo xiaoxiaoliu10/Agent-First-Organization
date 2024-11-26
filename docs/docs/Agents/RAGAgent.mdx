@@ -39,7 +39,7 @@ def _create_action_graph(self):
     return workflow
 ```
 
-## Execution
+<!-- ## Execution
 #### 0. Calling `execute()`
 The `execute()` method is called which invokes the StateGraph on the MessageState and runs generator on the input MessageState. It returns the invoked StateGraph which allows it to be nested into other agents.
 
@@ -51,7 +51,7 @@ def execute(self, msg_state: MessageState):
 ```
 
 ### Retrieval
-Retrieval is powered using FAISI
+Retrieval is powered using FAISS
 ```py
 def retrieve(state: MessageState):
     # get the input message
@@ -142,4 +142,4 @@ class RAGAgent(BaseAgent):
         graph = self.action_graph.compile()
         result = graph.invoke(msg_state)
         return result
-```
+``` -->
