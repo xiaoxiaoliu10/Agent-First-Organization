@@ -4,7 +4,7 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Mixed-Control Agent',
+    title: 'Mixed-Control',
     Svg: require('@site/static/img/AgentOrg-1.svg').default,
     description: (
       <>

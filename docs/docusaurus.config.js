@@ -10,8 +10,8 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'AgentOrg',
-  tagline: 'A New Generation of AI Agents',
+  title: 'Agent First Organization',
+  tagline: 'A New Generation of AI Agents with the capability of',
   favicon: 'img/articulateai.png',
 
   // Set the production url of your site here
