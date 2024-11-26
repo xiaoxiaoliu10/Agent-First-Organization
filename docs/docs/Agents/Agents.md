@@ -15,11 +15,11 @@ on execution which the on execution, processes the MessageState input into an Me
 `description` is a string that describes the task that the BaseAgent is meant to handle. This is used by the Generator to assign the right task for the agent when generating the TaskGraph.
 
 Some examples:
-    - "The agent that used to deliver the message to the user, either a question or provide some information." ([MessageAgent](./MessageAgent.md))
-    - ""Answer the user's questions based on the company's internal documentations (unstructured text data), such as the policies, FAQs, and product information" ([RAGAgent](./RAGAgent.md))
+    - "The agent that used to deliver the message to the user, either a question or provide some information." ([MessageAgent](./MessageAgent.mdx))
+    - ""Answer the user's questions based on the company's internal documentations (unstructured text data), such as the policies, FAQs, and product information" ([RAGAgent](./RAGAgent.mdx))
 
 #### Execute
-`execute()` takes in [MessageState](../MessageState.mdx) and returns an `invoke`'d LangChain StateGraph. This is crucial to connect various Agents (through LangChain subgraph behavior) and is called by the Orchestrator during runtime.
+`execute()` takes in [MessageState](MessageState.md) and returns an `invoke`'d LangChain StateGraph. This is crucial to connect various Agents (through LangChain subgraph behavior) and is called by the Orchestrator during runtime.
 
 An example:
 ```py
