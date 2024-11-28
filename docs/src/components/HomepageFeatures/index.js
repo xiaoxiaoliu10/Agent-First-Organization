@@ -4,20 +4,20 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Mixed-Control',
+    title: 'Mixed Control',
     Svg: require('@site/static/img/AgentOrg-1.svg').default,
     description: (
       <>
-        The agents are designed to handle different goals from user needs and builder objectives, ensuring more dynamic and goal-driven interactions.
+        Enables agents to address diverse goals driven by user needs and builder objectives, fostering dynamic and goal-oriented interactions.
       </>
     ),
   },
   {
-    title: 'Compositional Task Organization',
+    title: 'Task Composition',
     Svg: require('@site/static/img/AgentOrg-2.svg').default,
     description: (
       <>
-        The complex real-world tasks are proposed to be broken down into modular, reusable components handled by each worker, enhancing efficiency and scalability.
+        Breaks down complex real-world tasks into modular, reusable components managed by individual workers, promoting efficiency and scalability.
       </>
     ),
   },
@@ -26,16 +26,16 @@ const FeatureList = [
     Svg: require('@site/static/img/AgentOrg-3.svg').default,
     description: (
       <>
-        Integrates human oversight and interactive refinement, ensuring critical decisions are accurate and user preferences are prioritized.
+        Integrates human oversight and enables interactive refinement, ensuring critical decisions are accurate and user preferences are prioritized.
       </>
     ),
   },
   {
-    title: 'Continual Learning',
+    title: 'Continuous Learning',
     Svg: require('@site/static/img/AgentOrg-4.svg').default,
     description: (
       <>
-        The agents evolve and improve over time by learning from interactions, maintaining their relevance and effectiveness in dynamic environments.
+        Allows agents to evolve and improve by learning from interactions, ensuring sustained relevance and effectiveness in dynamic environments.
       </>
     ),
   }
