@@ -45,3 +45,4 @@ examples/
 ######################
 .bashrc
 .env
+temp_files

@@ -9,6 +9,9 @@ from openai import OpenAI
 from fastapi import FastAPI, Response
 
 from agentorg.utils.graph_state import Slots
+from dotenv import load_dotenv
+load_dotenv()
+
 from agentorg.utils.model_config import MODEL
 
 logger = logging.getLogger(__name__)
