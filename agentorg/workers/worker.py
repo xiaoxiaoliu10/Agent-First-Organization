@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 from agentorg.utils.graph_state import MessageState
 
-AGENT_REGISTRY = {}
+WORKER_REGISTRY = {}
 
-def register_agent(cls):
-    """Decorator to register an agent."""
+def register_worker(cls):
+    """Decorator to register a worker."""
     cls.name = cls.__name__  # Automatically set name to the class name
-    AGENT_REGISTRY[cls.__name__] = cls  # Register the class
+    WORKER_REGISTRY[cls.__name__] = cls  # Register the class
     return cls
 
 
-class BaseAgent(ABC):
+class BaseWorker(ABC):
     
     description = None
 

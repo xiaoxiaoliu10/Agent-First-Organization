@@ -82,12 +82,12 @@ if __name__ == "__main__":
     params = {}
     config = json.load(open(os.path.join(args.input_dir, "taskgraph.json")))
     user_prefix = "USER"
-    agent_prefix = "ASSISTANT"
+    worker_prefix = "ASSISTANT"
     for node in config['nodes']:
         if node[1].get("type", "") == 'start':
             start_message = node[1]['attribute']["value"]
             break
-    history.append({"role": agent_prefix, "content": start_message})
+    history.append({"role": worker_prefix, "content": start_message})
     print(f"Bot: {start_message}")
     try:
         while True:
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             start_time = time.time()
             output, params = get_api_bot_response(args, history, user_text, params)
             history.append({"role": user_prefix, "content": user_text})
-            history.append({"role": agent_prefix, "content": output})
+            history.append({"role": worker_prefix, "content": output})
             print(f"getAPIBotResponse Time: {time.time() - start_time}")
             print(f"Bot: {output}")
     finally:

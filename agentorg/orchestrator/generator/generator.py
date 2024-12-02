@@ -22,7 +22,7 @@ from textual.widgets.tree import TreeNode
 from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
 from agentorg.utils.loader import Loader
-from agentorg.agents.agent import AGENT_REGISTRY
+from agentorg.workers.worker import WORKER_REGISTRY
 
 
 logger = logging.getLogger(__name__)
@@ -171,7 +171,7 @@ class Generator:
         self.task_docs = self.product_kwargs.get("task_docs") 
         self.rag_docs = self.product_kwargs.get("rag_docs") 
         self.tasks = self.product_kwargs.get("tasks")
-        self.agents = self.product_kwargs.get("agents")
+        self.workers = self.product_kwargs.get("workers")
         self.model = model
         self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         self.output_dir = output_dir
@@ -198,22 +198,22 @@ class Generator:
     def _generate_best_practice(self, task):
         # Best practice detection
         resources = {}
-        for agent_name in self.agents:
-            agent = AGENT_REGISTRY.get(agent_name)
-            if not agent:
-                logger.error(f"Agent {agent_name} is not registered in the AGENT_REGISTRY")
+        for worker_name in self.workers:
+            worker = WORKER_REGISTRY.get(worker_name)
+            if not worker:
+                logger.error(f"Worker {worker_name} is not registered in the WORKER_REGISTRY")
                 continue
-            agent_desp = AGENT_REGISTRY.get(agent_name).description
+            worker_desp = WORKER_REGISTRY.get(worker_name).description
             # Retrieve all methods of the class
             skeleton = {}
-            for name, method in inspect.getmembers(agent, predicate=inspect.isfunction):
+            for name, method in inspect.getmembers(worker, predicate=inspect.isfunction):
                 signature = inspect.signature(method)
                 skeleton[name] = str(signature)
-            agent_resource = agent_desp + "\n"
-            agent_resource += "The class skeleton of the agent is as follow: \n" + "\n".join([f"{name}{parameters}" for name, parameters in skeleton.items()]) + "\n\n"
-            logger.debug(f"Code skeleton of the agent: {agent_resource}")
+            worker_resource = worker_desp + "\n"
+            worker_resource += "The class skeleton of the worker is as follow: \n" + "\n".join([f"{name}{parameters}" for name, parameters in skeleton.items()]) + "\n\n"
+            logger.debug(f"Code skeleton of the worker: {worker_resource}")
             
-            resources[agent_name] = agent_resource
+            resources[worker_name] = worker_resource
         resources_str = "\n".join([f"{name}\n: {desp}" for name, desp in resources.items()])
         prompt = PromptTemplate.from_template(check_best_practice_sys_prompt)
         input_prompt = prompt.invoke({"task": task["task"], "level": "1", "resources": resources_str})
@@ -249,12 +249,12 @@ class Generator:
         # mapping resources to the best practice
         prompt = PromptTemplate.from_template(embed_resources_sys_prompt)
         resources = {}
-        for agent_name in self.agents:
-            if not AGENT_REGISTRY.get(agent_name):
-                logger.error(f"Agent {agent_name} is not registered in the AGENT_REGISTRY")
+        for worker_name in self.workers:
+            if not WORKER_REGISTRY.get(worker_name):
+                logger.error(f"Worker {worker_name} is not registered in the WORKER_REGISTRY")
                 continue
-            agent_desp = AGENT_REGISTRY.get(agent_name).description
-            resources[agent_name] = agent_desp
+            worker_desp = WORKER_REGISTRY.get(worker_name).description
+            resources[worker_name] = worker_desp
         input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
@@ -320,7 +320,7 @@ class Generator:
         answer = final_chain.invoke(input_prompt)
         start_msg = postprocess_json(answer)
         start_node.append({
-            "name": "MessageAgent",
+            "name": "MessageWorker",
             "attribute": {
                 "value": start_msg['message'],
                 "task": "start message",
@@ -404,7 +404,7 @@ class Generator:
         task_planning_filepath = os.path.join(self.output_dir, f'taskplanning.json')
         json.dump(hitl_result, open(task_planning_filepath, "w"), indent=4)
 
-        # Step 4: Pair task with agent
+        # Step 4: Pair task with worker
         finetuned_best_practices = []
         for idx_t, task in enumerate(hitl_result):
             steps = task["steps"]

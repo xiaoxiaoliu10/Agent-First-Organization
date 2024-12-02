@@ -1,2 +1,0 @@
-This directory save the pre-defined agent to solve the sub-tasks. Each Agent is defined based on the LangGraph. Each agent is defined in a separate file. The agent is defined as a class that inherits from the Agent abstract class. The agent has a method called "execute" that returns the final output value of this agent and will be used by orchestrator. 
-The agent will integrate tools provided by LangChain and LlamaIndex.

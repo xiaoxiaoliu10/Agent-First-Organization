@@ -3,7 +3,7 @@
         [
             "0",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Hello! I'm your Booking Assistant. Looking to book tickets for a show? I can provide information on events, venues, and ticket availability, and help you with the booking process. Need recommendations? Just let me know your preferences!",
                     "task": "start message",
@@ -16,7 +16,7 @@
         [
             "1",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "Here are the details of our current and upcoming events: [Event Details]. Would you like more information on any specific event?",
                     "task": "Provide information on current and upcoming events",
@@ -28,7 +28,7 @@
         [
             "2",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "Here are some details about the venues we have available, including their capacity, location, and amenities.",
                     "task": "Provide details about venues",
@@ -40,7 +40,7 @@
         [
             "3",
             {
-                "name": "DatabaseAgent",
+                "name": "DatabaseWorker",
                 "attribute": {
                     "value": "The tickets for the event you are interested in are available. Would you like to proceed with booking?",
                     "task": "Provide information on ticket availability",
@@ -52,7 +52,7 @@
         [
             "4",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Could you please tell me the type of event you're interested in, along with the date and location preferences?",
                     "task": "Inquire about the user's preferences, such as the type of event, date, and location.",
@@ -64,10 +64,10 @@
         [
             "5",
             {
-                "name": "DatabaseAgent",
+                "name": "DatabaseWorker",
                 "attribute": {
                     "value": "",
-                    "task": "Search for available events that match the user's preferences using the DatabaseAgent.",
+                    "task": "Search for available events that match the user's preferences using the DatabaseWorker.",
                     "directed": false
                 },
                 "limit": 1
@@ -76,7 +76,7 @@
         [
             "6",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Here is a list of events that match your preferences. Would you like more details on any specific event?",
                     "task": "Present the user with a list of available events and ask if they want more details on any specific event.",
@@ -88,7 +88,7 @@
         [
             "7",
             {
-                "name": "DatabaseAgent",
+                "name": "DatabaseWorker",
                 "attribute": {
                     "value": "",
                     "task": "Provide detailed information about the selected event, including venue, ticket types, and availability.",
@@ -100,7 +100,7 @@
         [
             "8",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Would you like to proceed with booking tickets for this event?",
                     "task": "Ask if the user wants to proceed with booking tickets for the chosen event.",
@@ -112,7 +112,7 @@
         [
             "9",
             {
-                "name": "DatabaseAgent",
+                "name": "DatabaseWorker",
                 "attribute": {
                     "value": "",
                     "task": "Guide the user through the booking process, collecting necessary information and confirming ticket details.",
@@ -124,7 +124,7 @@
         [
             "10",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Your booking is confirmed. Here is a summary of your ticket purchase, including payment details and confirmation.",
                     "task": "Confirm the booking and provide the user with a summary of their ticket purchase, including payment details and confirmation.",
@@ -136,7 +136,7 @@
         [
             "11",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Is there anything else I can assist you with, or would you like help with future bookings?",
                     "task": "Offer assistance for any additional queries or future bookings.",
@@ -148,7 +148,7 @@
         [
             "12",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Could you please tell me your preferences for the type of event, location, or any specific interests you have?",
                     "task": "Inquire about the user's preferences for events, such as type of event, location, date, or any specific interests.",
@@ -160,10 +160,10 @@
         [
             "13",
             {
-                "name": "RagMsgAgent",
+                "name": "RagMsgWorker",
                 "attribute": {
                     "value": "",
-                    "task": "Use the RagMsgAgent to gather information about available events that match the user's preferences by consulting the company's internal documentation.",
+                    "task": "Use the RagMsgWorker to gather information about available events that match the user's preferences by consulting the company's internal documentation.",
                     "directed": false
                 },
                 "limit": 1
@@ -172,7 +172,7 @@
         [
             "14",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Here is a list of events that match your preferences. Please let me know if any of these interest you.",
                     "task": "Provide the user with a list of recommended events based on the gathered information and user preferences.",
@@ -184,7 +184,7 @@
         [
             "15",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Would you like more information about any of these events or would you like to see more options?",
                     "task": "Ask the user if they would like more information about any of the recommended events or if they would like to see more options.",
@@ -196,10 +196,10 @@
         [
             "16",
             {
-                "name": "DatabaseAgent",
+                "name": "DatabaseWorker",
                 "attribute": {
                     "value": "Great choice! I can help you with booking tickets or provide you with more details about the event.",
-                    "task": "Confirm the user's choice and assist with the next steps, such as booking tickets or providing additional event details using the DatabaseAgent.",
+                    "task": "Confirm the user's choice and assist with the next steps, such as booking tickets or providing additional event details using the DatabaseWorker.",
                     "directed": false
                 },
                 "limit": 1
@@ -208,7 +208,7 @@
         [
             "17",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "The Irish-American experience includes a rich history of immigration, cultural contributions, and influence on American society. Would you like to know more details about a specific aspect?",
                     "task": "Provide information on the Irish-American experience showcased",
@@ -453,12 +453,12 @@
         }
     ],
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "DatabaseAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWorker",
+        "MessageWorker",
+        "DatabaseWorker",
+        "DefaultWorker"
     ],
     "nluapi": "http://localhost:55135/nlu/predict",
     "slotfillapi": "http://localhost:55135/slotfill/predict"

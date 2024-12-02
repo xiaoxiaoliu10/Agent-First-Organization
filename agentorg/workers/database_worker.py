@@ -5,11 +5,10 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-from agentorg.agents.agent import BaseAgent, register_agent
-from agentorg.agents.prompts import database_action_prompt
-from agentorg.agents.tools.RAG.utils import ToolGenerator
-from agentorg.agents.tools.database.utils import DatabaseActions
-from agentorg.agents.message_agent import MessageAgent
+from agentorg.workers.worker import BaseWorker, register_worker
+from agentorg.workers.prompts import database_action_prompt
+from agentorg.workers.tools.RAG.utils import ToolGenerator
+from agentorg.workers.tools.database.utils import DatabaseActions
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -19,8 +18,8 @@ from agentorg.utils.model_config import MODEL
 logger = logging.getLogger(__name__)
 
 
-@register_agent
-class DatabaseAgent(BaseAgent):
+@register_worker
+class DataBaseWorker(BaseWorker):
 
     description = "Help the user with actions related to customer support like a booking system with structured data, always involving search, insert, update, and delete operations."
 
@@ -62,18 +61,18 @@ class DatabaseAgent(BaseAgent):
             answer = final_chain.invoke(chunked_prompt)
             for action_name in self.actions.keys():
                 if action_name in answer:
-                    logger.info(f"Chosen action in the database agent: {action_name}")
+                    logger.info(f"Chosen action in the database worker: {action_name}")
                     return action_name
-            logger.info(f"Base action chosen in the database agent: Others")
+            logger.info(f"Base action chosen in the database worker: Others")
             return "Others"
         except Exception as e:
-            logger.error(f"Error occurred while choosing action in the database agent: {e}")
+            logger.error(f"Error occurred while choosing action in the database worker: {e}")
             return "Others"
 
         
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
-        # Add nodes for each agent
+        # Add nodes for each worker
         workflow.add_node("SearchShow", self.search_show)
         workflow.add_node("BookShow", self.book_show)
         workflow.add_node("CheckBooking", self.check_booking)

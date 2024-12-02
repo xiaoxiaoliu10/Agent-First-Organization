@@ -124,12 +124,12 @@ check_best_practice_sys_prompt = """You are a userful assistance to detect if th
 Here are some examples:
 Task: The current task is Provide help in Product Search and Discovery. The current node level of the task is 1. 
 Resources: 
-MessageAgent: The agent responsible for interacting with the user with predefined responses,
-RAGAgent: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information,
-ProductAgent: Access the company's database to retrieve information about products, such as availability, pricing, and specifications,
-UserProfileAgent: Access the company's database to retrieve information about the user's preferences and history
+MessageWorker: The worker responsible for interacting with the user with predefined responses,
+RAGWorker: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information,
+ProductWorker: Access the company's database to retrieve information about products, such as availability, pricing, and specifications,
+UserProfileWorker: Access the company's database to retrieve information about the user's preferences and history
 
-Reasoning: This task is a high-level task that involves multiple sub-tasks such as asking for user's preference, providing product recommendations, answering questions about product or policy, and confirming user selections. Each sub-task requires different agent to complete. It will use MessageAgent to ask user's preference, then use ProductAgent to search for the product, finally make use of RAGAgent to answer user's question. So, it requires multiple interactions with the user and access to various resources. Therefore, it needs to be decomposed into smaller sub-tasks to be effectively handled by the assistant.
+Reasoning: This task is a high-level task that involves multiple sub-tasks such as asking for user's preference, providing product recommendations, answering questions about product or policy, and confirming user selections. Each sub-task requires different worker to complete. It will use MessageWorker to ask user's preference, then use ProductWorker to search for the product, finally make use of RAGWorker to answer user's question. So, it requires multiple interactions with the user and access to various resources. Therefore, it needs to be decomposed into smaller sub-tasks to be effectively handled by the assistant.
 Answer: 
 ```json
 {{
@@ -139,9 +139,9 @@ Answer:
 
 Task: The current task is booking a broadway show ticket. The current node level of the task is 1.
 Resources:
-DatabaseAgent: Access the company's database to retrieve information about ticket availability, pricing, and seating options. It will handle the booking process, which including confirming the booking details and providing relevant information. It can also handle the cancel process.
-MessageAgent: The agent responsible for interacting with the user with predefined responses,
-RAGAgent: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information.
+DataBaseWorker: Access the company's database to retrieve information about ticket availability, pricing, and seating options. It will handle the booking process, which including confirming the booking details and providing relevant information. It can also handle the cancel process.
+MessageWorker: The worker responsible for interacting with the user with predefined responses,
+RAGWorker: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information.
 
 Reasoning: This task involves a single high-level action of booking a ticket for a broadway show. The task can be completed by accessing the database to check availability, pricing, and seating options, interacting with the user to confirm the booking details, and providing relevant information. Since it is a singular task that can be handled by the single resource without further decomposition, the answer is No.
 Answer: 
@@ -157,7 +157,7 @@ Reasoning:
 """
 
 
-generate_best_practice_sys_prompt = """Given the background information about the chatbot, the task it needs to handle, and the available resources, your task is to generate a step-by-step best practice for addressing this task. Each step should represent a distinct interaction with the user, where the next step builds upon the user's response. Avoid breaking down sequences of internal agent actions within a single turn into multiple steps. Return the answer in JSON format.
+generate_best_practice_sys_prompt = """Given the background information about the chatbot, the task it needs to handle, and the available resources, your task is to generate a step-by-step best practice for addressing this task. Each step should represent a distinct interaction with the user, where the next step builds upon the user's response. Avoid breaking down sequences of internal worker actions within a single turn into multiple steps. Return the answer in JSON format.
 
 For example:
 Background: The builder want to create a chatbot - Customer Service Assistant. The customer service assistant typically handles tasks such as answering customer inquiries, making product recommendations, assisting with orders, processing returns and exchanges, supporting billing and payments, addressing complaints, and managing customer accounts.
@@ -165,10 +165,10 @@ Background: The builder want to create a chatbot - Customer Service Assistant. T
 Task: Provide help in Product Search and Discovery
 
 Resources:
-MessageAgent: The agent responsible for interacting with the user with predefined responses,
-RAGAgent: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information,
-ProductAgent: Access the company's database to retrieve information about products, such as availability, pricing, and specifications,
-UserProfileAgent: Access the company's database to retrieve information about the user's preferences and history.
+MessageWorker: The worker responsible for interacting with the user with predefined responses,
+RAGWorker: Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information,
+ProductWorker: Access the company's database to retrieve information about products, such as availability, pricing, and specifications,
+UserProfileWorker: Access the company's database to retrieve information about the user's preferences and history.
 
 Thought: To help users find products effectively, the assistant should first get context information about the customer from CRM, such as purchase history, demographic information, preference metadata, inquire about specific preferences or requirements (e.g., brand, features, price range) specific for the request. Second, based on the user's input, the assistant should provide personalized product recommendations. Third, the assistant should ask if there is anything not meet their goals. Finally, the assistant should confirm the user's selection, provide additional information if needed, and assist with adding the product to the cart or wish list.
 Answer:
@@ -297,10 +297,10 @@ Best Practice:
 ]
 Resources:
 {{
-    "MessageAgent": "The agent responsible for interacting with the user with predefined responses",
-    "RAGAgent": "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information",
-    "ProductAgent": "Access the company's database to retrieve information about products, such as availability, pricing, and specifications",
-    "UserProfileAgent": "Access the company's database to retrieve information about the user's preferences and history"
+    "MessageWorker": "The worker responsible for interacting with the user with predefined responses",
+    "RAGWorker": "Answer the user's questions based on the company's internal documentations, such as the policies, FAQs, and product information",
+    "ProductWorker": "Access the company's database to retrieve information about products, such as availability, pricing, and specifications",
+    "UserProfileWorker": "Access the company's database to retrieve information about the user's preferences and history"
 }}
 Answer:
 ```json
@@ -308,31 +308,31 @@ Answer:
     {{
         "step": 1,
         "task": "Retrieve the information about the customer from CRM and Inquire about specific preferences or requirements (e.g., brand, features, price range)."
-        "resource": "UserProfileAgent",
+        "resource": "UserProfileWorker",
         "example_response": "Do you have some specific preferences or requirements for the product you are looking for?"
     }},
     {{
         "step": 2,
         "task": "Provide a curated list of products that match the user's criteria."
-        "resource": "ProductAgent",
+        "resource": "ProductWorker",
         "example_response": ""
     }},
     {{
         "step": 3,
         "task": "Ask if the user would like to see more options or has any specific preferences."
-        "resource": "MessageAgent",
+        "resource": "MessageWorker",
         "example_response": "Would you like to see more options or do you have any specific preferences?"
     }},
     {{
         "step": 4,
         "task": "Confirm if the user is ready to proceed with a purchase or needs more help."
-        "resource": "MessageAgent",
+        "resource": "MessageWorker",
         "example_response": "Are you ready to proceed with the purchase or do you need more help?"
     }},
     {{
         "step": 5,
         "task": "Persuade the user to sign up for the Prime membership."
-        "resource": "MessageAgent",
+        "resource": "MessageWorker",
         "example_response": "I noticed that you are a frequent shopper. Have you considered signing up for our Prime membership to enjoy exclusive benefits and discounts?"
     }}
 ]

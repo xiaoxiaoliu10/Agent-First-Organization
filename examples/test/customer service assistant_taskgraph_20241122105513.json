@@ -3,7 +3,7 @@
         [
             "0",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Hello! Welcome to our Customer Service Assistant. How may I assist you today with your inquiries about our products, services, or policies?",
                     "task": "start message",
@@ -16,7 +16,7 @@
         [
             "1",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Hello! What type of robot information are you interested in today? We have details on worker, delivery, cleaning, and multipurpose robots.",
                     "task": "Greet the user and inquire about the specific type of robot information they are interested in (e.g., worker, delivery, cleaning, or multipurpose robots).",
@@ -28,10 +28,10 @@
         [
             "2",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "Let me gather some detailed information about the robots you are interested in from our internal documents.",
-                    "task": "Use the RAGAgent to retrieve detailed information from the company's internal documentation based on the user's specified interest.",
+                    "task": "Use the RAGWorker to retrieve detailed information from the company's internal documentation based on the user's specified interest.",
                     "directed": false
                 },
                 "limit": 1
@@ -40,10 +40,10 @@
         [
             "3",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Here is the detailed information about the robots you asked for: [insert detailed information].",
-                    "task": "Present the retrieved information to the user using the MessageAgent, ensuring clarity and completeness.",
+                    "task": "Present the retrieved information to the user using the MessageWorker, ensuring clarity and completeness.",
                     "directed": false
                 },
                 "limit": 1
@@ -52,7 +52,7 @@
         [
             "4",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Do you need further details or have any additional questions about the specific robot types?",
                     "task": "Ask the user if they need further details or have additional questions about any specific robot type.",
@@ -64,7 +64,7 @@
         [
             "5",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Is there anything else you would like to know, or do you need any clarifications on the information provided? I'm here to help!",
                     "task": "Provide additional information or clarification as needed, and confirm if the user is satisfied with the information provided or if they require further assistance.",
@@ -76,7 +76,7 @@
         [
             "6",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Hello! How can I assist you with your interest in purchasing or renting the ADAM robot today?",
                     "task": "Greet the user and inquire about their specific needs regarding the purchase or rental of the ADAM robot.",
@@ -88,10 +88,10 @@
         [
             "7",
             {
-                "name": "RagMsgAgent",
+                "name": "RagMsgWorker",
                 "attribute": {
                     "value": "Here are the detailed options we have for purchasing or renting the ADAM robot. Please let me know if you need further clarification.",
-                    "task": "Use the RagMsgAgent to retrieve and provide detailed information on the purchase and rental options for the ADAM robot from the company's internal documentation.",
+                    "task": "Use the RagMsgWorker to retrieve and provide detailed information on the purchase and rental options for the ADAM robot from the company's internal documentation.",
                     "directed": false
                 },
                 "limit": 1
@@ -100,7 +100,7 @@
         [
             "8",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Do you have any additional questions or need further clarification on the options I provided?",
                     "task": "Ask the user if they have any additional questions or need further clarification about the options provided.",
@@ -112,10 +112,10 @@
         [
             "9",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "Let me provide you with more details on that. Here is the information you requested about the specific features of the ADAM robot.",
-                    "task": "If the user has further questions, use the RAGAgent to delve deeper into specific details as requested by the user, and provide the necessary information.",
+                    "task": "If the user has further questions, use the RAGWorker to delve deeper into specific details as requested by the user, and provide the necessary information.",
                     "directed": false
                 },
                 "limit": 1
@@ -124,7 +124,7 @@
         [
             "10",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Are you ready to proceed with a transaction, or is there anything else I can assist you with regarding the ADAM robot?",
                     "task": "Confirm with the user if they are ready to proceed with a transaction or need assistance with anything else related to the ADAM robot.",
@@ -136,7 +136,7 @@
         [
             "11",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Great! Here are the instructions to complete your purchase or rental of the ADAM robot. Please follow these steps, and feel free to reach out if you need any help.",
                     "task": "Provide instructions or next steps for completing the purchase or rental process if the user is ready to proceed.",
@@ -148,7 +148,7 @@
         [
             "12",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "The delivery time for our robots is typically 3-5 business days, and shipping details can vary based on your location and selected shipping method. Would you like more information on a specific model?",
                     "task": "Provide information on delivery times and shipping details for various robots",
@@ -160,7 +160,7 @@
         [
             "13",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Hello! How can I assist you with your ClouTea shop inquiries today?",
                     "task": "Greet the user and ask how you can assist them with their ClouTea shop inquiries.",
@@ -172,7 +172,7 @@
         [
             "14",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Could you please specify if your inquiry is about product information, service policies, or an issue you are facing?",
                     "task": "Identify the type of inquiry the user has (e.g., product information, service policies, issue resolution) and clarify any specific details needed.",
@@ -184,10 +184,10 @@
         [
             "15",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "",
-                    "task": "Use the RAGAgent to search the company's internal documentation for relevant information regarding the user's inquiry.",
+                    "task": "Use the RAGWorker to search the company's internal documentation for relevant information regarding the user's inquiry.",
                     "directed": false
                 },
                 "limit": 1
@@ -196,10 +196,10 @@
         [
             "16",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Based on our documentation, here is the information regarding your inquiry: [Relevant Information].",
-                    "task": "Provide the user with the information obtained from the RAGAgent, ensuring it is clear and directly addresses their inquiry.",
+                    "task": "Provide the user with the information obtained from the RAGWorker, ensuring it is clear and directly addresses their inquiry.",
                     "directed": false
                 },
                 "limit": 1
@@ -208,7 +208,7 @@
         [
             "17",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Is there anything else you would like to know or need help with regarding ClouTea shop?",
                     "task": "Ask the user if they need further assistance or have any additional questions regarding ClouTea shop operations or offerings.",
@@ -220,7 +220,7 @@
         [
             "18",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "If you're not satisfied or need further assistance, I can escalate this issue for you or provide additional help.",
                     "task": "Offer to escalate the issue or provide additional help if the user is not satisfied or if the inquiry requires further action.",
@@ -232,7 +232,7 @@
         [
             "19",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Thank you for reaching out to us! If you need any more information, feel free to contact us. Have a great day!",
                     "task": "Thank the user for reaching out and provide any final instructions or information they may need.",
@@ -244,7 +244,7 @@
         [
             "20",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Could you please describe the specific issue you are experiencing with your transaction?",
                     "task": "Inquire about the specific transaction issue the user is facing (e.g., payment failure, incorrect billing, etc.).",
@@ -256,10 +256,10 @@
         [
             "21",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "Based on our records, here are some steps you can try to resolve the payment failure issue.",
-                    "task": "Use RAGAgent to retrieve relevant policies or FAQ information related to the user's issue and provide possible solutions or next steps.",
+                    "task": "Use RAGWorker to retrieve relevant policies or FAQ information related to the user's issue and provide possible solutions or next steps.",
                     "directed": false
                 },
                 "limit": 1
@@ -268,7 +268,7 @@
         [
             "22",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Did the information provided help resolve your issue, or do you need further assistance?",
                     "task": "Ask the user if the provided information resolves their issue or if they need further assistance.",
@@ -280,10 +280,10 @@
         [
             "23",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "If the issue persists, here are some alternative solutions you can try, or I can connect you with a human representative for further assistance.",
-                    "task": "If the issue is unresolved, use RAGAgent to provide alternative solutions or escalate the issue to a human representative if necessary.",
+                    "task": "If the issue is unresolved, use RAGWorker to provide alternative solutions or escalate the issue to a human representative if necessary.",
                     "directed": false
                 },
                 "limit": 1
@@ -292,7 +292,7 @@
         [
             "24",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "I'm glad to hear that your issue has been resolved. Is there anything else I can assist you with today?",
                     "task": "Confirm with the user once the issue is resolved, and offer additional help if needed.",
@@ -304,7 +304,7 @@
         [
             "25",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Hello! How can I assist you today? Are there any specific company policies or support issues you need help with?",
                     "task": "Greet the user and inquire about the specific company policy or support issue they need help with.",
@@ -316,10 +316,10 @@
         [
             "26",
             {
-                "name": "RAGAgent",
+                "name": "RAGWorker",
                 "attribute": {
                     "value": "",
-                    "task": "Use the RAGAgent to retrieve information from the company's internal documentation related to the user's inquiry.",
+                    "task": "Use the RAGWorker to retrieve information from the company's internal documentation related to the user's inquiry.",
                     "directed": false
                 },
                 "limit": 1
@@ -328,10 +328,10 @@
         [
             "27",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Based on the information I found, here are the details for the policy you inquired about...",
-                    "task": "Provide the user with the relevant information or policy details using the MessageAgent.",
+                    "task": "Provide the user with the relevant information or policy details using the MessageWorker.",
                     "directed": false
                 },
                 "limit": 1
@@ -340,7 +340,7 @@
         [
             "28",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "Do you need any further clarification on this topic, or do you have additional questions?",
                     "task": "Ask the user if they need further clarification or have additional questions.",
@@ -352,7 +352,7 @@
         [
             "29",
             {
-                "name": "MessageAgent",
+                "name": "MessageWorker",
                 "attribute": {
                     "value": "If there's anything else you need help with, feel free to ask! Thank you for using our service.",
                     "task": "If the user has more questions, repeat steps 2-4. If the user is satisfied, offer additional support options or thank them for using the service.",
@@ -753,12 +753,12 @@
         }
     ],
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWorker",
+        "MessageWorker",
+        "SearchWorker",
+        "DefaultWorker"
     ],
     "nluapi": "http://localhost:55135/nlu/predict",
     "slotfillapi": "http://localhost:55135/slotfill/predict"
