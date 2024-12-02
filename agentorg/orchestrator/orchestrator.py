@@ -3,6 +3,7 @@ import time
 from typing import Any, Dict
 import logging
 import uuid
+import os
 from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
@@ -12,17 +13,19 @@ from openai import OpenAI
 from agentorg.orchestrator.task_graph import TaskGraph
 from agentorg.agents.agent import AGENT_REGISTRY
 from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
+from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.NLU.nlu import NLU
 from agentorg.utils.graph_state import MessageState, StatusEnum
 from agentorg.utils.trace import TraceRunName
 
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
 
 class AgentOrg:
     def __init__(self, config, **kwargs):
         self.product_kwargs = json.load(open(config))
+        os.environ["AVAILABLE_AGENTS"] = ",".join(self.product_kwargs["agents"])
         self.user_prefix = "USER"
         self.agent_prefix = "ASSISTANT"
         self.__eos_token = "\n"

@@ -37,10 +37,6 @@ __pycache__/
 ehthumbs.db
 Thumbs.db
 
-# local database #
-######################
-examples/
-
 # local env #
 ######################
 .bashrc
