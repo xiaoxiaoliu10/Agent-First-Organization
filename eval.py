@@ -17,7 +17,8 @@ def evaluate(config):
     first_pass_data = simulate_conversations(model_api, model_params, synthetic_data_params, config)
 
     # extract items from first pass data
-    bot_goal = config['builder_objective'][0]
+    bot_goal = config.get('builder_objective', None)
+    bot_goal = None if bot_goal == "" else bot_goal
     goal_metrics = extract_task_completion_metrics(first_pass_data, bot_goal)
 
     # second pass
