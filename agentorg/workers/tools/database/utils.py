@@ -12,7 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.model_config import MODEL
 from agentorg.utils.graph_state import Slot, SlotDetail, Slots, MessageState
-from agentorg.agents.prompts import database_slot_prompt
+from agentorg.workers.prompts import database_slot_prompt
 from agentorg.utils.graph_state import StatusEnum
 
 
@@ -110,12 +110,12 @@ class DatabaseActions:
             logger.info(f"Result for verifying slot value: {answer}")
             for value in value_list:
                 if value in answer:
-                    logger.info(f"Chosen slot value in the database agent: {value}")
+                    logger.info(f"Chosen slot value in the database worker: {value}")
                     slot_detail.verified_value = value
                     slot_detail.confirmed = True
                     return slot_detail
         except Exception as e:
-            logger.error(f"Error occurred while verifying slot in the database agent: {e}")
+            logger.error(f"Error occurred while verifying slot in the database worker: {e}")
         return slot_detail
 
     def search_show(self, msg_state: MessageState) -> MessageState:

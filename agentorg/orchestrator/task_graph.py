@@ -9,8 +9,8 @@ from langchain_openai import ChatOpenAI
 from agentorg.utils.utils import normalize, str_similarity
 from agentorg.utils.graph_state import StatusEnum
 from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
-from agentorg.agents.tools.database.utils import SLOTS
-from agentorg.agents.agent import AGENT_REGISTRY
+from agentorg.workers.tools.database.utils import SLOTS
+from agentorg.workers.worker import WORKER_REGISTRY
 from agentorg.utils.model_config import MODEL
 
 logger = logging.getLogger(__name__)
@@ -109,23 +109,23 @@ class TaskGraph(TaskGraphBase):
 
         return next_node
     
-    def _check_skip(self, agent_class, sample_node):
+    def _check_skip(self, worker_class, sample_node):
         print("enter into _check_skip")
-        agent_desp = agent_class.description
+        worker_desp = worker_class.description
         skip = False
-        sys_prompt = """Given the conversation history and the proposed agent, you task is to decide whether the user has already provided the answer for the following agent's response. Reply with 'yes' if already answered, otherwise 'no'.
+        sys_prompt = """Given the conversation history and the proposed worker, you task is to decide whether the user has already provided the answer for the following worker's response. Reply with 'yes' if already answered, otherwise 'no'.
         
         Conversation history:
         {chat_history_str}
-        Proposed agent: 
-        The purpose of this agent is to {agent_desp}
-        The prompt of the agent response could be {msg}
+        Proposed worker: 
+        The purpose of this worker is to {worker_desp}
+        The prompt of the worker response could be {msg}
         
         Answer:
         """
         system_prompt = sys_prompt.format(
             chat_history_str=self.chat_history_str, 
-            agent_desp=agent_desp, 
+            worker_desp=worker_desp, 
             msg=self.graph.nodes[sample_node]["attribute"]
         )
         skip_status = self.model.invoke(system_prompt)
@@ -138,7 +138,7 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"available_intents in _get_node: {available_intents}")
         logger.info(f"intent in _get_node: {intent}")
         candidates_intents = collections.defaultdict(list)
-        agent_name = self.graph.nodes[sample_node]["name"]
+        worker_name = self.graph.nodes[sample_node]["name"]
         available_nodes[sample_node]["limit"] -= 1
         if intent and available_nodes[sample_node]["limit"] <= 0 and intent in available_intents:
             # delete the corresponding node item from the intent list
@@ -150,13 +150,13 @@ class TaskGraph(TaskGraphBase):
         params["curr_node"] = sample_node
         params["available_nodes"] = available_nodes
         params["available_intents"] = available_intents
-        agent_class = AGENT_REGISTRY.get(agent_name)
-        # TODO: This will be used to check whether we skip the agent or not, which is handled by the task graph framework
-        skip = self._check_skip(agent_class, sample_node)
+        worker_class = WORKER_REGISTRY.get(worker_name)
+        # TODO: This will be used to check whether we skip the worker or not, which is handled by the task graph framework
+        skip = self._check_skip(worker_class, sample_node)
         if skip:
             node_info = {"name": None, "attribute": None}
         else:
-            node_info = {"name": agent_name, "attribute": self.graph.nodes[sample_node]["attribute"]}
+            node_info = {"name": worker_name, "attribute": self.graph.nodes[sample_node]["attribute"]}
         
         return node_info, params, candidates_intents
 

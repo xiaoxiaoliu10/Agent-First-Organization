@@ -5,7 +5,7 @@
     * Add `OPENAI_API_KEY` to `.env`
     * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional] (In order to use Trace function, you need to create a LangChain account from [here](https://langchain.com/) and create a API key in the settings.)
     * Set `LANGCHAIN_API_KEY` to `.env` if enable Trace.
-    * If you are going to use the `SearchAgent`, you need to set up the `TAVILY_API_KEY` to `.env` as well. (In order to use Tavily, you need to create a Tavily account from [here](https://docs.tavily.com/) and create a API key by click [Get API Key](https://app.tavily.com/home).)
+    * If you are going to use the `SearchWorker`, you need to set up the `TAVILY_API_KEY` to `.env` as well. (In order to use Tavily, you need to create a Tavily account from [here](https://docs.tavily.com/) and create a API key by click [Get API Key](https://app.tavily.com/home).)
 1. Create venv and Install the dependencies by running `pip install -r requirements.txt`
 2. Create a config file, similar to the `project/AgentOrg/agentorg/orchestrator/examples/customer_service_config.json`
     * The config file should contain the following fields:
@@ -25,12 +25,12 @@
         * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
             * `task_name (Required, Str)`: The task that the chatbot need to handle
             * `steps (Required, List(Str))`: The steps to complete the task
-        * `agents (Required, List(AgentClassName))`: The agents pre-defined under agentorg/agents folder that you want to use for the chatbot. Each agent will be defined as a class decorated with @register_agent. Please refer to the agentorg/agents/message_agent.py for an example.
+        * `workers (Required, List(WorkerClassName))`: The workers pre-defined under agentorg/workers folder that you want to use for the chatbot. Each worker will be defined as a class decorated with @register_worker. Please refer to the agentorg/workers/message_worker.py for an example.
 
 ## Build Chatbot
 > **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
 
-**1. Create Taskgraph and Initialize Agent**
+**1. Create Taskgraph and Initialize Worker**
 ```
 python create.py --config ./examples/customer_service_config.json --output-dir ./examples/customer_service
 ```
@@ -42,7 +42,7 @@ python create.py --config ./examples/customer_service_config.json --output-dir .
 
 * It will first generate a task plan based on the config file and you could modify it in an interactive way from the command line. Made the necessary changes and press `s` to save the task plan under `output-dir` folder and continue the task graph generation process.
 * Then it will generate the task graph based on the task plan and save it under `output-dir` folder as well.
-* It will also initialize the Agents listed in the config file to prepare the documents needed by each agent. The function `init_agent(args)` is customizable based on the agents you defined. Currently, it will automatically build the `RAGAgent` and the `DatabaseAgent` by using the function `build_rag()` and `build_database()` respectively. The needed documents will be saved under the `output-dir` folder.
+* It will also initialize the Workers listed in the config file to prepare the documents needed by each worker. The function `init_worker(args)` is customizable based on the workers you defined. Currently, it will automatically build the `RAGWorker` and the `DataBaseWorker` by using the function `build_rag()` and `build_database()` respectively. The needed documents will be saved under the `output-dir` folder.
 
 
 **2. Start Chatting**

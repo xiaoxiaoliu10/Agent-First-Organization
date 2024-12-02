@@ -4,8 +4,8 @@
     "builder_objective": "There is a briefcase with national secrets that was recently stolen and the interrogator (bot) thinks the spy (user) may know its whereabouts. It is of extreme importance for the interrogator that the briefcase is located as there is an urgent deadline to retrieve the contents of the briefcase.",
     "domain": "action roleplay",
     "intro": "",
-    "agents": [
-        "MessageAgent"
+    "workers": [
+        "MessageWorker"
     ]
 }
 

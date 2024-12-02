@@ -21,7 +21,7 @@
         "task_name": "Assist in completing the ticket booking process",
         "steps": [
             "Inquire about the user's preferences, such as the type of event, date, and location.",
-            "Search for available events that match the user's preferences using the DatabaseAgent.",
+            "Search for available events that match the user's preferences using the DataBaseWorker.",
             "Present the user with a list of available events and ask if they want more details on any specific event.",
             "Provide detailed information about the selected event, including venue, ticket types, and availability.",
             "Ask if the user wants to proceed with booking tickets for the chosen event.",
@@ -34,10 +34,10 @@
         "task_name": "Provide event recommendations based on user preferences",
         "steps": [
             "Inquire about the user's preferences for events, such as type of event, location, date, or any specific interests.",
-            "Use the RagMsgAgent to gather information about available events that match the user's preferences by consulting the company's internal documentation.",
+            "Use the RagMsgWorker to gather information about available events that match the user's preferences by consulting the company's internal documentation.",
             "Provide the user with a list of recommended events based on the gathered information and user preferences.",
             "Ask the user if they would like more information about any of the recommended events or if they would like to see more options.",
-            "Confirm the user's choice and assist with the next steps, such as booking tickets or providing additional event details using the DatabaseAgent."
+            "Confirm the user's choice and assist with the next steps, such as booking tickets or providing additional event details using the DataBaseWorker."
         ]
     },
     {

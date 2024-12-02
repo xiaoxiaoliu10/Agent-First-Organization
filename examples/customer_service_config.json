@@ -13,11 +13,11 @@
         "num": 20
     }],
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWorker",
+        "MessageWorker",
+        "SearchWorker",
+        "DefaultWorker"
     ]
 }

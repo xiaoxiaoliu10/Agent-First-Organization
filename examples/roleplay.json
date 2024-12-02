@@ -6,7 +6,7 @@
     "intro": "",
     "docs": [],
     "tasks": [],
-    "agents": [
-        "MessageAgent"
+    "workers": [
+        "MessageWorker"
     ]
 }

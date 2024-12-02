@@ -5,8 +5,8 @@ from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
-from agentorg.agents.agent import BaseAgent, register_agent
-from agentorg.agents.prompts import message_generator_prompt, message_flow_generator_prompt
+from agentorg.workers.worker import BaseWorker, register_worker
+from agentorg.workers.prompts import message_generator_prompt, message_flow_generator_prompt
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -15,10 +15,10 @@ from agentorg.utils.model_config import MODEL
 logger = logging.getLogger(__name__)
 
 
-@register_agent
-class MessageAgent(BaseAgent):
+@register_worker
+class MessageWorker(BaseWorker):
 
-    description = "The agent that used to deliver the message to the user, either a question or provide some information."
+    description = "The worker that used to deliver the message to the user, either a question or provide some information."
 
     def __init__(self):
         super().__init__()
@@ -55,7 +55,7 @@ class MessageAgent(BaseAgent):
 
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
-        # Add nodes for each agent
+        # Add nodes for each worker
         workflow.add_node("generator", self.generator)
         # Add edges
         workflow.add_edge(START, "generator")

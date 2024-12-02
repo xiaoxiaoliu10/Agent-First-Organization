@@ -11,9 +11,9 @@
         }
     ],
     "tasks": [],
-    "agents": [
-        "MessageAgent",
-        "DatabaseAgent",
-        "DefaultAgent"
+    "workers": [
+        "MessageWorker",
+        "DataBaseWorker",
+        "DefaultWorker"
     ]
 }

@@ -15,13 +15,13 @@
         }
     ],
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "HumanRedirectAgent",
-        "HumanConfirmationAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWorker",
+        "MessageWorker",
+        "SearchWorker",
+        "HumanRedirectWorker",
+        "HumanConfirmationWorker",
+        "DefaultWorker"
     ]
 }

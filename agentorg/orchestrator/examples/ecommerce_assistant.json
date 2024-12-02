@@ -17,12 +17,11 @@
         }
     ],
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "HumanRedirectAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWoker",
+        "MessageWorker",
+        "SearchWorker",
+        "DefaultWorker"
     ]
 }

@@ -11,7 +11,7 @@ import langsmith as ls
 from openai import OpenAI
 
 from agentorg.orchestrator.task_graph import TaskGraph
-from agentorg.agents.agent import AGENT_REGISTRY
+from agentorg.workers.worker import WORKER_REGISTRY
 from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.NLU.nlu import NLU
@@ -25,11 +25,11 @@ logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirna
 class AgentOrg:
     def __init__(self, config, **kwargs):
         self.product_kwargs = json.load(open(config))
-        os.environ["AVAILABLE_AGENTS"] = ",".join(self.product_kwargs["agents"])
+        os.environ["AVAILABLE_WORKERS"] = ",".join(self.product_kwargs["workers"])
         self.user_prefix = "USER"
-        self.agent_prefix = "ASSISTANT"
+        self.worker_prefix = "ASSISTANT"
         self.__eos_token = "\n"
-        self.tools = list(AGENT_REGISTRY.keys())
+        self.tools = list(WORKER_REGISTRY.keys())
         self.task_graph = TaskGraph("taskgraph", self.product_kwargs)
 
     def _format_chat_history(self, chat_history, text):
@@ -77,7 +77,7 @@ class AgentOrg:
         node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
         params["timing"]["taskgraph"] = time.time() - dt
         logger.info("=============node_info=============")
-        logger.info(node_info) # {'name': 'MessageAgent', 'attribute': {'value': 'If you are interested, you can book a calendly meeting https://shorturl.at/crFLP with us. Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon.', 'direct': False, 'slots': {"<name>": {<attributes>}}}}
+        logger.info(node_info) # {'name': 'MessageWorker', 'attribute': {'value': 'If you are interested, you can book a calendly meeting https://shorturl.at/crFLP with us. Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon.', 'direct': False, 'slots': {"<name>": {<attributes>}}}}
 
         with ls.trace(name=TraceRunName.TaskGraph, inputs={"taskgraph_inputs": taskgraph_inputs}) as rt:
             rt.end(
@@ -94,28 +94,28 @@ class AgentOrg:
                     "node_status": params.get("node_status")}, 
                 metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
             )
-        #### Agent execution
+        #### Worker execution
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
         sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"] + self.product_kwargs["intro"]
-        message_state = MessageState(sys_instruct=sys_instruct, user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("agent_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
-        agent = AGENT_REGISTRY[node_info["name"]]()
-        agent_response = agent.execute(message_state)
+        message_state = MessageState(sys_instruct=sys_instruct, user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("worker_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
+        worker = WORKER_REGISTRY[node_info["name"]]()
+        worker_response = worker.execute(message_state)
 
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
-                outputs={"metadata": params.get("metadata"), **agent_response}, 
+                outputs={"metadata": params.get("metadata"), **worker_response}, 
                 metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
             )
 
-        params["agent_response"] = agent_response
-        return_answer = agent_response.get("response", "")
+        params["worker_response"] = worker_response
+        return_answer = worker_response.get("response", "")
         # node status
         node_status = params.get("node_status", {})
         current_node = params.get("curr_node")
-        node_status[current_node] = agent_response.get("status", StatusEnum.COMPLETE)
+        node_status[current_node] = worker_response.get("status", StatusEnum.COMPLETE)
         params["node_status"] = node_status
-        params["dialog_states"] = agent_response.get("slots", [])
+        params["dialog_states"] = worker_response.get("slots", [])
 
         output = {
             "answer": return_answer,

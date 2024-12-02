@@ -3,19 +3,20 @@ import logging
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from agentorg.agents.agent import BaseAgent, register_agent
+from agentorg.workers.worker import BaseWorker, register_worker
+from agentorg.workers.message_worker import MessageWorker
+from agentorg.workers.rag_worker import RAGWorker
 from agentorg.utils.graph_state import MessageState
-from agentorg.agents.tools.RAG.utils import RetrieveEngine, ToolGenerator
 from agentorg.utils.model_config import MODEL
 
 
 logger = logging.getLogger(__name__)
 
 
-@register_agent
-class RAGAgent(BaseAgent):
+@register_worker
+class RagMsgWorker(BaseWorker):
 
-    description = "Answer the user's questions based on the company's internal documentations (unstructured text data), such as the policies, FAQs, and product information"
+    description = "A combination of RAG and Message Workers"
 
     def __init__(self):
         super().__init__()
@@ -24,12 +25,14 @@ class RAGAgent(BaseAgent):
      
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
-        # Add nodes for each agent
-        workflow.add_node("retriever", RetrieveEngine.retrieve)
-        workflow.add_node("tool_generator", ToolGenerator.context_generate)
+        # Add nodes for each worker
+        rag_wkr = RAGWorker()
+        msg_wkr = MessageWorker()
+        workflow.add_node("rag_worker", rag_wkr.execute)
+        workflow.add_node("message_worker", msg_wkr.execute)
         # Add edges
-        workflow.add_edge(START, "retriever")
-        workflow.add_edge("retriever", "tool_generator")
+        workflow.add_edge(START, "rag_worker")
+        workflow.add_edge("rag_worker", "message_worker")
         return workflow
 
     def execute(self, msg_state: MessageState):

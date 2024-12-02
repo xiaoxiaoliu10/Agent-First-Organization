@@ -12,8 +12,8 @@ from langchain_openai import ChatOpenAI
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg
 from agentorg.orchestrator.generator.generator import Generator
-from agentorg.agents.tools.RAG.build_rag import build_rag
-from agentorg.agents.tools.database.build_database import build_database
+from agentorg.workers.tools.RAG.build_rag import build_rag
+from agentorg.workers.tools.database.build_database import build_database
 from agentorg.utils.model_config import MODEL
 
 logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
@@ -34,16 +34,16 @@ def generate_taskgraph(args):
         json.dump(task_graph, f, indent=4)
 
 
-def init_agent(args):
-    # Customized based on your agent design
+def init_worker(args):
+    # Customized based on your worker design
     config = json.load(open(args.config))
-    agents = config["agents"]
-    if "RAGAgent" in agents:
-        logger.info("Initializing RAGAgent...")
+    workers = config["workers"]
+    if "RAGWorker" in workers:
+        logger.info("Initializing RAGWorker...")
         build_rag(args.output_dir, config["rag_docs"])
 
-    elif "DatabaseAgent" in agents:
-        logger.info("Initializing DatabaseAgent...")
+    elif "DataBaseWorker" in workers:
+        logger.info("Initializing DataBaseWorker...")
         build_database(args.output_dir)
 
 
@@ -59,4 +59,4 @@ if __name__ == "__main__":
         os.makedirs(args.output_dir, exist_ok=True)
     
     generate_taskgraph(args)
-    init_agent(args)
+    init_worker(args)

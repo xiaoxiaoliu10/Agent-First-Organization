@@ -63,14 +63,14 @@ retrieve_contextualize_q_prompt = """Given a chat history and the latest user qu
         {chat_history}"""
 
 
-choose_agent_prompt = """You are an assistant that has access to the following set of tools. Here are the names and descriptions for each tool:
-{agents_info}
-Based on the conversation history and current task, choose the appropriate agent to respond to the user's message.
+choose_worker_prompt = """You are an assistant that has access to the following set of tools. Here are the names and descriptions for each tool:
+{workers_info}
+Based on the conversation history and current task, choose the appropriate worker to respond to the user's message.
 Task:
 {task}
 Conversation:
 {formatted_chat}
-The response must be the name of one of the agents ({agents_name}).
+The response must be the name of one of the workers ({workers_name}).
 Answer:
 """
 
