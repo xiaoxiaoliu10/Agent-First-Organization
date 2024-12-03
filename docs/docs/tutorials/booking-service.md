@@ -79,36 +79,56 @@ It will initialize the service (e.g. NLU apis) you need to start the bot and you
 
 ---
 ## Sample Conversation
-
-
-> **ASSISTANT**: Hello! I'm your Booking Assistant. Ready to help you find and book tickets for your next event. What show or event are you interested in today?
+> **ASSISTANT**: Hello and welcome to our Booking Assistant! I'm here to help you find and book tickets for your favorite shows. Let me know what event you're interested in, and I'll provide you with information on venues, availability, and more!
 > 
-> **USER**: I'm in based in New York City and was wanted to know what shows are running?
+> **USER**: Are there any shows in Houston?
 > 
-> **ASSISTANT**: New York City is home to a vibrant theater scene, with many shows currently running on Broadway. Some of the popular options include "The Lion King" at the Minskoff Theatre, "Wicked" at the Gershwin Theatre, and "Hamilton" at the Richard Rodgers Theatre. If you have specific preferences or need more information about a particular show, feel free to let me know, and I'll be happy to help!
+> **ASSISTANT**: I'm here to help you with your search! Could you let me know what type of events you're interested in, or if you have any specific genres, locations, or dates in mind? That way, I can provide you with more tailored information about shows in Houston.
 > 
-> **USER**: What are the times for Hamilton?
+> **USER**: I am looking for shows in January
 > 
-> **ASSISTANT**:\
-> "Hamilton" is being performed at the Richard Rodgers Theatre in New York. Here are some upcoming showtimes:
+> **ASSISTANT**: In January, there's a show called "Beckett Briefs" that will be performed in Houston. It's scheduled for January 15, 2025, at 6:30 PM at the Houston Grand Opera. The show explores themes of existentialism and the human condition through Samuel Beckett's distinctive style. Tickets are priced at $65. Would you like to book tickets for this show or need more information?
 > 
-> - October 19, 2024, at 1:00 PM and 7:00 PM
-> - October 26, 2024, at 1:00 PM and 7:00 PM
+> **USER**: Sounds great, can I book 4 tickets for that?
 > 
-> If you need more details or want to book tickets, let me know!
+> **ASSISTANT**: I'd be happy to help you book 4 tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. Let me gather the details and proceed with the booking for you. Could you please specify your preferences for the event, such as the type of event, date, and location? This will ensure I provide the best experience for you in the future.
 > 
-> **USER**: I should be free on the 10/26 7PM what are the ticket availability during that date?
+> **USER**: When and where is it showing in Houston?
 > 
-> **ASSISTANT**: I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase for "Hamilton" on October 26, 2024, at 7:00 PM. If you would like to proceed with booking or need further assistance, please let me know!
+> **ASSISTANT**: 
+> The show "Beckett Briefs" is scheduled to be performed in Houston on January 15, 2025, at 6:30 PM. It will > take place at the Houston Grand Opera. 
 > 
-> **USER**: Could I get 3 tickets for that day?
+> These are the seating options available for the selected event. Which seat would you prefer?
 > 
-> **ASSISTANT**: Yes, you can get 3 tickets for "Hamilton" on October 26, 2024, at 7:00 PM. I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase. Would you like me to proceed with booking those tickets for you?
+> **USER**: What seats are there?
 > 
-> **USER**: Yes, thank you!
+> **ASSISTANT**: 
+> Currently, there are several seating options available for "Beckett Briefs" at the Houston Grand Opera:
 > 
-> **ASSISTANT**: Great! I'll proceed with booking 3 tickets for "Hamilton" on October 26, 2024, at 7:00 PM for you. I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase. Please provide your payment details to complete the booking process. If you have any questions or need further assistance, feel free to ask!
-
+> 1. Orchestra Level - $65 per ticket
+> 2. Mezzanine Level - $55 per ticket
+> 3. Balcony Level - $45 per ticket
+> 
+> Please let me know which seating option you would prefer, and I can proceed with the booking. Just to confirm, you have selected [seat details]. Is that correct?
+> 
+> **USER**: Can we have 4 Mezzanine Level tickets?
+> 
+> **ASSISTANT**: 
+> Sure, I can reserve 4 Mezzanine Level tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. The total cost will be $220. Let me know if you'd like to proceed with the booking or if you need any further assistance.
+> 
+> Additionally, I would love to hear your feedback on the assistance provided today. Your input is valuable and helps improve the service.
+> 
+> **USER**: Can we proceed with the booking? Thank you!
+> In addition to replying to the user, also embed the following message if it doesn't conflict with the original response: Here are some events that match your interests: [Event 1: Date, Time, Description], [Event 2: Date, Time, Description].
+> 
+> **ASSISTANT**: 
+> Great! I'll proceed with booking 4 Mezzanine Level tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. You will receive a confirmation shortly with all the details. 
+> 
+> Thank you for choosing our service! Here are some events that match your interests: 
+> - Event 1: "Irish Dance Extravaganza" on February 10, 2025, at 7:00 PM, featuring traditional Irish dance and music.
+> - Event 2: "Celtic Music Night" on March 5, 2025, at 8:00 PM, showcasing contemporary and classic Irish tunes.
+> 
+> I hope you enjoy the show, and please feel free to share any feedback on your experience with our booking service. Your input helps us improve!
 ---
 
 ## Evaluation
