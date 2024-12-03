@@ -11,30 +11,50 @@ logger = logging.getLogger(__name__)
 
 
 def init_logger(log_level=logging.INFO, filename=None):
-	handlers = [logging.StreamHandler(sys.stdout)]
-	if filename is not None:
-		directory_name, _ = os.path.split(filename)
-		if not os.path.exists(directory_name):
-			os.makedirs(directory_name)
-		rfh = RotatingFileHandler(
-			filename=filename, 
-			mode='a',
-			maxBytes=50*1024*1024,
-			backupCount=20,
-			encoding=None,
-			delay=0
-		)
-		# handlers.append(logging.FileHandler(filename=filename))
-		handlers.append(rfh)
-	logging.basicConfig(
-		datefmt="%m/%d/%Y %H:%M:%S",
-		level=log_level,
-		format="[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
-		handlers=handlers,
-	)
-	logging.getLogger("transformers.tokenization_utils").setLevel(logging.ERROR)
-	logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
-	return logging.getLogger(__name__)
+    root_logger = logging.getLogger()  # Root logger
+
+    # Remove existing handlers to reconfigure them
+    if root_logger.hasHandlers():
+        root_logger.handlers.clear()
+    handlers = []
+    # File handler
+    if filename is not None:
+        directory_name, _ = os.path.split(filename)
+        if not os.path.exists(directory_name):
+            os.makedirs(directory_name)
+        file_handler = RotatingFileHandler(
+            filename=filename, 
+            mode='a',
+            maxBytes=50*1024*1024,
+            backupCount=20,
+            encoding=None,
+            delay=0
+        )
+        file_handler.setLevel(log_level)  # Set log level for the file
+        file_handler.setFormatter(logging.Formatter(
+            "[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
+            datefmt="%m/%d/%Y %H:%M:%S"
+        ))
+        handlers.append(file_handler)
+
+    # Stream (terminal) handler
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(log_level)  # Set log level for the terminal
+    stream_handler.setFormatter(logging.Formatter(
+        "[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S"
+    ))
+    handlers.append(stream_handler)
+
+    for handler in handlers:
+        root_logger.addHandler(handler)
+    root_logger.setLevel(log_level)
+
+    # Suppress noisy loggers
+    logging.getLogger("transformers.tokenization_utils").setLevel(logging.ERROR)
+    logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
+
+    return logging.getLogger(__name__)
 
 
 def chunk_string(text, tokenizer, max_length, from_end=True):

@@ -271,7 +271,7 @@ class Generator:
                 node = []
                 node.append(str(node_id))
                 node.append({
-                    "name": step["resource"],
+                    "name": "DefaultWorker", # Use DefaultWorker to decide which worker to use for specific task
                     "attribute": {
                         "value": step['example_response'],
                         "task": step['task'],

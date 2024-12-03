@@ -110,7 +110,6 @@ class TaskGraph(TaskGraphBase):
         return next_node
     
     def _check_skip(self, worker_class, sample_node):
-        print("enter into _check_skip")
         worker_desp = worker_class.description
         skip = False
         sys_prompt = """Given the conversation history and the proposed worker, you task is to decide whether the user has already provided the answer for the following worker's response. Reply with 'yes' if already answered, otherwise 'no'.
@@ -129,7 +128,7 @@ class TaskGraph(TaskGraphBase):
             msg=self.graph.nodes[sample_node]["attribute"]
         )
         skip_status = self.model.invoke(system_prompt)
-        print(f"skip_status: {skip_status}")
+        logger.debug(f"skip_status: {skip_status}")
         if "yes" in skip_status.content.lower():
             skip = True
         return skip

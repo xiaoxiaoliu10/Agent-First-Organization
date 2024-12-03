@@ -16,7 +16,7 @@ from agentorg.workers.tools.RAG.build_rag import build_rag
 from agentorg.workers.tools.database.build_database import build_database
 from agentorg.utils.model_config import MODEL
 
-logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
+logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agentorg.log"))
 
 API_PORT = "55135"
 NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu/predict"
@@ -52,8 +52,11 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str, default="./agentorg/orchestrator/examples/customer_service_config.json")
     parser.add_argument('--output-dir', type=str, default="./examples/test")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
+    parser.add_argument('--log-level', type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
     args = parser.parse_args()
     MODEL["model_type_or_path"] = args.model
+    log_level = getattr(logging, args.log_level.upper(), logging.INFO)
+    logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "agentorg.log"))
 
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir, exist_ok=True)

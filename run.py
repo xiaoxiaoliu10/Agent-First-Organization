@@ -14,9 +14,6 @@ from agentorg.orchestrator.orchestrator import AgentOrg
 from create import API_PORT
 from agentorg.utils.model_config import MODEL
 
-
-logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
-
 process = None  # Global reference for the FastAPI subprocess
 
 def terminate_subprocess():
@@ -71,9 +68,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--input-dir', type=str, default="./examples/test")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
+    parser.add_argument('--log-level', type=str, default="WARNING", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
     args = parser.parse_args()
     os.environ["DATA_DIR"] = args.input_dir
     MODEL["model_type_or_path"] = args.model
+    log_level = getattr(logging, args.log_level.upper(), logging.WARNING)
+    logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "agentorg.log"))
 
     # Initialize NLU and Slotfill APIs
     start_apis()

@@ -20,7 +20,7 @@ from agentorg.utils.trace import TraceRunName
 
 
 load_dotenv()
-logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agenorg.log"))
+logger = logging.getLogger(__name__)
 
 class AgentOrg:
     def __init__(self, config, **kwargs):
