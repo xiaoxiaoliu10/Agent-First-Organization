@@ -45,7 +45,7 @@ def _create_action_graph(self):
 For the R of RAG, the `retriever` node calls the `RetrieveEngine.retrieve` method which loads the relevant chunked documents from the path set in `DATA_DIR` environment variable through the LangChain's FAISS (Facebook AI Similarity Search) package. This ensures that only the relevant information are retrieved to compose the response.
 
 ### Generation
-For the G of RAG, the `tool_generator` node calls the `ToolGenerator.context_generate` method which generates a response given the retrieved information. Very similar to the text generator component for [MessageWorker](./MessageWorker.mdx/Execution), the main difference is the inclusion of the context in the prompt and its invoke call.
+For the G of RAG, the `tool_generator` node calls the `ToolGenerator.context_generate` method which generates a response given the retrieved information. Very similar to the text generator component for [MessageWorker](./MessageWorker.mdx), the main difference is the inclusion of the context in the prompt and its invoke call.
 
 <details>
 <summary> Prompt Details </summary>
