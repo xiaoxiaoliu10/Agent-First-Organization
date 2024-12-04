@@ -1,6 +1,6 @@
 # MessageState
 
-`MessageState` is a data structure that represents the current snapshot of the conversation, which is developed on top of [LangGraph State](https://langchain-ai.github.io/langgraph/concepts/low_level/#state). It is the input parameter passed from the orchestrator to agents.
+`MessageState` is a data structure that represents the current snapshot of the conversation, which is developed on top of [LangGraph State](https://langchain-ai.github.io/langgraph/concepts/low_level/#state). It is the input parameter passed from the orchestrator to workers.
 
 Here is the implementation of a sample `MessageState`:
 
@@ -28,7 +28,7 @@ class MessageState(TypedDict):
 - `status`: A `StatusEnum` object indicating whether the task has been completed
 - `slots`: A list of `Slot` objects to collect information during the conversation.
 
-Note: The field `status` and `slots` are mainly used for the [DatabaseAgent](./Agents/DatabaseAgent.md). For the list of `Slot` objects, they should be defined as:
+For the list of `Slot` objects, they should be defined as:
 ```py
 class Slot(BaseModel):
     name: str
@@ -37,4 +37,3 @@ class Slot(BaseModel):
     description: str
     prompt: str
 ```
-The name of the slot should match the column of the sample database.

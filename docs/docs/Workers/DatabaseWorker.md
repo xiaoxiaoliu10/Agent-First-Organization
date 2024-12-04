@@ -1,7 +1,7 @@
-# DatabaseAgent
+# DatabaseWorker
 ## Introduction
 
-Database Agents can handle customer inquiries and take correct operations. Different from other agents, this agent can be a highly customized one capable of solving different tasks. For each task, there will be a different database to interact with.
+Database Workers can handle customer inquiries and take correct operations. Different from other workers, this worker can be a highly customized one capable of solving different tasks. For each task, there will be a different database to interact with.
 
 In this tutorial, we will focus on a specific use case: a show booking system. For such a customer service, it always involves operations like search, book a show, update booking information, and cancel a booking.
 
@@ -55,7 +55,7 @@ After each round of conversation, slots are extracted and matched against their 
 
 ## Action Verification
 
-As defined in [TaskGraph](../Taskgraph/Generation.md), there is an attribute `task` for each node, which will be used to determine the corresponding database action. In the sample database agent, we define several actions:
+As defined in [TaskGraph](../Taskgraph/Generation.md), there is an attribute `task` for each node, which will be used to determine the corresponding database action. In the sample database worker, we define several actions:
 
 - SearchShow: Search for shows
 - BookShow: Book a show
@@ -64,9 +64,9 @@ As defined in [TaskGraph](../Taskgraph/Generation.md), there is an attribute `ta
 
 ## Sample Conversation
 
-After introducing each individual component of the Database Agent, we will try searching and booking functions for a sample conversation:
+After introducing each individual component of the Database Worker, we will try searching and booking functions for a sample conversation:
 
-```json title="dbagent_function_sample.json"
+```json title="dbworker_function_sample.json"
 Bot: Hello! How can I help you today?
 You: Do you have recommendation for shows?
 Bot: Could you let me know your preferences or any specific details you're looking for in an event, like the type of show, location, or date?
@@ -78,4 +78,4 @@ You: Book the show.
 Bot: The show has been booked. Thank you for using our service today! We would love to hear your feedback on how we can improve. Do you have any comments or suggestions?
 ```
 
-You can checkout the [LangSmith Trace](https://smith.langchain.com/public/f061143d-b4f8-42d6-9bf6-fa678d956d4e/r) when searching available shows based on the user's query. The TaskGraph first calls the Database Agent to verify that the user would like to use the search function, then search for relevant shows based on extracted slots, and finally return searched results.
+You can checkout the [LangSmith Trace](https://smith.langchain.com/public/f061143d-b4f8-42d6-9bf6-fa678d956d4e/r) when searching available shows based on the user's query. The TaskGraph first calls the Database Worker to verify that the user would like to use the search function, then search for relevant shows based on extracted slots, and finally return searched results.

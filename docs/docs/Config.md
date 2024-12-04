@@ -1,6 +1,6 @@
 # Config
 
-**Config** files are the simple and recommended way to build your [TaskGraph](./Taskgraph/intro.md). A standard JSON document, the [Generator](Taskgraph/Generation) can create and breakdown the role into a series of tasks and steps which are then matched with the appropriate [Agents](Agents/intro) and connected with the proper tasks to create a TaskGraph. 
+**Config** files are the simple and recommended way to build your [TaskGraph](./Taskgraph/intro.md). A standard JSON document, the [Generator](Taskgraph/Generation) can create and breakdown the role into a series of tasks and steps which are then matched with the appropriate [Workers](Workers/intro) and connected with the proper tasks to create a TaskGraph. 
 
 Here is the structure for a **Config** JSON file:
 
@@ -13,14 +13,14 @@ Here is the structure for a **Config** JSON file:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
-* `rag_docs (Optional, List[Dict])`: If you want to use RAGAgent, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
+* `rag_docs (Optional, List[Dict])`: If you want to use RAGWorker, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
 * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
     * `task_name (Required, Str)`: The task that the chatbot need to handle
     * `steps (Required, List(Str))`: The steps to complete the task
-* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
+* `workers (Required, List(WorkerClassName))`: The [Workers](Workers/Workers.md) pre-defined under `agentorg/workers` folder in the codebase that you want to use for the chatbot.
 
 ## Examples
 #### [Customer Service Bot](./tutorials/customer-service.md)
@@ -36,12 +36,12 @@ Here is the structure for a **Config** JSON file:
         "num": 20
     },
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWorker",
+        "MessageWorker",
+        "SearchWorker",
+        "DefaultWorker"
     ]
 }
 ```

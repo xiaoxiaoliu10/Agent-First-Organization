@@ -1,17 +1,17 @@
 # Booking Service Bot
 
-*Connect your bots to databases through DatabaseAgents*
+*Connect your bots to databases through DatabaseWorkers*
 
 ## Intro
 
-In this tutorial, we'll walk through building a booking performance bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as find show's availabilities, booking shows, retrieve performance schedule, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
+In this tutorial, we'll walk through building a booking performance bot using **Agent First Organization**'s framework. This bot will be able to handle common customer inquiries, such as find show's availabilities, booking shows, retrieve performance schedule, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
 
-By the end of this tutorial, you'll know how to use external tooling agents specifically integrating with a database. This tutorial demonstrates a agent served as an entry into deeper and more complex capabilities.
+By the end of this tutorial, you'll know how to use external tooling workers specifically integrating with a database. This tutorial demonstrates a workers served as an entry into deeper and more complex capabilities.
 
 
 ## Setting up the Config File
 
-[Previously](./customer-service.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be interacting with database and writing record into database. This could be done through the built-in [DatabaseAgent](../Agents/DatabaseAgent.md).
+[Previously](./customer-service.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be interacting with database and writing record into database. This could be done through the built-in [DatabaseWorker](../Workers/DatabaseWorker.md).
 
 As a refresher, here is the structure for a *Config* JSON file:
 
@@ -24,14 +24,14 @@ As a refresher, here is the structure for a *Config* JSON file:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
-* `rag_docs (Optional, List[Dict])`: If you want to use RAGAgent, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
+* `rag_docs (Optional, List[Dict])`: If you want to use RAGWorker, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
 * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
     * `task_name (Required, Str)`: The task that the chatbot need to handle
     * `steps (Required, List(Str))`: The steps to complete the task
-* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
+* `workers (Required, List(WorkerClassName))`: The [Workers](Workers/Workers.md) pre-defined under `agentorg/workers` folder in the codebase that you want to use for the chatbot.
 
 Now, lets see it with the Booking Assistant example. Here, we have a sample Config file of a Booking Assistant for a performance company - The Irish Repertory Theatre.
 
@@ -47,10 +47,10 @@ Now, lets see it with the Booking Assistant example. Here, we have a sample Conf
         "num": 10
     }],
     "tasks": [],
-    "agents": [
-        "MessageAgent",
-        "DatabaseAgent",
-        "DefaultAgent"
+    "workers": [
+        "MessageWorker",
+        "DatabaseWorker",
+        "DefaultWorker"
     ]
 }
 ```
@@ -66,7 +66,7 @@ It will first enter into a *task planning* interactive panel where you can see t
 
 TaskGraph provides the graph that the bot will traverse through during the conversation. It provides a guideline for the conversation to make it more controllable and reliable. The details can be viewed at [here](../Taskgraph/Generation.md).
 
-It will also prepare the database for the bot. The details can be viewed at [DatabaseAgent](../Agents/DatabaseAgent.md).
+It will also prepare the database for the bot. The details can be viewed at [DatabaseWorker](../Workers/DatabaseWorker.md).
 >**Notice**: The database content we used in this tutorial is a fake database for demonstration purposes. You can replace it with your own database content.
 
 ## Running the Bot
@@ -79,36 +79,44 @@ It will initialize the service (e.g. NLU apis) you need to start the bot and you
 
 ---
 ## Sample Conversation
+> **ASSISTANT**: Hello and welcome to our Booking Assistant! I'm here to help you find and book tickets for your favorite shows. Let me know what event you're interested in, and I'll provide you with information on venues, availability, and more!
+> 
+> **USER**: Are there any shows in Houston?
+> 
+> **ASSISTANT**: I'm here to help you with your search! Could you let me know what type of events you're interested in, or if you have any specific genres, locations, or dates in mind? That way, I can provide you with more tailored information about shows in Houston.
+> 
+> **USER**: I am looking for shows in January
+> 
+> **ASSISTANT**: In January, there's a show called "Beckett Briefs" that will be performed in Houston. It's scheduled for January 15, 2025, at 6:30 PM at the Houston Grand Opera. The show explores themes of existentialism and the human condition through Samuel Beckett's distinctive style. Tickets are priced at $65. Would you like to book tickets for this show or need more information?
+> 
+> **USER**: Sounds great, can I book 4 tickets for that?
+> 
+> **ASSISTANT**: I'd be happy to help you book 4 tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. Currently, there are several seating options available for "Beckett Briefs" at the Houston Grand Opera:
+> 
+> 1. Orchestra Level - $65 per ticket
+> 2. Mezzanine Level - $55 per ticket
+> 3. Balcony Level - $45 per ticket
+> 
+> Please let me know which seating option you would prefer, and I can proceed with the booking. Just to confirm, you have selected [seat details]. Is that correct?
+> 
+> **USER**: Can we have 4 Mezzanine Level tickets?
+> 
+> **ASSISTANT**: 
+> Sure, I can reserve 4 Mezzanine Level tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. The total cost will be $220. Let me know if you'd like to proceed with the booking or if you need any further assistance.
+> 
+> Additionally, I would love to hear your feedback on the assistance provided today. Your input is valuable and helps improve the service.
+> 
+> **USER**: Can we proceed with the booking? Thank you!
 
-
-> **ASSISTANT**: Hello! I'm your Booking Assistant. Ready to help you find and book tickets for your next event. What show or event are you interested in today?
 > 
-> **USER**: I'm in based in New York City and was wanted to know what shows are running?
+> **ASSISTANT**: 
+> Great! I'll proceed with booking 4 Mezzanine Level tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. You will receive a confirmation shortly with all the details. 
 > 
-> **ASSISTANT**: New York City is home to a vibrant theater scene, with many shows currently running on Broadway. Some of the popular options include "The Lion King" at the Minskoff Theatre, "Wicked" at the Gershwin Theatre, and "Hamilton" at the Richard Rodgers Theatre. If you have specific preferences or need more information about a particular show, feel free to let me know, and I'll be happy to help!
+> Thank you for choosing our service! Here are some events that match your interests: 
+> - Event 1: "Irish Dance Extravaganza" on February 10, 2025, at 7:00 PM, featuring traditional Irish dance and music.
+> - Event 2: "Celtic Music Night" on March 5, 2025, at 8:00 PM, showcasing contemporary and classic Irish tunes.
 > 
-> **USER**: What are the times for Hamilton?
-> 
-> **ASSISTANT**:\
-> "Hamilton" is being performed at the Richard Rodgers Theatre in New York. Here are some upcoming showtimes:
-> 
-> - October 19, 2024, at 1:00 PM and 7:00 PM
-> - October 26, 2024, at 1:00 PM and 7:00 PM
-> 
-> If you need more details or want to book tickets, let me know!
-> 
-> **USER**: I should be free on the 10/26 7PM what are the ticket availability during that date?
-> 
-> **ASSISTANT**: I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase for "Hamilton" on October 26, 2024, at 7:00 PM. If you would like to proceed with booking or need further assistance, please let me know!
-> 
-> **USER**: Could I get 3 tickets for that day?
-> 
-> **ASSISTANT**: Yes, you can get 3 tickets for "Hamilton" on October 26, 2024, at 7:00 PM. I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase. Would you like me to proceed with booking those tickets for you?
-> 
-> **USER**: Yes, thank you!
-> 
-> **ASSISTANT**: Great! I'll proceed with booking 3 tickets for "Hamilton" on October 26, 2024, at 7:00 PM for you. I have checked the ticket availability for the event you are interested in. There are still tickets available for purchase. Please provide your payment details to complete the booking process. If you have any questions or need further assistance, feel free to ask!
-
+> I hope you enjoy the show, and please feel free to share any feedback on your experience with our booking service. Your input helps us improve!
 ---
 
 ## Evaluation

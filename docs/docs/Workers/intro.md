@@ -1,7 +1,7 @@
 import DocCardList from '@theme/DocCardList';
 
 
-# Agents
+# Workers
 
 
 <DocCardList />
