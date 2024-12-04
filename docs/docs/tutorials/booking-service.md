@@ -1,17 +1,17 @@
 # Booking Service Bot
 
-*Connect your bots to databases through DatabaseAgents*
+*Connect your bots to databases through DatabaseWorkers*
 
 ## Intro
 
 In this tutorial, we'll walk through building a booking performance bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as find show's availabilities, booking shows, retrieve performance schedule, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
 
-By the end of this tutorial, you'll know how to use external tooling agents specifically integrating with a database. This tutorial demonstrates a agent served as an entry into deeper and more complex capabilities.
+By the end of this tutorial, you'll know how to use external tooling workers specifically integrating with a database. This tutorial demonstrates a workers served as an entry into deeper and more complex capabilities.
 
 
 ## Setting up the Config File
 
-[Previously](./customer-service.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be interacting with database and writing record into database. This could be done through the built-in [DatabaseAgent](../Agents/DatabaseAgent.md).
+[Previously](./customer-service.md), we had nodes that were able to read from various files and sources to compose an answer. Here, we will take it a step further. Instead of just reading, we will also be interacting with database and writing record into database. This could be done through the built-in [DatabaseWorker](../Workers/DatabaseWorker.md).
 
 As a refresher, here is the structure for a *Config* JSON file:
 
@@ -24,14 +24,14 @@ As a refresher, here is the structure for a *Config* JSON file:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
-* `rag_docs (Optional, List[Dict])`: If you want to use RAGAgent, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
+* `rag_docs (Optional, List[Dict])`: If you want to use RAGWorker, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
 * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
     * `task_name (Required, Str)`: The task that the chatbot need to handle
     * `steps (Required, List(Str))`: The steps to complete the task
-* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
+* `workers (Required, List(WorkerClassName))`: The [Workers](Workers/Workers.md) pre-defined under `agentorg/workers` folder in the codebase that you want to use for the chatbot.
 
 Now, lets see it with the Booking Assistant example. Here, we have a sample Config file of a Booking Assistant for a performance company - The Irish Repertory Theatre.
 
@@ -47,10 +47,10 @@ Now, lets see it with the Booking Assistant example. Here, we have a sample Conf
         "num": 10
     }],
     "tasks": [],
-    "agents": [
-        "MessageAgent",
-        "DatabaseAgent",
-        "DefaultAgent"
+    "workers": [
+        "MessageWorker",
+        "DatabaseWorker",
+        "DefaultWorker"
     ]
 }
 ```
@@ -66,7 +66,7 @@ It will first enter into a *task planning* interactive panel where you can see t
 
 TaskGraph provides the graph that the bot will traverse through during the conversation. It provides a guideline for the conversation to make it more controllable and reliable. The details can be viewed at [here](../Taskgraph/Generation.md).
 
-It will also prepare the database for the bot. The details can be viewed at [DatabaseAgent](../Agents/DatabaseAgent.md).
+It will also prepare the database for the bot. The details can be viewed at [DatabaseWorker](../Workers/DatabaseWorker.md).
 >**Notice**: The database content we used in this tutorial is a fake database for demonstration purposes. You can replace it with your own database content.
 
 ## Running the Bot

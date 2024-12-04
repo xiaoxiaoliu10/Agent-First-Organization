@@ -14,12 +14,12 @@ Before any technical work is done, we must first identify and find information t
 
 ## Setting up the Config File
 
-In its core, bot is powered through a *TaskGraph* which is the structure that links various tasks together to fulfill the overall role of the bot. Each "node" represents a task which has an *Agent* that is selected to complete task. Each node engages the user for their response, and  with the user response, the TaskGraph will decide which next node to travel to.
+In its core, bot is powered through a *TaskGraph* which is the structure that links various tasks together to fulfill the overall role of the bot. Each "node" represents a task which has an *Worker* that is selected to complete task. Each node engages the user for their response, and  with the user response, the TaskGraph will decide which next node to travel to.
 
 Like actual conversations, *TaskGraph* can be complicated; that is why we help you convert a simple and intuitive *Config* JSON file into a powerful and advanced *TaskGraph* through our generator. Instead of needing to design an entire graph, all you need to do is to describe the bot and provide some extra information and it will build the graph for you! 
 
-#### Composite Agents
-Building on top of a primitive conversational bot, for the customer service bot, we need to let the bot be able to read from the documents we are supplying when composing a response. We can do that is through the [RAGMsgAgent (RAG-Message Agent)](../Agents/RAGAgent.mdx). The RAGMsgAgent is different than some of the agents we used in the previous tutorial because it is a *composite* agent. Inside RAGMsgAgent is actually two other agents, [RAGAgent](../Agents/RAGAgent.mdx) and [MessageAgent](../Agents/MessageAgent.mdx). When we call RAGMsgAgent, it internally calls RAGAgent which retrieves the relevant information from our sources and then passes the information to MessageAgent which composes the response which the RAGMsgAgent outputs. While RAGMsgAgent is pretty simple, there is no limit to how complex such composite agents could be and this serves as a sneak peak to what is ahead to come.
+#### Composite Workers
+Building on top of a primitive conversational bot, for the customer service bot, we need to let the bot be able to read from the documents we are supplying when composing a response. We can do that is through the [RAGMsgWorker (RAG-Message Worker)](../Workers/RAGWorker.mdx). The RAGMsgWorker is different than some of the workers we used in the previous tutorial because it is a *composite* worker. Inside RAGMsgWorker is actually two other workers, [RAGWorker](../Workers/RAGWorker.mdx) and [MessageWorker](../Workers/MessageWorker.mdx). When we call RAGMsgWorker, it internally calls RAGWorker which retrieves the relevant information from our sources and then passes the information to MessageWorker which composes the response which the RAGMsgWorker outputs. While RAGMsgWorker is pretty simple, there is no limit to how complex such composite workers could be and this serves as a sneak peak to what is ahead to come.
 
 As a refresher, here is the structure for a [Config](../Config.md) JSON file:
 
@@ -32,14 +32,14 @@ As a refresher, here is the structure for a [Config](../Config.md) JSON file:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
-* `rag_docs (Optional, List[Dict])`: If you want to use RAGAgent, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
+* `rag_docs (Optional, List[Dict])`: If you want to use RAGWorker, then here indicates the documents for the RAG component of chatbot when running chatbot. Each item in the list should contain the following fields:
     * `source (Required)`: The source url that you want the chatbot to refer to
     * `desc (Optional)` : Short description of the source and how it is used
     * `num (Optional)`: The number of websites that you want the chatbot to refer to for the source, defaults to one (only the url page)
 * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
     * `task_name (Required, Str)`: The task that the chatbot need to handle
     * `steps (Required, List(Str))`: The steps to complete the task
-* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
+* `workers (Required, List(WorkerClassName))`: The [Workers](Workers/Workers.md) pre-defined under `agentorg/workers` folder in the codebase that you want to use for the chatbot.
 
 Now, lets see it with the Customer Service Bot example. Here, we have a sample Config file of a Customer Service Bot for a robotics company - [RichTech](https://www.richtechrobotics.com/).
 
@@ -59,12 +59,12 @@ Now, lets see it with the Customer Service Bot example. Here, we have a sample C
         "num": 20
     }],
     "tasks": [],
-    "agents": [
-        "RAGAgent",
-        "RagMsgAgent",
-        "MessageAgent",
-        "SearchAgent",
-        "DefaultAgent"
+    "workers": [
+        "RAGWorker",
+        "RagMsgWorker",
+        "MessageWorker",
+        "SearchWorker",
+        "DefaultWorker"
     ]
 }
 ```
@@ -81,7 +81,7 @@ It will first enter into a *task planning* interactive panel where you can see t
 
 TaskGraph provides the graph that the bot will traverse through during the conversation. It provides a guideline for the conversation to make it more controllable and reliable. The details can be viewed at [here](../Taskgraph/Generation.md).
 
-It will also prepare the documents for the RAG component of the bot. It will first crawl the websites content specified by the `rag_docs` in the config file and saved the documents into `documents.pkl` file. Later on, during the conversation, the bot will execute RAG Agent to retrieve relevent information of user's query from the documents to compose responses to the user.
+It will also prepare the documents for the RAG component of the bot. It will first crawl the websites content specified by the `rag_docs` in the config file and saved the documents into `documents.pkl` file. Later on, during the conversation, the bot will execute RAG Worker to retrieve relevent information of user's query from the documents to compose responses to the user.
 
 ## Running the Bot
 

@@ -1,13 +1,13 @@
-# MessageAgent
+# MessageWorker
 ## Introduction
 
-Message Agents are the basis of the rest of the agents and is responsible for the handling the chat response of the bot. Essential to nearly every conversational component, it can be combined with other agents to create integrate more complicated processes into the conversation.
+Message Workers are the basis of the rest of the workers and is responsible for the handling the chat response of the bot. Essential to nearly every conversational component, it can be combined with other workers to create integrate more complicated processes into the conversation.
 
 # Implementation
 
-As the base component for all response, MessageAgent demonstrates the versatility of the agent system and how it builds on top of base LLM mechanism for a targetted and structured approach scaffoled by `orchestrator_message`. 
+As the base component for all response, MessageWorker demonstrates the versatility of the worker system and how it builds on top of base LLM mechanism for a targetted and structured approach scaffoled by `orchestrator_message`. 
 
-MessageAgents consists of only two nodes, a start node and the "generator" node which calls the `generator(MessageState)` method on `execute`. Although the generator function is defined and assigned on instantiation, it will only be called during execution.
+MessageWorkers consists of only two nodes, a start node and the "generator" node which calls the `generator(MessageState)` method on `execute`. Although the generator function is defined and assigned on instantiation, it will only be called during execution.
 
 
 #### Visualization
@@ -17,7 +17,7 @@ graph LR;
 ```
 
 ### Class Attributes
-`description`:      *"The agent that used to deliver the message to the user, either a question or provide some information."*\
+`description`:      *"The worker that used to deliver the message to the user, either a question or provide some information."*\
 `llm`: LLM model to be used for path generation\
 `action_graph`: LangGraph StateGraph
 
@@ -32,7 +32,7 @@ def __init__(self):
 
 def _create_action_graph(self):
         workflow = StateGraph(MessageState)
-        # Add nodes for each agent
+        # Add nodes for each worker
         workflow.add_node("generator", self.generator)
         # Add edges
         workflow.add_edge(START, "generator")
@@ -41,7 +41,7 @@ def _create_action_graph(self):
 
 ## Execution
 #### 0. Calling `execute()`
-The `execute()` method is called which invokes the StateGraph on the MessageState and runs generator on the input MessageState. It returns the invoked StateGraph which allows it to be nested into other agents.
+The `execute()` method is called which invokes the StateGraph on the MessageState and runs generator on the input MessageState. It returns the invoked StateGraph which allows it to be nested into other workers.
 
 ```py
 def execute(self, msg_state: MessageState):

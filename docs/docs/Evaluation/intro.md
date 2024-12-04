@@ -8,7 +8,7 @@ Here is an example for the customer service assistant chatbot.
     python model_api.py  --input-dir ./examples/customer_service
     ```
     * Fields:
-      * `--input-dir`: The directory that contains the needed files for the orchestrator and documents for the agents.
+      * `--input-dir`: The directory that contains the needed files for the orchestrator and documents for the workers.
       * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
       * `--port`: The port number to start the API. Default is 8000.
 

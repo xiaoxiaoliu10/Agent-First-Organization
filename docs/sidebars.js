@@ -43,15 +43,15 @@ const sidebars = {
     'MessageState',
     {
       type: 'category',
-      label: 'Agents',
-      link: {type: 'doc', id: 'Agents/intro'},
+      label: 'Workers',
+      link: {type: 'doc', id: 'Workers/intro'},
       items: [
-        'Agents/Agents',
-        'Agents/MessageAgent',
-        'Agents/RAGAgent',
-        'Agents/DatabaseAgent',
-        'Agents/SearchAgent',
-        'Agents/DefaultAgent'
+        'Workers/Workers',
+        'Workers/MessageWorker',
+        'Workers/RAGWorker',
+        'Workers/DatabaseWorker',
+        'Workers/SearchWorker',
+        'Workers/DefaultWorker'
       ],
     },
     {

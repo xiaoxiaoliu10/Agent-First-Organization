@@ -1,6 +1,6 @@
 # Roleplay Bot
 
-*Build a basic chatbot with MessageAgents*
+*Build a basic chatbot with MessageWorkers*
 
 ## Intro
 
@@ -10,15 +10,15 @@ By the end of this tutorial, you'll know how to set up the config file, build a 
 
 ## Setting up the Config File
 
-In its core, bot is powered through a [TaskGraph](../Taskgraph/intro.md) which is the structure that links various tasks together to fulfill the overall role of the bot. Every "node" represents a task which has an [Agent](../Agents/Agents.md) that is selected to complete task, and would engages the user for their response. With the user response, the TaskGraph will decide which next node to travel to.
+In its core, bot is powered through a [TaskGraph](../Taskgraph/intro.md) which is the structure that links various tasks together to fulfill the overall role of the bot. Every "node" represents a task which has an [Worker](../Workers/Workers.md) that is selected to complete task, and would engages the user for their response. With the user response, the TaskGraph will decide which next node to travel to.
 
-While there are a lot of pre-built agents (and the ability to write custom agents too!), for this simple task, we will only be using two of the most basic agents. [MessageAgent](../Agents/MessageAgent.mdx) and [DefaultAgent](../Agents/DefaultAgent.md). Message Agent is the base agent in handling message responses and DefaultAgent is there in case MessageAgent is not deemed suitable. 
+While there are a lot of pre-built workers (and the ability to write custom workers too!), for this simple task, we will only be using two of the most basic workers. [MessageWorker](../Workers/MessageWorker.mdx) and [DefaultWorker](../Workers/DefaultWorker.mdx). Message Worker is the base worker in handling message responses and DefaultWorker is there in case MessageWorker is not deemed suitable. 
 
 Here is the simple structure for a [Config](../Config.md) JSON file:
 
 * `role (Required)`: The general "role" of the chatbot you want to create. For instance, "roleplay bot", "customer service assistant", "data analyst", "shopping assistant", etc.
 * `user_objective (Required)`: The user's goal that the chatbot wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."
-* `agents (Required, List(AgentClassName))`: The [Agents](Agents/Agents.md) pre-defined under `agentorg/agents` folder in the codebase that you want to use for the chatbot.
+* `workers (Required, List(WorkerClassName))`: The [Workers](Workers/Workers.md) pre-defined under `agentorg/workers` folder in the codebase that you want to use for the chatbot.
 
 Now, lets see it with the Roleplay Bot example.
 
@@ -31,8 +31,8 @@ Now, lets see it with the Roleplay Bot example.
     "intro": "",
     "docs": [],
     "tasks": [],
-    "agents": [
-        "MessageAgent"
+    "workers": [
+        "MessageWorker"
     ]
 }
 ```
