@@ -26,7 +26,7 @@ const sidebars = {
       label: 'Tutorials',
       link: {type: 'doc', id: 'tutorials/intro'},
       items: [
-        'tutorials/roleplay-chatbot',
+        // 'tutorials/roleplay-chatbot',
         'tutorials/customer-service',
         'tutorials/booking-service'
       ],

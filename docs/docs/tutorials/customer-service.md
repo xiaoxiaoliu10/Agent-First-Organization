@@ -4,7 +4,7 @@
 
 ## Intro
 
-In this tutorial, we'll walk through building a basic customer service bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and request customer's contact information. The tutorial aims to build on top of a [simple conversational AI](./roleplay-chatbot.md) to include RAG in order to equip you with the foundational skills needed to create and deploy a functional customer service bot.
+In this tutorial, we'll walk through building a basic customer service bot using **Agent First Organization**'s framework. This bot will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and request customer's contact information. The tutorial aims to build on top of a [simple conversational AI](./roleplay-chatbot.md) to include RAG in order to equip you with the foundational skills needed to create and deploy a functional customer service bot.
 
 By the end of this tutorial, you'll know how to set up the AI framework, prepare documents for RAG, build a basic conversation flow, and power a bot with it. Whether you're building your first bot or refining your skills, this tutorial will guide you in creating a responsive and helpful customer service chatbot. 
 
@@ -18,8 +18,8 @@ In its core, bot is powered through a *TaskGraph* which is the structure that li
 
 Like actual conversations, *TaskGraph* can be complicated; that is why we help you convert a simple and intuitive *Config* JSON file into a powerful and advanced *TaskGraph* through our generator. Instead of needing to design an entire graph, all you need to do is to describe the bot and provide some extra information and it will build the graph for you! 
 
-#### Composite Workers
-Building on top of a primitive conversational bot, for the customer service bot, we need to let the bot be able to read from the documents we are supplying when composing a response. We can do that is through the [RAGMsgWorker (RAG-Message Worker)](../Workers/RAGWorker.mdx). The RAGMsgWorker is different than some of the workers we used in the previous tutorial because it is a *composite* worker. Inside RAGMsgWorker is actually two other workers, [RAGWorker](../Workers/RAGWorker.mdx) and [MessageWorker](../Workers/MessageWorker.mdx). When we call RAGMsgWorker, it internally calls RAGWorker which retrieves the relevant information from our sources and then passes the information to MessageWorker which composes the response which the RAGMsgWorker outputs. While RAGMsgWorker is pretty simple, there is no limit to how complex such composite workers could be and this serves as a sneak peak to what is ahead to come.
+#### Workers
+Building on top of a primitive conversational bot, for the customer service bot, we need to let the bot be able to read from the documents we are supplying when composing a response. We can do that is through the [RAGWorker](../Workers/RAGWorker.mdx) which retrieves the relevant information from our sources and then passes the information to [MessageWorker](../Workers/MessageWorker.mdx) which composes the response. 
 
 As a refresher, here is the structure for a [Config](../Config.md) JSON file:
 

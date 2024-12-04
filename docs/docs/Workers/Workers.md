@@ -1,7 +1,7 @@
 # Workers
 
 # Introduction
-Workers serve as the fundamental building block of the **WorkerOrg** framework and responsible for the "execution" of the tasks and its subtasks. Unlike some frameworks which differentiates between *workers* and *tools*, **WorkerOrg** combines both into an *Worker* component. Responsible for the execution and managed by the orchestrator, each Worker are designed to convert instructions into results. Although structured, *Workers* can be designed to do high level complicated tasks and can call other workers itself, greatly enhancing its ability to address. 
+Workers serve as the fundamental building block of the **Agent First Organization** framework and responsible for the "execution" of the tasks and its subtasks. Unlike some frameworks which differentiates between *workers* and *tools*, **Agent First Organization** combines both into an *Worker* component. Responsible for the execution and managed by the orchestrator, each Worker are designed to convert instructions into results. Although structured, *Workers* can be designed to do high level complicated tasks and can call other workers itself, greatly enhancing its ability to address. 
 
 # Implementation
 :::tip  Technical Details

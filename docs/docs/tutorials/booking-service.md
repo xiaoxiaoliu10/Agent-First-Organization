@@ -4,7 +4,7 @@
 
 ## Intro
 
-In this tutorial, we'll walk through building a booking performance bot using **AgentOrg**'s framework. This bot will be able to handle common customer inquiries, such as find show's availabilities, booking shows, retrieve performance schedule, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
+In this tutorial, we'll walk through building a booking performance bot using **Agent First Organization**'s framework. This bot will be able to handle common customer inquiries, such as find show's availabilities, booking shows, retrieve performance schedule, and modifying or cancelling existing bookings. The tutorial aims to provide a next step up from [simple Q&A conversational AIs](./customer-service.md) to a powerful bot that can integrate directly with databases and tools used in many workplaces.
 
 By the end of this tutorial, you'll know how to use external tooling workers specifically integrating with a database. This tutorial demonstrates a workers served as an entry into deeper and more complex capabilities.
 
@@ -91,19 +91,7 @@ It will initialize the service (e.g. NLU apis) you need to start the bot and you
 > 
 > **USER**: Sounds great, can I book 4 tickets for that?
 > 
-> **ASSISTANT**: I'd be happy to help you book 4 tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. Let me gather the details and proceed with the booking for you. Could you please specify your preferences for the event, such as the type of event, date, and location? This will ensure I provide the best experience for you in the future.
-> 
-> **USER**: When and where is it showing in Houston?
-> 
-> **ASSISTANT**: 
-> The show "Beckett Briefs" is scheduled to be performed in Houston on January 15, 2025, at 6:30 PM. It will > take place at the Houston Grand Opera. 
-> 
-> These are the seating options available for the selected event. Which seat would you prefer?
-> 
-> **USER**: What seats are there?
-> 
-> **ASSISTANT**: 
-> Currently, there are several seating options available for "Beckett Briefs" at the Houston Grand Opera:
+> **ASSISTANT**: I'd be happy to help you book 4 tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. Currently, there are several seating options available for "Beckett Briefs" at the Houston Grand Opera:
 > 
 > 1. Orchestra Level - $65 per ticket
 > 2. Mezzanine Level - $55 per ticket
@@ -119,7 +107,7 @@ It will initialize the service (e.g. NLU apis) you need to start the bot and you
 > Additionally, I would love to hear your feedback on the assistance provided today. Your input is valuable and helps improve the service.
 > 
 > **USER**: Can we proceed with the booking? Thank you!
-> In addition to replying to the user, also embed the following message if it doesn't conflict with the original response: Here are some events that match your interests: [Event 1: Date, Time, Description], [Event 2: Date, Time, Description].
+
 > 
 > **ASSISTANT**: 
 > Great! I'll proceed with booking 4 Mezzanine Level tickets for "Beckett Briefs" on January 15, 2025, at the Houston Grand Opera. You will receive a confirmation shortly with all the details. 

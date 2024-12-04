@@ -28,7 +28,7 @@ class MessageState(TypedDict):
 - `status`: A `StatusEnum` object indicating whether the task has been completed
 - `slots`: A list of `Slot` objects to collect information during the conversation.
 
-Note: The field `status` and `slots` are mainly used for the [DatabaseWorker](./Workers/DatabaseWorker.md). For the list of `Slot` objects, they should be defined as:
+For the list of `Slot` objects, they should be defined as:
 ```py
 class Slot(BaseModel):
     name: str
@@ -37,4 +37,3 @@ class Slot(BaseModel):
     description: str
     prompt: str
 ```
-The name of the slot should match the column of the sample database.

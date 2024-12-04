@@ -4,7 +4,7 @@
 
 ## Intro
 
-In this tutorial, we'll walk through building a roleplay bot using **AgentOrg**'s framework. This bot will pretend to be a role you assigned to it and have a practice conversation with you based on the objective you set.
+In this tutorial, we'll walk through building a roleplay bot using **Agent First Organization**'s framework. This bot will pretend to be a role you assigned to it and have a practice conversation with you based on the objective you set.
 
 By the end of this tutorial, you'll know how to set up the config file, build a basic conversation flow, and power a bot with it! This tutorial covers the absolute basics of our framework and sets up for much more!
 
