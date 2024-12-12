@@ -96,11 +96,18 @@ const config = {
             label: 'Docs',
           },
           // {to: '/blog', label: 'Blog', position: 'left'},
-          // {
-          //   href: 'https://github.com/facebook/docusaurus',
-          //   label: 'GitHub',
-          //   position: 'right',
-          // },
+          {
+            "aria-label": 'Discord Invite',
+            href: 'https://github.com/ArticulateAI/Agent-First-Organization',
+            className: 'navbar--github-link',
+            position: 'right',
+          },
+          {
+            "aria-label": 'Discord Invite',
+            href: 'https://discord.gg/jpZs3GqnTG',
+					  className: 'navbar--discord-link',
+            position: 'right',
+          },
         ],
       },
       footer: {
@@ -122,14 +129,10 @@ const config = {
                 label: 'GitHub',
                 href: 'https://github.com/ArticulateAI/Agent-First-Organization',
               },
-              // {
-              //   label: 'Discord',
-              //   href: 'https://discordapp.com/invite/docusaurus',
-              // },
-              // {
-              //   label: 'X',
-              //   href: 'https://x.com/docusaurus',
-              // },
+              {
+                label: 'Discord',
+                href: 'https://discord.gg/jpZs3GqnTG',
+              },
             ],
           },
           // {
