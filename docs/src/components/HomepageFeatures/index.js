@@ -31,7 +31,7 @@ const FeatureList = [
     ),
   },
   {
-    title: 'Continuous Learning',
+    title: 'Continual Learning',
     Svg: require('@site/static/img/AgentOrg-4.svg').default,
     description: (
       <>
