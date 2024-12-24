@@ -23,6 +23,7 @@ from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
 from agentorg.utils.loader import Loader
 from agentorg.workers.worker import WORKER_REGISTRY
+from agentorg.tools.tools import TOOL_REGISTRY
 
 
 logger = logging.getLogger(__name__)
@@ -172,6 +173,7 @@ class Generator:
         self.rag_docs = self.product_kwargs.get("rag_docs") 
         self.tasks = self.product_kwargs.get("tasks")
         self.workers = self.product_kwargs.get("workers")
+        self.tools = self.product_kwargs.get("tools")
         self.model = model
         self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         self.output_dir = output_dir
@@ -255,6 +257,14 @@ class Generator:
                 continue
             worker_desp = WORKER_REGISTRY.get(worker_name).description
             resources[worker_name] = worker_desp
+        
+        for tool_name in self.tools:
+            if not TOOL_REGISTRY.get(tool_name):
+                logger.error(f"Tool {tool_name} is not registered in the TOOL_REGISTRY")
+                continue
+            tool_desc = TOOL_REGISTRY.get(tool_name).description
+            resources[tool_name] = tool_desc
+            
         input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
@@ -271,7 +281,8 @@ class Generator:
                 node = []
                 node.append(str(node_id))
                 node.append({
-                    "name": "DefaultWorker", # Use DefaultWorker to decide which worker to use for specific task
+                    "name": step,
+                    # "name": "DefaultWorker", # Use DefaultWorker to decide which worker to use for specific task
                     "attribute": {
                         "value": step['example_response'],
                         "task": step['task'],

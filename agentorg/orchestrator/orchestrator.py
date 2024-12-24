@@ -12,6 +12,7 @@ from openai import OpenAI
 
 from agentorg.orchestrator.task_graph import TaskGraph
 from agentorg.workers.worker import WORKER_REGISTRY
+from agentorg.tools.tools import Tool, TOOL_REGISTRY
 from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.NLU.nlu import NLU
@@ -29,7 +30,8 @@ class AgentOrg:
         self.user_prefix = "USER"
         self.worker_prefix = "ASSISTANT"
         self.__eos_token = "\n"
-        self.tools = list(WORKER_REGISTRY.keys())
+        self.workers = list(WORKER_REGISTRY.keys())
+        self.tools = list(TOOL_REGISTRY.keys())
         self.task_graph = TaskGraph("taskgraph", self.product_kwargs)
 
     def _format_chat_history(self, chat_history, text):
@@ -94,28 +96,38 @@ class AgentOrg:
                     "node_status": params.get("node_status")}, 
                 metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
             )
-        #### Worker execution
+
+        # Tool/Worker
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
         sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"] + self.product_kwargs["intro"]
         message_state = MessageState(sys_instruct=sys_instruct, user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("worker_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
-        worker = WORKER_REGISTRY[node_info["name"]]()
-        worker_response = worker.execute(message_state)
+        
+        response = None
+        # Tool case
+        if node_info["name"].startswith(":"):
+            tool: Tool = TOOL_REGISTRY[node_info["name"]]
+            tool.initSlotFill(self.task_graph.slotfillapi)
+            response = tool.execute(message_state)
+        #### Worker case
+        else:
+            worker = WORKER_REGISTRY[node_info["name"]]()
+            response = worker.execute(message_state)
 
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
-                outputs={"metadata": params.get("metadata"), **worker_response}, 
+                outputs={"metadata": params.get("metadata"), **response}, 
                 metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
             )
-
-        params["worker_response"] = worker_response
-        return_answer = worker_response.get("response", "")
+            
+        params["worker_response"] = response
+        return_answer = response.get("response", "")
         # node status
         node_status = params.get("node_status", {})
         current_node = params.get("curr_node")
-        node_status[current_node] = worker_response.get("status", StatusEnum.COMPLETE)
+        node_status[current_node] = response.get("status", StatusEnum.COMPLETE)
         params["node_status"] = node_status
-        params["dialog_states"] = worker_response.get("slots", [])
+        params["dialog_states"] = response.get("slots", [])
 
         output = {
             "answer": return_answer,

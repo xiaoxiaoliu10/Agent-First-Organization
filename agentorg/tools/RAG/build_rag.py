@@ -15,19 +15,19 @@ def build_rag(folder_path, docs):
 
     filepath = os.path.join(folder_path, "documents.pkl")
     loader = Loader()
+    crawled_urls = []
     if Path(filepath).exists():
         logger.warning(f"Loading existing documents from {os.path.join(folder_path, 'documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
         crawled_urls = pickle.load(open(os.path.join(folder_path, "documents.pkl"), "rb"))
     else:
-        crawled_urls_full = []
         for doc in docs:
             source = doc.get("source")
             num_docs = doc.get("num") if doc.get("num") else 1
             urls = loader.get_all_urls(source, num_docs)
-            crawled_urls = loader.to_crawled_obj(urls)
-            crawled_urls_full.extend(crawled_urls)
-        Loader.save(filepath, crawled_urls_full)
+            crawled_urls.extend(loader.to_crawled_obj(urls))
+        Loader.save(filepath, crawled_urls)
 
+    logging.info(f"CRAWLED URLS: {[c.url for c in crawled_urls]}")
     chunked_docs = Loader.chunk(crawled_urls)
     filepath_chunk = os.path.join(folder_path, "chunked_documents.pkl")
     Loader.save(filepath_chunk, chunked_docs)

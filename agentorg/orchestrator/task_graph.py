@@ -9,7 +9,6 @@ from langchain_openai import ChatOpenAI
 from agentorg.utils.utils import normalize, str_similarity
 from agentorg.utils.graph_state import StatusEnum
 from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
-from agentorg.workers.tools.database.utils import SLOTS
 from agentorg.workers.worker import WORKER_REGISTRY
 from agentorg.utils.model_config import MODEL
 
