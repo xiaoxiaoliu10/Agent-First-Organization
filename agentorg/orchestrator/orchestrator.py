@@ -103,11 +103,14 @@ class AgentOrg:
         sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"] + self.product_kwargs["intro"]
         message_state = MessageState(sys_instruct=sys_instruct, user_message=user_message, orchestrator_message=orchestrator_message, message_flow=params.get("worker_response", {}).get("message_flow", ""), slots=params.get("dialog_states"))
         
+        logger.info(f"message: {text}")
+        
         response = None
         # Tool case
         if node_info["name"].startswith(":"):
-            tool: Tool = TOOL_REGISTRY[node_info["name"]]
+            tool: Tool = TOOL_REGISTRY[node_info["name"]]()
             tool.initSlotFill(self.task_graph.slotfillapi)
+            logger.info(f"user_msg: {message_state}")
             response = tool.execute(message_state)
         #### Worker case
         else:

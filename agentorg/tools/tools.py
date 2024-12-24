@@ -1,16 +1,19 @@
-import inspect
-from agentorg.utils.graph_state import MessageState, ConvoMessage
-from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
+import logging
+from agentorg.utils.graph_state import MessageState
+from agentorg.orchestrator.NLU.nlu import SlotFilling
 
 TOOL_REGISTRY = {}
+
+logger = logging.getLogger(__name__)
 
     
 def register_tool(desc, slots=[], outputs=[]):
     def inner(func):
         """Decorator to register a worker."""
-        TOOL_REGISTRY[f':{func.__name__}'] = Tool(func, desc, slots, outputs)
+        tool = lambda : Tool(func, desc, slots, outputs)
+        TOOL_REGISTRY[f':{func.__name__}'] = tool
 
-        return func
+        return tool
     return inner
 
 class Tool:
@@ -34,25 +37,20 @@ class Tool:
         
         # slotfill API
         pred_slots = self.slotFill.execute(
-            state.user_message.message, 
+            state["user_message"].message, 
             self.slots, 
-            state.user_message.history
+            state["user_message"].history,
+            {}
         )
         
-        params = [pred_slots[p] for p in inspect.signature(self.func).keys() if p in pred_slots]
-        return self.func(*params)
+        return self.func(*[p["value"] for p in pred_slots])
 
-    def postprocess(self, result):
-        pass
-    
-    def execute(self, state: MessageState) -> MessageState:
-        result = self.preprocess(state)
+    def execute(self, state: MessageState):
+        result = str(self.preprocess(state))
             
         ## postprocess
-        state.response = str(result)
-        return result
-        
-        
+        state["response"] = result
+        return state
         
     '''
     input msgstate --> output msgstate
