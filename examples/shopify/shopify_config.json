@@ -1,0 +1,20 @@
+{
+    "role": "shopping assistant",
+    "user_objective": "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions.",
+    "builder_objective": "The customer service assistant helps to request customer's contact information.",
+    "domain": "Ecommerce",
+    "intro": "",
+    "task_docs": [
+    ],
+    "rag_docs": [
+    ],
+    "tasks": [],
+    "workers": [
+        "RAGWorker"
+    ],
+    "tools": [
+        "find_user_by_email",
+        "get_order_details",
+        "get_product_details"
+    ]
+}

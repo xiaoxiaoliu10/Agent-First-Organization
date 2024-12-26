@@ -6,6 +6,7 @@ import logging
 import subprocess
 import signal
 import atexit
+from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
 
@@ -17,6 +18,7 @@ from agentorg.tools.database.build_database import build_database
 from agentorg.utils.model_config import MODEL
 
 logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "agentorg.log"))
+load_dotenv()
 
 API_PORT = "55135"
 NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu/predict"
@@ -35,12 +37,26 @@ def generate_taskgraph(args):
 
 
 def init_worker(args):
-    # Customized based on your worker design
+    ## TODO: Need to customized based on different use cases
     config = json.load(open(args.config))
     workers = config["workers"]
     if "RAGWorker" in workers:
         logger.info("Initializing RAGWorker...")
-        build_rag(args.output_dir, config["rag_docs"])
+        # if url: uncomment the following line
+        # build_rag(args.output_dir, config["rag_docs"])
+        # if shopify: uncomment the following lines
+        import shopify
+        from agentorg.utils.loaders.shopify import ShopifyLoader
+        session = shopify.Session(os.environ["SHOPIFY_SHOP_URL"], os.environ["SHOPIFY_API_VERSION"], os.environ["SHOPIFY_ACCESS_TOKEN"])
+        shopify.ShopifyResource.activate_session(session)
+        loader = ShopifyLoader()
+        docs = loader.load()
+        filepath = os.path.join(args.output_dir, "documents.pkl")
+        ShopifyLoader.save(filepath, docs)
+        chunked_docs = loader.chunk(docs)
+        filepath_chunk = os.path.join(args.output_dir, "chunked_documents.pkl")
+        ShopifyLoader.save(filepath_chunk, chunked_docs)
+        
 
     elif "DataBaseWorker" in workers:
         logger.info("Initializing DataBaseWorker...")
@@ -53,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument('--output-dir', type=str, default="./examples/test")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
     parser.add_argument('--log-level', type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+    parser.add_argument('--task', type=str, choices=["gen_taskgraph", "init", "all"], default="gen_taskgraph")
     args = parser.parse_args()
     MODEL["model_type_or_path"] = args.model
     log_level = getattr(logging, args.log_level.upper(), logging.INFO)
@@ -61,5 +78,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir, exist_ok=True)
     
-    generate_taskgraph(args)
-    init_worker(args)
+    if args.task == "gen_taskgraph" or args.task == "all":
+        generate_taskgraph(args)
+    elif args.task == "init" or args.task == "all":
+        init_worker(args)

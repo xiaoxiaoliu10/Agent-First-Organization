@@ -6,20 +6,20 @@ import logging
 import subprocess
 import signal
 import atexit
+from dotenv import load_dotenv
 from pprint import pprint
 
 from langchain_openai import ChatOpenAI
+import shopify
 
 from agentorg.utils.utils import init_logger
 from agentorg.orchestrator.orchestrator import AgentOrg
 from create import API_PORT
 from agentorg.utils.model_config import MODEL
 
-import shopify
-api_version = '2024-10'
-access_token = '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'
-shop_url = 'https://xu1e3z-yi.myshopify.com'
-session = shopify.Session(shop_url, api_version, access_token)
+
+load_dotenv()
+session = shopify.Session(os.environ["SHOPIFY_SHOP_URL"], os.environ["SHOPIFY_API_VERSION"], os.environ["SHOPIFY_ACCESS_TOKEN"])
 shopify.ShopifyResource.activate_session(session)
 
 process = None  # Global reference for the FastAPI subprocess
