@@ -51,6 +51,7 @@ class AgentOrg:
     
     def step(self, name, message_state, params):
         if name in TOOL_REGISTRY:
+            logger.info("{name} tool selected")
             tool: Tool = TOOL_REGISTRY[name]()
             tool.init_slotfilling(self.task_graph.slotfillapi)
             response_state = tool.execute(message_state)
@@ -59,10 +60,12 @@ class AgentOrg:
             params["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE)
                 
         elif name in WORKER_REGISTRY:
+            logger.info("{name} worker selected")
             worker = WORKER_REGISTRY[name]()
             response_state = worker.execute(message_state)
         else:
-            response_state = self.planner.execute(message_state, params["history"])
+            logger.info("planner selected")
+            action, response_state, msg_history = self.planner.execute(message_state, params["history"])
         
         logger.info(f"Response state from {name}: {response_state}")
         return response_state, params
@@ -171,6 +174,8 @@ class AgentOrg:
         )
         
         response_state, params = self.step(node_info["name"], message_state, params)
+        
+        logger.info(f"{response_state=}")
 
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
