@@ -57,11 +57,8 @@ def get_order_details(order_ids: list) -> str:
                 }}
             }}
             """)
-            print(response)
             parsed_response = json.loads(response)["data"]["order"]
             results.append(json.dumps(parsed_response))
         return results
     except Exception as e:
-        print("error: user not found")
-        print(e)
         return "error: order not found"

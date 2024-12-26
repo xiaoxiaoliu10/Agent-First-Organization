@@ -43,8 +43,6 @@ def find_user_id_by_email(email: str) -> str:
             user_id = nodes[0]["node"]["id"]
             return user_id
         else:
-            print("error: there are multiple users with the same email. Here is the nodes' value:")
-            print(nodes)
             return "error: there are multiple users with the same email"
     except Exception as e:
         return "error: user not found"
