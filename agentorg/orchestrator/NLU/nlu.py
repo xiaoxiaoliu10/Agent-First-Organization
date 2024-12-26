@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import langsmith as ls
 
 from agentorg.utils.trace import TraceRunName
+from agentorg.utils.graph_state import Slots, Slot
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -43,11 +44,10 @@ class SlotFilling:
     def __init__(self, url):
         self.url = url
 
-    def execute(self, text:str, slots:list, chat_history_str:str, metadata: dict) -> dict:
+    def execute(self, slots:list, chat_history_str:str, metadata: dict) -> dict:
         logger.info(f"extracted slots: {slots}")
         data = {
-            "text": text,
-            "slots": slots,
+            "slots": [slot.dict() for slot in slots],
             "chat_history_str": chat_history_str
         }
         response = requests.post(self.url, json=data)
@@ -58,6 +58,8 @@ class SlotFilling:
             )
         if response.status_code == 200:
             pred_slots = response.json()
+            logger.info(f"The raw pred_slots is {pred_slots}")
+            pred_slots = [Slot(**pred_slot) for pred_slot in pred_slots]
             logger.info(f"pred_slots is {pred_slots}")
         else:
             pred_slots = slots

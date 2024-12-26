@@ -6,6 +6,7 @@ import logging
 import subprocess
 import signal
 import atexit
+from pprint import pprint
 
 from langchain_openai import ChatOpenAI
 
@@ -14,7 +15,19 @@ from agentorg.orchestrator.orchestrator import AgentOrg
 from create import API_PORT
 from agentorg.utils.model_config import MODEL
 
+import shopify
+api_version = '2024-10'
+access_token = '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'
+shop_url = 'https://xu1e3z-yi.myshopify.com'
+session = shopify.Session(shop_url, api_version, access_token)
+shopify.ShopifyResource.activate_session(session)
+
 process = None  # Global reference for the FastAPI subprocess
+
+def pprint_with_color(data, color_code="\033[34m"):  # Default to blue
+    print(color_code, end="")  # Set the color
+    pprint(data)
+    print("\033[0m", end="")  
 
 def terminate_subprocess():
     """Terminate the FastAPI subprocess."""
@@ -81,14 +94,14 @@ if __name__ == "__main__":
     history = []
     params = {}
     config = json.load(open(os.path.join(args.input_dir, "taskgraph.json")))
-    user_prefix = "USER"
-    worker_prefix = "ASSISTANT"
+    user_prefix = "user"
+    worker_prefix = "assistant"
     for node in config['nodes']:
         if node[1].get("type", "") == 'start':
             start_message = node[1]['attribute']["value"]
             break
     history.append({"role": worker_prefix, "content": start_message})
-    print(f"Bot: {start_message}")
+    pprint_with_color(f"Bot: {start_message}")
     try:
         while True:
             user_text = input("You: ")
@@ -99,6 +112,6 @@ if __name__ == "__main__":
             history.append({"role": user_prefix, "content": user_text})
             history.append({"role": worker_prefix, "content": output})
             print(f"getAPIBotResponse Time: {time.time() - start_time}")
-            print(f"Bot: {output}")
+            pprint_with_color(f"Bot: {output}")
     finally:
         terminate_subprocess()  # Ensure the subprocess is terminated

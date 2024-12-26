@@ -23,6 +23,7 @@ class Slot(BaseModel):
     value: str
     description: str
     prompt: str
+    required: bool
 
 
 class Slots(BaseModel):
@@ -47,10 +48,13 @@ class MessageState(TypedDict):
     # input message
     user_message: ConvoMessage
     orchestrator_message: OrchestratorMessage
+    # action trajectory
+    trajectory: list[dict[str, any]]
     # message flow between different nodes
     message_flow: Annotated[str, "message flow between different nodes"]
     # final response
     response: str
     # task-related params
     status: StatusEnum
-    slots: list[Slot]
+    slots: list[Slot]  # probably won't need anymore
+    metadata: dict[str, any]

@@ -1,10 +1,20 @@
-import os
 import importlib
+import os
+import pkgutil
+from pathlib import Path
 
-# Dynamically import all Python files in the current directory
-module_dir = os.path.dirname(__file__)
+# Automatically import all Python files in the current directory and subdirectories
+def import_all_modules_from_package(package_name: str):
+    package_path = Path(__file__).parent
+    for module_info in pkgutil.walk_packages(
+        path=[str(package_path)],
+        prefix=f"{package_name}."
+    ):
+        if not module_info.ispkg:  # Skip directories
+            importlib.import_module(module_info.name)
 
-for file in os.listdir(module_dir):
-    if file.endswith(".py") and file != "__init__.py":
-        module_name = file[:-3]  # Strip off '.py' to get the module name
-        importlib.import_module(f'.{module_name}', package=__name__)
+# Dynamically import all modules under workers.tools
+import_all_modules_from_package("agentorg.tools")
+
+# Expose TOOL_REGISTRY
+from .tools import TOOL_REGISTRY

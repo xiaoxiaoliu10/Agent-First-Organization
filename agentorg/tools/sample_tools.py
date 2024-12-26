@@ -5,14 +5,17 @@ from agentorg.utils.graph_state import MessageState
 # state in -> state out
 #   no preprocessing
 #   no postprocessing
+'''
 @register_tool("Repeats the user query back at them")
 def echo(state: MessageState):
     state.response = state.user_message.message
     return state
+'''
 
 # state in -> value out
 #   no preprocessing
 #   value post-processing
+'''
 @register_tool(
     "Repeats the user query back but in all caps",
     [{
@@ -24,6 +27,7 @@ def echo(state: MessageState):
     )
 def shoutEcho(msg):
     return msg.upper()
+'''
 
 # value in value out
 #   value preprocessing - slots
@@ -33,8 +37,9 @@ def shoutEcho(msg):
     [{
         "name": "expression",
         "type": "string",
-        "value": "",
         "description": "valid math expression extracted from the user message expressed with only numerical digits and these special characters ['(', ')', '+', '-', '*', '/', '%', '^']",
+        "prompt": "Could you please provide the mathematical expression?",
+        "required": True
     }],
     [{
         "name": "result",

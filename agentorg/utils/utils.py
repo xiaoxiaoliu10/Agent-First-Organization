@@ -103,3 +103,10 @@ def postprocess_json(raw_code):
 		logger.error(f"Error: {e}")
 		result = None
 	return result
+
+def format_chat_history(chat_history):
+    '''Includes current user utterance'''
+    chat_history_str= ""
+    for turn in chat_history:
+        chat_history_str += f"{turn['role']}: {turn['content']}\n"
+    return chat_history_str.strip()

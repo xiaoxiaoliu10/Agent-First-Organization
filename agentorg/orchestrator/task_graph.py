@@ -150,11 +150,11 @@ class TaskGraph(TaskGraphBase):
         params["available_intents"] = available_intents
         worker_class = WORKER_REGISTRY.get(worker_name)
         # TODO: This will be used to check whether we skip the worker or not, which is handled by the task graph framework
-        skip = self._check_skip(worker_class, sample_node)
-        if skip:
-            node_info = {"name": None, "attribute": None}
-        else:
-            node_info = {"name": worker_name, "attribute": self.graph.nodes[sample_node]["attribute"]}
+        # skip = self._check_skip(worker_class, sample_node)
+        # if skip:
+        #     node_info = {"name": None, "attribute": None}
+        # else:
+        node_info = {"name": worker_name, "attribute": self.graph.nodes[sample_node]["attribute"]}
         
         return node_info, params, candidates_intents
 

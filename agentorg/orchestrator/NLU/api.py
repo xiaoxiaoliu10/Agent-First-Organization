@@ -8,7 +8,7 @@ import string
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from agentorg.utils.graph_state import Slots
+from agentorg.utils.graph_state import Slots, Slot
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -151,11 +151,10 @@ class SlotFillOpenAIAPI(OpenAIAPI):
 
     def predict(
         self,
-        text,
         slots,
         chat_history_str
     ):
-
+        slots = [Slot(**slot_data) for slot_data in slots]
         system_prompt = self.format_input(
             slots, chat_history_str
         )
