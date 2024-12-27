@@ -28,8 +28,8 @@ class OpenAIAPI:
 class NLUOpenAIAPI(OpenAIAPI):
     def __init__(self):
         super().__init__()
-        self.user_prefix = "USER"
-        self.assistant_prefix = "ASSISTANT"
+        self.user_prefix = "user"
+        self.assistant_prefix = "assistant"
 
     def get_response(self, sys_prompt, response_format="text", debug_text="none", params=MODEL):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
@@ -125,8 +125,8 @@ class NLUOpenAIAPI(OpenAIAPI):
 class SlotFillOpenAIAPI(OpenAIAPI):
     def __init__(self):
         super().__init__()
-        self.user_prefix = "USER"
-        self.assistant_prefix = "ASSISTANT"
+        self.user_prefix = "user"
+        self.assistant_prefix = "assistant"
 
     def get_response(self, sys_prompt, debug_text="none", params=MODEL):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
