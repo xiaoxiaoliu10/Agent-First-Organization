@@ -28,9 +28,9 @@ def flip_hist_content_only(hist):
         if turn['role'] == 'system':
             continue
         elif turn['role'] == 'user':
-            new_hist.append({'role': 'ASSISTANT', 'content': turn['content']})
+            new_hist.append({'role': 'assistant', 'content': turn['content']})
         else:
-            new_hist.append({'role': 'USER', 'content': turn['content']})
+            new_hist.append({'role': 'user', 'content': turn['content']})
     return new_hist
 
 # flip roles in convo history, keep all other keys the same
@@ -84,6 +84,11 @@ def filter_convo(convo, delim = '\n', filter_turns = True):
                     new_turn[key] = turn[key]
             filtered_convo.append(new_turn)
     return filtered_convo
+
+def adjust_goal(doc_content, goal):
+    message = f"Pretend you have the following goal in the mind. Given the following document content, please adjust your goal to the content. If the goal is not conflict with the document content, then don't need to change it and just copy the goal. The document content is as follows:\n{doc_content}\n\nThe original goal is as follows:\n{goal}\n\nPlease modify the goal to adapt it to the document content. Only give the answer to the question in your response."
+
+    return chatgpt_chatbot([{'role': 'user', 'content': message}], model=MODEL["model_type_or_path"])
 
 def generate_goal(doc_content):
     message = f"Pretend you have just read the following website:\n{doc_content}\nThis website also has a chatbot. What is some information you want to get from this chatbot or a goal you might have when chatting with this chatbot based on the website content? Answer the question in the first person. Only give the answer to the question in your response."

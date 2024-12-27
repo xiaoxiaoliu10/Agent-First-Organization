@@ -1,7 +1,7 @@
 import json
 import random
 from agentorg.evaluation.get_documents import load_docs
-from agentorg.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, 
+from agentorg.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, adjust_goal,
                                                flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
 
 def check_goal_completion(goal, convo):
@@ -34,12 +34,14 @@ def conversation(model_api, goal, summary, model_params, synthetic_data_params):
     
     if not history[-1].get('goal_completetion', False):
         history.append({'goal_completetion': False})
+    history.append({'trajectory': model_params["history"]})
     return history
 
 def generate_conversations(model_api, goals, summary, model_params, synthetic_data_params):
     convos = []
-    for i in range(synthetic_data_params['num_convos']):
-        goal = random.choice(goals)
+    # for i in range(synthetic_data_params['num_convos']):
+    for goal in goals:
+        # goal = random.choice(goals)
         convo = conversation(model_api, goal, summary, model_params, synthetic_data_params)
         convos.append(flip_hist(filter_convo(convo, filter_turns=False)))
     return convos
@@ -47,9 +49,30 @@ def generate_conversations(model_api, goals, summary, model_params, synthetic_da
 def simulate_conversations(model_api, model_params, synthetic_data_params, config):
     documents = load_docs(config['documents_dir'], config, synthetic_data_params['num_goals'] * 2)
     summary = config['intro']
-    goals = generate_goals(documents, synthetic_data_params)
-    conversations = generate_conversations(model_api, goals, summary, model_params, synthetic_data_params)
-    return conversations
+    final_goals = []
+    if synthetic_data_params.get('goals', None):
+        raw_goals = []
+        cases = synthetic_data_params['goals']
+        for stage, categories in cases.items():
+            for first_level, second_levels in categories.items():
+                for second_level, goals in second_levels.items():
+                    raw_goal = random.choice(goals)
+                    raw_goals.append(raw_goal)
+        
+        # goal adaptation
+        final_goals = []
+        for goal in raw_goals:
+            doc = random.choice(documents)
+            new_goal = adjust_goal(doc, goal)
+            final_goals.append(new_goal)
+
+    else:
+        final_goals = generate_goals(documents, synthetic_data_params)
+    try:
+        conversations = generate_conversations(model_api, final_goals, summary, model_params, synthetic_data_params)
+    except Exception as e:
+        conversations = []
+    return conversations, final_goals
 
 if __name__ == "__main__":
     model_api = "http://adaptation.cs.columbia.edu:55231/qa/richtech/v1alpha1"
