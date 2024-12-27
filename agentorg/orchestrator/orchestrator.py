@@ -51,7 +51,7 @@ class AgentOrg:
     
     def step(self, name, message_state, params):
         if name in TOOL_REGISTRY:
-            logger.info("{name} tool selected")
+            logger.info(f"{name} tool selected")
             tool: Tool = TOOL_REGISTRY[name]()
             tool.init_slotfilling(self.task_graph.slotfillapi)
             response_state = tool.execute(message_state)
@@ -60,9 +60,17 @@ class AgentOrg:
             params["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE)
                 
         elif name in WORKER_REGISTRY:
-            logger.info("{name} worker selected")
+            logger.info(f"{name} worker selected")
             worker = WORKER_REGISTRY[name]()
             response_state = worker.execute(message_state)
+            call_id = str(uuid.uuid4())
+            params["history"].append({'content': None, 'role': 'assistant', 'tool_calls': [{'function': {'arguments': "", 'name': name}, 'id': call_id, 'type': 'function'}], 'function_call': None})
+            params["history"].append({
+                        "role": "tool",
+                        "tool_call_id": call_id,
+                        "name": name,
+                        "content": response_state["response"]
+            })
         else:
             logger.info("planner selected")
             action, response_state, msg_history = self.planner.execute(message_state, params["history"])
