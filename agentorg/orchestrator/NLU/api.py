@@ -8,7 +8,7 @@ import string
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from agentorg.utils.graph_state import Slots
+from agentorg.utils.graph_state import Slots, Slot
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -28,8 +28,8 @@ class OpenAIAPI:
 class NLUOpenAIAPI(OpenAIAPI):
     def __init__(self):
         super().__init__()
-        self.user_prefix = "USER"
-        self.assistant_prefix = "ASSISTANT"
+        self.user_prefix = "user"
+        self.assistant_prefix = "assistant"
 
     def get_response(self, sys_prompt, response_format="text", debug_text="none", params=MODEL):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
@@ -125,8 +125,8 @@ class NLUOpenAIAPI(OpenAIAPI):
 class SlotFillOpenAIAPI(OpenAIAPI):
     def __init__(self):
         super().__init__()
-        self.user_prefix = "USER"
-        self.assistant_prefix = "ASSISTANT"
+        self.user_prefix = "user"
+        self.assistant_prefix = "assistant"
 
     def get_response(self, sys_prompt, debug_text="none", params=MODEL):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
@@ -151,11 +151,10 @@ class SlotFillOpenAIAPI(OpenAIAPI):
 
     def predict(
         self,
-        text,
         slots,
         chat_history_str
     ):
-
+        slots = [Slot(**slot_data) for slot_data in slots]
         system_prompt = self.format_input(
             slots, chat_history_str
         )
