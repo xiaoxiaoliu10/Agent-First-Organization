@@ -3,7 +3,7 @@ import json
 
 import shopify
 
-from agentorg.tools.tools import register_tool
+from agentorg.env.tools.tools import register_tool
 
 description = "Find user id by email. If the user is not found, the function will return an error message."
 slots = [
@@ -24,20 +24,28 @@ outputs = [
 ]
 
 @register_tool(description, slots, outputs)
-def find_user_id_by_email(email: str) -> str:
+def find_user_id_by_email(email: str, **kwargs) -> str:
+    shop_url = kwargs.get("shop_url")
+    api_version = kwargs.get("api_version")
+    token = kwargs.get("token")
+
+    if not shop_url or not api_version or not token:
+        return "error: missing some or all required shopify authentication parameters: shop_url, api_version, token. Please set up 'fixed_args' in the config file. For example, {'name': <unique name of the tool>, 'fixed_args': {'token': <shopify_access_token>, 'shop_url': <shopify_shop_url>, 'api_version': <Shopify API version>}}"
+    
     user_id = ""
     try:
-        response = shopify.GraphQL().execute(f"""
-            {{
-                customers (first: 10, query: "email:{email}") {{
-                    edges {{
-                        node {{
-                            id
+        with shopify.Session.temp(shop_url, api_version, token):
+            response = shopify.GraphQL().execute(f"""
+                {{
+                    customers (first: 10, query: "email:{email}") {{
+                        edges {{
+                            node {{
+                                id
+                            }}
                         }}
                     }}
                 }}
-            }}
-            """)
+                """)
         nodes = json.loads(response)["data"]["customers"]["edges"]
         if len(nodes) == 1:
             user_id = nodes[0]["node"]["id"]

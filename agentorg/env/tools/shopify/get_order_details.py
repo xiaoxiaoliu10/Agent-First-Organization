@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import shopify
 
-from agentorg.tools.tools import register_tool
+from agentorg.env.tools.tools import register_tool
 
 description = "Get the status and details of an order."
 slots = [
@@ -25,38 +25,46 @@ outputs = [
 ]
 
 @register_tool(description, slots, outputs)
-def get_order_details(order_ids: list) -> str:
+def get_order_details(order_ids: list, **kwargs) -> str:
+    shop_url = kwargs.get("shop_url")
+    api_version = kwargs.get("api_version")
+    token = kwargs.get("token")
+
+    if not shop_url or not api_version or not token:
+        return "error: missing some or all required shopify authentication parameters: shop_url, api_version, token. Please set up 'fixed_args' in the config file. For example, {'name': <unique name of the tool>, 'fixed_args': {'token': <shopify_access_token>, 'shop_url': <shopify_shop_url>, 'api_version': <Shopify API version>}}"
+    
     try:
-        results = []
-        for order_id in order_ids:
-            response = shopify.GraphQL().execute(f"""
-            {{
-                order (id: "{order_id}") {{
-                    id
-                    name
-                    totalPriceSet {{
-                        presentmentMoney {{
-                            amount
+        with shopify.Session.temp(shop_url, api_version, token):
+            results = []
+            for order_id in order_ids:
+                response = shopify.GraphQL().execute(f"""
+                {{
+                    order (id: "{order_id}") {{
+                        id
+                        name
+                        totalPriceSet {{
+                            presentmentMoney {{
+                                amount
+                            }}
                         }}
-                    }}
-                    lineItems(first: 10) {{
-                        edges {{
-                            node {{
-                                id
-                                title
-                                quantity
-                                variant {{
+                        lineItems(first: 10) {{
+                            edges {{
+                                node {{
                                     id
-                                    product {{
+                                    title
+                                    quantity
+                                    variant {{
                                         id
+                                        product {{
+                                            id
+                                        }}
                                     }}
                                 }}
                             }}
                         }}
                     }}
                 }}
-            }}
-            """)
+                """)
             parsed_response = json.loads(response)["data"]["order"]
             results.append(json.dumps(parsed_response))
         return results

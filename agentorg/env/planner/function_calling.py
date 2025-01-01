@@ -9,8 +9,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from litellm import completion
 
-from agentorg.workers.worker import BaseWorker, register_worker, WORKER_REGISTRY
-from agentorg.workers.prompts import choose_worker_prompt
+from agentorg.env.workers.worker import BaseWorker, register_worker, WORKER_REGISTRY
+from agentorg.env.prompts import choose_worker_prompt
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -36,20 +36,22 @@ class FunctionCallingPlanner:
         tools_map: Dict[str, Any]):
         super().__init__()
         self.tools_map = tools_map
-        self.tools_info = [tool().info for tool in self.tools_map.values()]
+        self.tools_info = [tool["execute"]().info for tool in self.tools_map.values()]
 
-    def message_to_action(
+    def message_to_actions(
         self,
         message: Dict[str, Any],
-    ) -> Action:
+    ) -> List[Action]:
+        actions = []
         if "tool_calls" in message and message["tool_calls"] is not None and len(message["tool_calls"]) > 0 and message["tool_calls"][0]["function"] is not None:
-            tool_call = message["tool_calls"][0]
-            return Action(
-                name=tool_call["function"]["name"],
-                kwargs=json.loads(tool_call["function"]["arguments"]),
-            )
+            for tool_call in message["tool_calls"]:
+                actions.append(Action(
+                    name=tool_call["function"]["name"],
+                    kwargs=json.loads(tool_call["function"]["arguments"]),
+                ))
+            return actions
         else:
-            return Action(name=RESPOND_ACTION_NAME, kwargs={"content": message["content"]})
+            return [Action(name=RESPOND_ACTION_NAME, kwargs={"content": message["content"]})]
 
     def plan(self, state: MessageState, msg_history, max_num_steps=3):
         user_message = state['user_message'].message
@@ -72,24 +74,35 @@ class FunctionCallingPlanner:
                 temperature=0.0
             )
             next_message = res.choices[0].message.model_dump()
-            action = self.message_to_action(next_message)
-            logger.info(f"Predicted action in function calling: {action}")
-            env_response = self.step(action)
-            if action.name != RESPOND_ACTION_NAME:
-                next_message["tool_calls"] = next_message["tool_calls"][:1]
-                msg_history.extend(
-                    [
-                        next_message,
-                        {
-                            "role": "tool",
-                            "tool_call_id": next_message["tool_calls"][0]["id"],
-                            "name": next_message["tool_calls"][0]["function"]["name"],
-                            "content": env_response.observation,
-                        },
-                    ]
-                )
-            if "error" not in env_response.observation:
-                break
+            actions = self.message_to_actions(next_message)
+            messages.append(next_message)
+            msg_history.append(next_message)
+            logger.info(f"Predicted action in function calling: {actions}")
+            logger.info("===============Function calling actions=====================")
+            logger.info(actions)
+            for idx, action in enumerate(actions):
+                env_response = self.step(action)
+                if action.name != RESPOND_ACTION_NAME:
+                    messages.extend(
+                        [
+                            {
+                                "role": "tool",
+                                "tool_call_id": next_message["tool_calls"][idx]["id"],
+                                "name": next_message["tool_calls"][idx]["function"]["name"],
+                                "content": env_response.observation,
+                            }
+                        ]
+                    )
+                    msg_history.extend(
+                        [
+                            {
+                                "role": "tool",
+                                "tool_call_id": next_message["tool_calls"][idx]["id"],
+                                "name": next_message["tool_calls"][idx]["function"]["name"],
+                                "content": env_response.observation,
+                            }
+                        ]
+                    )
         return msg_history, action.name, env_response.observation
         
     
@@ -99,7 +112,12 @@ class FunctionCallingPlanner:
             observation = response
         elif action.name in self.tools_map:
             try:
-                observation = self.tools_map[action.name]().func(**action.kwargs)
+                kwargs = action.kwargs
+                combined_kwargs = {**kwargs, **self.tools_map[action.name]["fixed_args"]}
+                observation = self.tools_map[action.name]["execute"]().func(**combined_kwargs)
+                if not isinstance(observation, str):
+                    # Convert to string if not already
+                    observation = str(observation)
             except Exception as e:
                 observation = f"Error: {e}"
         else:

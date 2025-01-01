@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import shopify
 
-from agentorg.tools.tools import register_tool
+from agentorg.env.tools.tools import register_tool
 
 description = "Get the inventory information and description details of a product."
 slots = [
@@ -25,20 +25,28 @@ outputs = [
 ]
 
 @register_tool(description, slots, outputs)
-def get_product_details(product_ids: list) -> str:
+def get_product_details(product_ids: list, **kwargs) -> str:
+    shop_url = kwargs.get("shop_url")
+    api_version = kwargs.get("api_version")
+    token = kwargs.get("token")
+
+    if not shop_url or not api_version or not token:
+        return "error: missing some or all required shopify authentication parameters: shop_url, api_version, token. Please set up 'fixed_args' in the config file. For example, {'name': <unique name of the tool>, 'fixed_args': {'token': <shopify_access_token>, 'shop_url': <shopify_shop_url>, 'api_version': <Shopify API version>}}"
+    
     try:
-        results = []
-        for product_id in product_ids:
-            response = shopify.GraphQL().execute(f"""
-            {{
-                product (id: "{product_id}") {{
-                    id
-                    title
-                    description
-                    totalInventory
+        with shopify.Session.temp(shop_url, api_version, token):
+            results = []
+            for product_id in product_ids:
+                response = shopify.GraphQL().execute(f"""
+                {{
+                    product (id: "{product_id}") {{
+                        id
+                        title
+                        description
+                        totalInventory
+                    }}
                 }}
-            }}
-            """)
+                """)
             parsed_response = json.loads(response)["data"]["product"]
             results.append(json.dumps(parsed_response))
         return results

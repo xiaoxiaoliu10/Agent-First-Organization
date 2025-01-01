@@ -12,7 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.model_config import MODEL
 from agentorg.utils.graph_state import Slot, SlotDetail, Slots, MessageState
-from agentorg.workers.prompts import database_slot_prompt
+from agentorg.env.prompts import database_slot_prompt
 from agentorg.utils.graph_state import StatusEnum
 
 

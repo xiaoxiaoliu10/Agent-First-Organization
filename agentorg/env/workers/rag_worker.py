@@ -3,9 +3,9 @@ import logging
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from agentorg.workers.worker import BaseWorker, register_worker
+from agentorg.env.workers.worker import BaseWorker, register_worker
 from agentorg.utils.graph_state import MessageState
-from agentorg.tools.RAG.utils import SearchEngine, ToolGenerator
+from agentorg.env.tools.RAG.utils import RetrieveEngine, ToolGenerator
 from agentorg.utils.model_config import MODEL
 
 
@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 @register_worker
-class SearchWorker(BaseWorker):
+class RAGWorker(BaseWorker):
 
-    description = "Answer the user's questions based on real-time online search results"
+    description = "Answer the user's questions based on the company's internal documentations (unstructured text data), such as the policies, FAQs, and product information"
 
     def __init__(self):
         super().__init__()
@@ -25,12 +25,11 @@ class SearchWorker(BaseWorker):
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each worker
-        search_engine = SearchEngine()
-        workflow.add_node("search_engine", search_engine.search)
+        workflow.add_node("retriever", RetrieveEngine.retrieve)
         workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
-        workflow.add_edge(START, "search_engine")
-        workflow.add_edge("search_engine", "tool_generator")
+        workflow.add_edge(START, "retriever")
+        workflow.add_edge("retriever", "tool_generator")
         return workflow
 
     def execute(self, msg_state: MessageState):

@@ -1,7 +1,9 @@
+import os
 import logging
 import json
 import uuid
 import ast
+import inspect
 
 from agentorg.utils.graph_state import MessageState, StatusEnum, Slot
 from agentorg.orchestrator.NLU.nlu import SlotFilling
@@ -14,16 +16,24 @@ logger = logging.getLogger(__name__)
 
     
 def register_tool(desc, slots=[], outputs=[]):
+    current_file_dir = os.path.dirname(__file__)
     def inner(func):
+        file_path = inspect.getfile(func)
+        relative_path = os.path.relpath(file_path, current_file_dir)
+        # reformat the relative path to replace / with -, and remove .py, because the function calling in openai only allow the function name match the patter the pattern '^[a-zA-Z0-9_-]+$'
+        relative_path = relative_path.replace("/", "-").replace(".py", "")
+        key = f"{relative_path}-{func.__name__}"
+
         """Decorator to register a worker."""
-        tool = lambda : Tool(func, desc, slots, outputs)
-        TOOL_REGISTRY[f'{func.__name__}'] = tool
+        tool = lambda : Tool(func, key, desc, slots, outputs)
+        TOOL_REGISTRY[key] = tool
 
         return tool
     return inner
 
 class Tool:
-    def __init__(self, func, description, slots, outputs):
+    def __init__(self, func, name, description, slots, outputs):
+        self.name = name
         self.func = func
         self.description = description
         self.output = outputs
@@ -38,6 +48,8 @@ class Tool:
         return format_slots
 
     def get_info(self, slots):
+        print("========name========")
+        print(self.name)
         self.properties = {}
         for slot in slots:
             self.properties[slot["name"]] = {k: v for k, v in slot.items() if k != "name" and k != "required"}
@@ -45,7 +57,7 @@ class Tool:
         return {
             "type": "function",
             "function": {
-                "name": self.func.__name__,
+                "name": self.name,
                 "description": self.description,
                 "parameters": {
                     "type": "object",
@@ -58,7 +70,7 @@ class Tool:
     def init_slotfilling(self, slotfillapi: SlotFilling):
         self.slotfillapi = slotfillapi
         
-    def preprocess(self, state: MessageState):
+    def preprocess(self, state: MessageState, **fixed_args):
         response = "error"
         max_tries = 3
         while max_tries > 0 and "error" in response:
@@ -79,14 +91,15 @@ class Tool:
                             except (ValueError, SyntaxError):
                                 raise ValueError(f"Unable to parse slot value: {slot.value}")
                 kwargs = {slot.name: slot.value for slot in slots}
-                response = self.func(**kwargs)
-                logger.info(f"Tool {self.func.__name__} response: {response}")
+                combined_kwargs = {**kwargs, **fixed_args}
+                response = self.func(**combined_kwargs)
+                logger.info(f"Tool {self.name} response: {response}")
                 call_id = str(uuid.uuid4())
-                state["trajectory"].append({'content': None, 'role': 'assistant', 'tool_calls': [{'function': {'arguments': json.dumps(kwargs), 'name': self.func.__name__}, 'id': call_id, 'type': 'function'}], 'function_call': None})
+                state["trajectory"].append({'content': None, 'role': 'assistant', 'tool_calls': [{'function': {'arguments': json.dumps(kwargs), 'name': self.name}, 'id': call_id, 'type': 'function'}], 'function_call': None})
                 state["trajectory"].append({
                             "role": "tool",
                             "tool_call_id": call_id,
-                            "name": self.func.__name__,
+                            "name": self.name,
                             "content": response
                 })
                 if "error" in response:
@@ -104,8 +117,8 @@ class Tool:
         state["message_flow"] = response
         return state
 
-    def execute(self, state: MessageState):
-        state = self.preprocess(state)
+    def execute(self, state: MessageState, **fixed_args):
+        state = self.preprocess(state, **fixed_args)
         ## postprocess if any
         ## Currently, the value of the tool is stored and returned in state["message_flow"]
         return state

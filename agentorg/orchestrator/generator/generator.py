@@ -22,8 +22,8 @@ from textual.widgets.tree import TreeNode
 from agentorg.utils.utils import postprocess_json
 from agentorg.orchestrator.generator.prompts import *
 from agentorg.utils.loader import Loader
-from agentorg.workers.worker import WORKER_REGISTRY
-from agentorg.tools.tools import TOOL_REGISTRY
+from agentorg.env.workers.worker import WORKER_REGISTRY
+from agentorg.env.tools.tools import TOOL_REGISTRY
 
 
 logger = logging.getLogger(__name__)

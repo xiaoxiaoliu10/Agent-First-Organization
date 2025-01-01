@@ -3,9 +3,9 @@ import logging
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from agentorg.workers.worker import BaseWorker, register_worker
-from agentorg.workers.message_worker import MessageWorker
-from agentorg.workers.rag_worker import RAGWorker
+from agentorg.env.workers.worker import BaseWorker, register_worker
+from agentorg.env.workers.message_worker import MessageWorker
+from agentorg.env.workers.rag_worker import RAGWorker
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
 

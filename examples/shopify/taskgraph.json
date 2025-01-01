@@ -16,7 +16,7 @@
         [
             "1",
             {
-                "name": "find_user_id_by_email",
+                "name": "shopify-find_user_id_by_email-find_user_id_by_email",
                 "attribute": {
                     "value": "",
                     "task": "Find user id by email",
@@ -40,7 +40,7 @@
         [
             "3",
             {
-                "name": "get_order_details",
+                "name": "shopify-get_order_details-get_order_details",
                 "attribute": {
                     "value": "",
                     "task": "Get the product id for each order",
@@ -52,7 +52,7 @@
         [
             "4",
             {
-                "name": "get_product_details",
+                "name": "shopify-get_product_details-get_product_details",
                 "attribute": {
                     "value": "",
                     "task": "Get the product information",
@@ -145,16 +145,17 @@
     "user_objective": "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions.",
     "builder_objective": "The customer service assistant helps to request customer's contact information.",
     "domain": "Ecommerce",
-    "intro": "",
+    "intro": "Awhale is an online retailer offering a curated selection of children's apparel and home accessories. Their product range includes kid's hats, aprons, bedding, pillows, throws, and comforters, all designed to combine functionality with appealing designs. Awhale emphasizes customer engagement by offering a 30% discount on first purchases for newsletter subscribers. For inquiries, customers can reach out via email at customer.service@awhaletrading.com. Awhale is active on social media platforms, including Facebook and Instagram, where they share exclusive offers and updates. Their website also features a blog that provides insights and tips related to their products, such as the versatility of their denim aprons. Awhale accepts various payment methods, including major credit cards and digital payment options like PayPal and Apple Pay, ensuring a secure and convenient shopping experience.",
     "task_docs": [
     ],
     "rag_docs": [
     ],
     "tasks": [],
     "tools": [
-        "find_user_by_email",
-        "get_order_details",
-        "get_product_details"
+        {"name": "shopify-find_user_id_by_email-find_user_id_by_email", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}},
+        {"name": "shopify-get_user_details-get_user_details", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}},
+        {"name": "shopify-get_order_details-get_order_details", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}},
+        {"name": "shopify-get_product_details-get_product_details", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}}
     ],
     "workers": [
         "RAGWorker"

@@ -15,11 +15,11 @@ from openai import OpenAI
 from litellm import completion
 
 from agentorg.orchestrator.task_graph import TaskGraph
-from agentorg.workers.worker import WORKER_REGISTRY
-from agentorg.tools.tools import Tool, TOOL_REGISTRY
-from agentorg.tools.RAG.utils import ToolGenerator
+# from agentorg.env.workers.worker import WORKER_REGISTRY
+# from agentorg.env.tools.tools import Tool, TOOL_REGISTRY
+from agentorg.env.tools.RAG.utils import ToolGenerator
 from agentorg.orchestrator.NLU.nlu import SlotFilling
-from agentorg.orchestrator.planner.function_calling import FunctionCallingPlanner
+# from agentorg.orchestrator.planner.function_calling import FunctionCallingPlanner
 from agentorg.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
 from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
 from agentorg.utils.utils import init_logger, format_chat_history
@@ -34,49 +34,15 @@ logger = logging.getLogger(__name__)
 
 
 class AgentOrg:
-    def __init__(self, config, **kwargs):
+    def __init__(self, config, env, **kwargs):
         self.product_kwargs = json.load(open(config))
         # os.environ["AVAILABLE_WORKERS"] = ",".join(self.product_kwargs["workers"])
         self.user_prefix = "user"
         self.worker_prefix = "assistant"
         self.environment_prefix = "tool"
         self.__eos_token = "\n"
-        self.workers = list(WORKER_REGISTRY.keys())
-        self.tools = list(TOOL_REGISTRY.keys())
         self.task_graph = TaskGraph("taskgraph", self.product_kwargs)
-        self.planner = FunctionCallingPlanner(
-            tools_map=TOOL_REGISTRY
-        )
-        self.slotfillapi = SlotFilling(self.product_kwargs.get("slotfillapi"))
-    
-    def step(self, name, message_state, params):
-        if name in TOOL_REGISTRY:
-            logger.info(f"{name} tool selected")
-            tool: Tool = TOOL_REGISTRY[name]()
-            tool.init_slotfilling(self.task_graph.slotfillapi)
-            response_state = tool.execute(message_state)
-            params["history"] = response_state.get("trajectory", [])
-            current_node = params.get("curr_node")
-            params["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE)
-                
-        elif name in WORKER_REGISTRY:
-            logger.info(f"{name} worker selected")
-            worker = WORKER_REGISTRY[name]()
-            response_state = worker.execute(message_state)
-            call_id = str(uuid.uuid4())
-            params["history"].append({'content': None, 'role': 'assistant', 'tool_calls': [{'function': {'arguments': "", 'name': name}, 'id': call_id, 'type': 'function'}], 'function_call': None})
-            params["history"].append({
-                        "role": "tool",
-                        "tool_call_id": call_id,
-                        "name": name,
-                        "content": response_state["response"]
-            })
-        else:
-            logger.info("planner selected")
-            action, response_state, msg_history = self.planner.execute(message_state, params["history"])
-        
-        logger.info(f"Response state from {name}: {response_state}")
-        return response_state, params
+        self.env = env
 
     def generate_next_step(
         self, messages: List[Dict[str, Any]]
@@ -181,7 +147,7 @@ class AgentOrg:
             metadata=params.get("metadata")
         )
         
-        response_state, params = self.step(node_info["name"], message_state, params)
+        response_state, params = self.env.step(node_info["name"], message_state, params)
         
         logger.info(f"{response_state=}")
 
@@ -197,12 +163,7 @@ class AgentOrg:
             node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
             logger.info("=============node_info=============")
             logger.info(f"The while node info is : {node_info}")
-            if node_info["name"] not in WORKER_REGISTRY and node_info["name"] not in TOOL_REGISTRY:
-                planner = FunctionCallingPlanner(TOOL_REGISTRY)
-                chat_history_str = format_chat_history(chat_history)
-                user_message = ConvoMessage(history=chat_history_str, message=text)
-                orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
-                sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"] + self.product_kwargs["intro"]
+            if node_info["name"] not in self.env.workers and node_info["name"] not in self.env.tools:
                 message_state = MessageState(
                     sys_instruct=sys_instruct, 
                     user_message=user_message, 
@@ -213,15 +174,15 @@ class AgentOrg:
                     metadata=params.get("metadata")
                 )
                 
-                action, response_state, msg_history = planner.execute(message_state, params["history"])
+                action, response_state, msg_history = self.env.planner.execute(message_state, params["history"])
                 params["history"] = msg_history
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True
             else:
-                if node_info["name"] in TOOL_REGISTRY:
-                    node_actions = [{"name": node_info["name"], "arguments": TOOL_REGISTRY[node_info["name"]]().info}]
-                elif node_info["name"] in WORKER_REGISTRY:
-                    node_actions = [{"name": node_info["name"], "description": WORKER_REGISTRY[node_info["name"]]().description}]
+                if node_info["name"] in self.env.tools:
+                    node_actions = [{"name": node_info["name"], "arguments": self.env.tools[node_info["name"]]["execute"]().info}]
+                elif node_info["name"] in self.env.workers:
+                    node_actions = [{"name": node_info["name"], "description": self.env.workers[node_info["name"]]().description}]
                 action_spaces = node_actions
                 action_spaces.append({"name": RESPOND_ACTION_NAME, "arguments": {RESPOND_ACTION_FIELD_NAME: response_state.get("message_flow", "") or response_state.get("response", "")}})
                 logger.info("Action spaces: " + json.dumps(action_spaces))
@@ -238,7 +199,7 @@ class AgentOrg:
                     FINISH = True
                 else:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
-                    response_state, params = self.step(action, message_state, params)
+                    response_state, params = self.env.step(action, message_state, params)
 
         if not response_state.get("response", ""):
             response_state = ToolGenerator.context_generate(response_state)

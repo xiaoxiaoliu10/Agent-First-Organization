@@ -11,7 +11,7 @@ from langchain_community.vectorstores.faiss import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.tools import TavilySearchResults
 
-from agentorg.workers.prompts import context_generator_prompt, retrieve_contextualize_q_prompt, generator_prompt
+from agentorg.env.prompts import context_generator_prompt, retrieve_contextualize_q_prompt, generator_prompt
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
