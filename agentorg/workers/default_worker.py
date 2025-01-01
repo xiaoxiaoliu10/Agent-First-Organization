@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.workers.worker import BaseWorker, register_worker, WORKER_REGISTRY
-from agentorg.workers.prompts import choose_worker_prompt
+from agentorg.workers.prompts import load_prompts
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -24,16 +24,17 @@ class DefaultWorker(BaseWorker):
         super().__init__()
         self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
         self.base_choice = "MessageWorker"
-        available_workers = os.getenv("AVAILABLE_WORKERS", "").split(",")
-        self.available_workers = {name: WORKER_REGISTRY[name].description for name in available_workers if name != "DefaultWorker"}
 
     def _choose_worker(self, state: MessageState, limit=2):
         user_message = state['user_message']
         task = state["orchestrator_message"].attribute.get("task", "")
+        available_workers = state['bot_config'].available_workers
+        self.available_workers = {name: WORKER_REGISTRY[name].description for name in available_workers if name != "DefaultWorker"}
         workers_info = "\n".join([f"{name}: {description}" for name, description in self.available_workers.items()])
         workers_name = ", ".join(self.available_workers.keys())
 
-        prompt = PromptTemplate.from_template(choose_worker_prompt)
+        prompts = load_prompts(state["bot_config"])
+        prompt = PromptTemplate.from_template(prompts["choose_worker_prompt"])
         input_prompt = prompt.invoke({"message": user_message.message, "formatted_chat": user_message.history, "task": task, "workers_info": workers_info, "workers_name": workers_name})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = self.llm | StrOutputParser()

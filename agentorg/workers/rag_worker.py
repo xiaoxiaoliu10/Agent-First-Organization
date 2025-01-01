@@ -25,7 +25,7 @@ class RAGWorker(BaseWorker):
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each worker
-        workflow.add_node("retriever", RetrieveEngine.retrieve)
+        workflow.add_node("retriever", RetrieveEngine.milvus_retrieve)
         workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
         workflow.add_edge(START, "retriever")

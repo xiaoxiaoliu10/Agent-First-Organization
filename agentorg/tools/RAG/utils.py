@@ -11,7 +11,8 @@ from langchain_community.vectorstores.faiss import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.tools import TavilySearchResults
 
-from agentorg.workers.prompts import context_generator_prompt, retrieve_contextualize_q_prompt, generator_prompt
+from agentorg.workers.prompts import load_prompts
+from agentorg.tools.RAG.retriever import RetrieverExecutor
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -47,9 +48,9 @@ class FaissRetriever:
         docs_and_scores = self.retriever.vectorstore.similarity_search_with_score(query, k=k_value)
         return docs_and_scores
 
-    def search(self, chat_history_str: str):
+    def search(self, chat_history_str: str, contextualize_prompt: str):
         contextualize_q_prompt = PromptTemplate.from_template(
-            retrieve_contextualize_q_prompt
+            contextualize_prompt
         )
         ret_input_chain = contextualize_q_prompt | self.llm | StrOutputParser()
         ret_input = ret_input_chain.invoke({"chat_history": chat_history_str})
@@ -77,13 +78,26 @@ class FaissRetriever:
 
 class RetrieveEngine():
     @staticmethod
-    def retrieve(state: MessageState):
+    def faiss_retrieve(state: MessageState):
         # get the input message
         user_message = state['user_message']
 
         # Search for the relevant documents
+        prompts = load_prompts(state["bot_config"])
         docs = FaissRetriever.load_docs(database_path=os.environ.get("DATA_DIR"))
-        retrieved_text = docs.search(user_message.history)
+        retrieved_text = docs.search(user_message.history, prompts["retrieve_contextualize_q_prompt"])
+
+        state["message_flow"] = retrieved_text
+        return state
+    
+    @staticmethod
+    def milvus_retrieve(state: MessageState):
+        # get the input message
+        user_message = state['user_message']
+
+        # Search for the relevant documents
+        milvus_retriever = RetrieverExecutor(state["bot_config"])
+        retrieved_text, retriever_params = milvus_retriever.retrieve(user_message.history)
 
         state["message_flow"] = retrieved_text
         return state
@@ -108,8 +122,9 @@ class SearchEngine():
         return search_text
 
     def search(self, state: MessageState):
+        prompts = load_prompts(state["bot_config"])
         contextualize_q_prompt = PromptTemplate.from_template(
-            retrieve_contextualize_q_prompt
+            prompts["retrieve_contextualize_q_prompt"]
         )
         ret_input_chain = contextualize_q_prompt | self.llm | StrOutputParser()
         ret_input = ret_input_chain.invoke({"chat_history": state["user_message"].history})
@@ -124,8 +139,9 @@ class ToolGenerator():
     def generate(state: MessageState):
         user_message = state['user_message']
         
+        prompts = load_prompts(state["bot_config"])
         llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
-        prompt = PromptTemplate.from_template(generator_prompt)
+        prompt = PromptTemplate.from_template(prompts["generator_prompt"])
         input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "formatted_chat": user_message.history})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()
@@ -143,7 +159,8 @@ class ToolGenerator():
         logger.info(f"Retrieved texts (from retriever to generator): {message_flow}")
         
         # generate answer based on the retrieved texts
-        prompt = PromptTemplate.from_template(context_generator_prompt)
+        prompts = load_prompts(state["bot_config"])
+        prompt = PromptTemplate.from_template(prompts["context_generator_prompt"])
         input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "formatted_chat": user_message.history, "context": message_flow})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         final_chain = llm | StrOutputParser()

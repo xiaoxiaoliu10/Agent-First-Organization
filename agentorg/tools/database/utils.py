@@ -12,7 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.model_config import MODEL
 from agentorg.utils.graph_state import Slot, SlotDetail, Slots, MessageState
-from agentorg.workers.prompts import database_slot_prompt
+from agentorg.workers.prompts import load_prompts
 from agentorg.utils.graph_state import StatusEnum
 
 
@@ -75,7 +75,7 @@ class DatabaseActions:
             logger.info(f"User {self.user_id} successfully logged in.")
         return result is not None
 
-    def init_slots(self, slots: list[Slot]):
+    def init_slots(self, slots: list[Slot], bot_config):
         if not slots:
             slots = SLOTS
         self.slots = []
@@ -87,16 +87,17 @@ class DatabaseActions:
             cursor.execute(query)
             results = cursor.fetchall()
             value_list = [result[0] for result in results]
-            self.slots.append(self.verify_slot(slot, value_list))
+            self.slots.append(self.verify_slot(slot, value_list, bot_config))
             if not self.slots[-1].confirmed:
                 self.slot_prompts.append(slot["prompt"])
         cursor.close()
         conn.close()
         return SLOTS
 
-    def verify_slot(self, slot: Slot, value_list: list) -> Slot:
+    def verify_slot(self, slot: Slot, value_list: list, bot_config) -> Slot:
         slot_detail = SlotDetail(**slot, verified_value="", confirmed=False)
-        prompt = PromptTemplate.from_template(database_slot_prompt)
+        prompts = load_prompts(bot_config)
+        prompt = PromptTemplate.from_template(prompts["database_slot_prompt"])
         input_prompt = prompt.invoke({
             "slot": {"name": slot["name"], "description": slot["description"], "slot": slot["type"]}, 
             "value": slot["value"], 

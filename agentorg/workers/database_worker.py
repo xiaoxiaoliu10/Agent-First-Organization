@@ -6,7 +6,7 @@ from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.workers.worker import BaseWorker, register_worker
-from agentorg.workers.prompts import database_action_prompt
+from agentorg.workers.prompts import load_prompts
 from agentorg.tools.RAG.utils import ToolGenerator
 from agentorg.tools.database.utils import DatabaseActions
 from agentorg.utils.utils import chunk_string
@@ -52,7 +52,8 @@ class DataBaseWorker(BaseWorker):
         actions_info = "\n".join([f"{name}: {description}" for name, description in self.actions.items()])
         actions_name = ", ".join(self.actions.keys())
 
-        prompt = PromptTemplate.from_template(database_action_prompt)
+        prompts = load_prompts(msg_state["bot_config"])
+        prompt = PromptTemplate.from_template(prompts["database_action_prompt"])
         input_prompt = prompt.invoke({"user_intent": user_intent, "actions_info": actions_info, "actions_name": actions_name})
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
         logger.info(f"Chunked prompt for deciding choosing DB action: {chunked_prompt}")
@@ -88,7 +89,7 @@ class DataBaseWorker(BaseWorker):
 
     def execute(self, msg_state: MessageState):
         self.DBActions.log_in()
-        msg_state["slots"] = self.DBActions.init_slots(msg_state["slots"])
+        msg_state["slots"] = self.DBActions.init_slots(msg_state["slots"], msg_state["bot_config"])
         graph = self.action_graph.compile()
         result = graph.invoke(msg_state)
         return result

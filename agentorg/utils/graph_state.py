@@ -3,6 +3,15 @@ from pydantic import BaseModel
 from enum import Enum
 
 
+### Bot-related classes
+class BotConfig(BaseModel):
+    bot_id: str
+    version: str
+    language: str
+    bot_type: str
+    available_workers: list[str]
+
+
 ### Message-related classes
 
 class ConvoMessage(BaseModel):
@@ -45,6 +54,8 @@ class StatusEnum(Enum):
 class MessageState(TypedDict):
     # system configuration
     sys_instruct: str
+    # bot configuration
+    bot_config: BotConfig
     # input message
     user_message: ConvoMessage
     orchestrator_message: OrchestratorMessage
