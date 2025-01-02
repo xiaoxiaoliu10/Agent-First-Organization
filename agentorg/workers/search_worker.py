@@ -5,7 +5,8 @@ from langchain_openai import ChatOpenAI
 
 from agentorg.workers.worker import BaseWorker, register_worker
 from agentorg.utils.graph_state import MessageState
-from agentorg.tools.RAG.utils import SearchEngine, ToolGenerator
+from agentorg.tools.utils import ToolGenerator
+from agentorg.tools.RAG.search import SearchEngine
 from agentorg.utils.model_config import MODEL
 
 

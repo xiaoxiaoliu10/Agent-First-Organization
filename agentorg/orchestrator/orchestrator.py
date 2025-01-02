@@ -17,7 +17,7 @@ from litellm import completion
 from agentorg.orchestrator.task_graph import TaskGraph
 from agentorg.workers.worker import WORKER_REGISTRY
 from agentorg.tools.tools import Tool, TOOL_REGISTRY
-from agentorg.tools.RAG.utils import ToolGenerator
+from agentorg.tools.utils import ToolGenerator
 from agentorg.orchestrator.NLU.nlu import SlotFilling
 from agentorg.orchestrator.planner.function_calling import FunctionCallingPlanner
 from agentorg.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
@@ -176,8 +176,8 @@ class AgentOrg:
         logger.info("=============sys_instruct=============")
         logger.info(sys_instruct)
         bot_config = BotConfig(
-            bot_id=self.product_kwargs.get("bot_id"),
-            version=self.product_kwargs.get("version"),
+            bot_id=self.product_kwargs.get("bot_id", "default"),
+            version=self.product_kwargs.get("version", "default"),
             language=self.product_kwargs.get("language", "EN"),
             bot_type=self.product_kwargs.get("bot_type", "presalebot"),
             available_workers=self.product_kwargs.get("workers", [])

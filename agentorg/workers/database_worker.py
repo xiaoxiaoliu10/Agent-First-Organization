@@ -7,7 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.workers.worker import BaseWorker, register_worker
 from agentorg.workers.prompts import load_prompts
-from agentorg.tools.RAG.utils import ToolGenerator
+from agentorg.tools.utils import ToolGenerator
 from agentorg.tools.database.utils import DatabaseActions
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
