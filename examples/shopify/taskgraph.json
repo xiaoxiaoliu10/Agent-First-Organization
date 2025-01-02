@@ -152,10 +152,10 @@
     ],
     "tasks": [],
     "tools": [
-        {"name": "shopify-find_user_id_by_email-find_user_id_by_email", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}},
-        {"name": "shopify-get_user_details-get_user_details", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}},
-        {"name": "shopify-get_order_details-get_order_details", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}},
-        {"name": "shopify-get_product_details-get_product_details", "fixed_args": {"token": "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", "shop_url": "https://xu1e3z-yi.myshopify.com", "api_version": "2024-10"}}
+        {"name": "shopify-find_user_id_by_email-find_user_id_by_email", "fixed_args": {"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}},
+        {"name": "shopify-get_user_details-get_user_details", "fixed_args": {"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}},
+        {"name": "shopify-get_order_details-get_order_details", "fixed_args": {"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}},
+        {"name": "shopify-get_product_details-get_product_details", "fixed_args": {"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}}
     ],
     "workers": [
         "RAGWorker"

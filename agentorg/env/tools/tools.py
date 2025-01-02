@@ -48,8 +48,6 @@ class Tool:
         return format_slots
 
     def get_info(self, slots):
-        print("========name========")
-        print(self.name)
         self.properties = {}
         for slot in slots:
             self.properties[slot["name"]] = {k: v for k, v in slot.items() if k != "name" and k != "required"}
