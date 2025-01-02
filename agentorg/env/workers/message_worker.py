@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
 from agentorg.env.workers.worker import BaseWorker, register_worker
-from agentorg.env.prompts import message_generator_prompt, message_flow_generator_prompt
+from agentorg.env.prompts import load_prompts
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -36,13 +36,16 @@ class MessageWorker(BaseWorker):
         orch_msg_attr = orchestrator_message.attribute
         direct_response = orch_msg_attr.get('direct_response', False)
         if direct_response:
-            return orch_msg_content
+            state["message_flow"] = ""
+            state["response"] = orch_msg_content
+            return state
         
+        prompts = load_prompts(state["bot_config"])
         if message_flow and message_flow != "\n":
-            prompt = PromptTemplate.from_template(message_flow_generator_prompt)
+            prompt = PromptTemplate.from_template(prompts["message_flow_generator_prompt"])
             input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
         else:
-            prompt = PromptTemplate.from_template(message_generator_prompt)
+            prompt = PromptTemplate.from_template(prompts["message_generator_prompt"])
             input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history})
         logger.info(f"Prompt: {input_prompt.text}")
         chunked_prompt = chunk_string(input_prompt.text, tokenizer=MODEL["tokenizer"], max_length=MODEL["context"])
