@@ -17,14 +17,13 @@ from litellm import completion
 from agentorg.orchestrator.task_graph import TaskGraph
 from agentorg.workers.worker import WORKER_REGISTRY
 from agentorg.tools.tools import Tool, TOOL_REGISTRY
-from agentorg.tools.RAG.utils import ToolGenerator
+from agentorg.tools.utils import ToolGenerator
 from agentorg.orchestrator.NLU.nlu import SlotFilling
 from agentorg.orchestrator.planner.function_calling import FunctionCallingPlanner
 from agentorg.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
-from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage
+from agentorg.utils.graph_state import ConvoMessage, OrchestratorMessage, MessageState, StatusEnum, BotConfig
 from agentorg.utils.utils import init_logger, format_chat_history
 from agentorg.orchestrator.NLU.nlu import NLU
-from agentorg.utils.graph_state import MessageState, StatusEnum
 from agentorg.utils.trace import TraceRunName
 from agentorg.utils.model_config import MODEL
 
@@ -35,7 +34,10 @@ logger = logging.getLogger(__name__)
 
 class AgentOrg:
     def __init__(self, config, **kwargs):
-        self.product_kwargs = json.load(open(config))
+        if isinstance(config, dict):
+            self.product_kwargs = config
+        else:
+            self.product_kwargs = json.load(open(config))
         # os.environ["AVAILABLE_WORKERS"] = ",".join(self.product_kwargs["workers"])
         self.user_prefix = "user"
         self.worker_prefix = "assistant"
@@ -170,9 +172,19 @@ class AgentOrg:
         # Tool/Worker
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
-        sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"] + self.product_kwargs["intro"]
+        sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + self.product_kwargs["user_objective"] + self.product_kwargs["builder_objective"] + self.product_kwargs["intro"] + self.product_kwargs.get("opt_instruct", "")
+        logger.info("=============sys_instruct=============")
+        logger.info(sys_instruct)
+        bot_config = BotConfig(
+            bot_id=self.product_kwargs.get("bot_id", "default"),
+            version=self.product_kwargs.get("version", "default"),
+            language=self.product_kwargs.get("language", "EN"),
+            bot_type=self.product_kwargs.get("bot_type", "presalebot"),
+            available_workers=self.product_kwargs.get("workers", [])
+        )
         message_state = MessageState(
             sys_instruct=sys_instruct, 
+            bot_config=bot_config,
             user_message=user_message, 
             orchestrator_message=orchestrator_message, 
             trajectory=params["history"], 

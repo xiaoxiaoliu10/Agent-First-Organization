@@ -1,11 +1,13 @@
 import logging
+import os
 
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
 from agentorg.workers.worker import BaseWorker, register_worker
 from agentorg.utils.graph_state import MessageState
-from agentorg.tools.RAG.utils import RetrieveEngine, ToolGenerator
+from agentorg.tools.utils import ToolGenerator
+from agentorg.tools.RAG.retriever import RetrieveEngine
 from agentorg.utils.model_config import MODEL
 
 
@@ -21,15 +23,24 @@ class RAGWorker(BaseWorker):
         super().__init__()
         self.action_graph = self._create_action_graph()
         self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
-     
+
+    def choose_retriever(self, state: MessageState):
+        if os.getenv("MILVUS_URI", ""):
+            logger.info("Using Milvus retriever")
+            return "milvus_retriever"
+        logger.info("Using Faiss retriever")
+        return "faiss_retriever"
+
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each worker
-        workflow.add_node("retriever", RetrieveEngine.retrieve)
+        workflow.add_node("faiss_retriever", RetrieveEngine.faiss_retrieve)
+        workflow.add_node("milvus_retriever", RetrieveEngine.milvus_retrieve)
         workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
-        workflow.add_edge(START, "retriever")
-        workflow.add_edge("retriever", "tool_generator")
+        workflow.add_conditional_edges(START, self.verify_action)
+        workflow.add_edge("faiss_retriever", "tool_generator")
+        workflow.add_edge("milvus_retriever", "tool_generator")
         return workflow
 
     def execute(self, msg_state: MessageState):
