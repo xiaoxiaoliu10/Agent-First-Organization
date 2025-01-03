@@ -41,7 +41,7 @@ class NLU:
         with ls.trace(name=TraceRunName.NLU, inputs=data) as rt:
             rt.end(
                 outputs=pred_intent,
-                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+                metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
         return pred_intent
     
@@ -75,6 +75,6 @@ class SlotFilling:
         with ls.trace(name=TraceRunName.SlotFilling, inputs=data) as rt:
             rt.end(
                 outputs=pred_slots,
-                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+                metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
         return pred_slots

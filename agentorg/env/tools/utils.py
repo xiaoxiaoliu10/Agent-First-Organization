@@ -35,7 +35,7 @@ class ToolGenerator():
         # get the input message
         user_message = state['user_message']
         message_flow = state['message_flow']
-        logger.info(f"Retrieved texts (from retriever/search engine to generator): {message_flow}")
+        logger.info(f"Retrieved texts (from retriever/search engine to generator): {message_flow[:50]} ...")
         
         # generate answer based on the retrieved texts
         prompts = load_prompts(state["bot_config"])
