@@ -103,14 +103,14 @@ class Tool:
                 if "error" in response:
                     max_tries -= 1
                     continue
-                state["status"] = StatusEnum.COMPLETE
+                state["status"] = StatusEnum.COMPLETE.value
             else:
                 # tool_response is the slot.prompt of the first slot where slot.value is empty
                 for slot in slots:
                     if not slot.value:
                         response = slot.prompt
                         break
-                state["status"] = StatusEnum.INCOMPLETE
+                state["status"] = StatusEnum.INCOMPLETE.value
                 break
         state["message_flow"] = response
         return state

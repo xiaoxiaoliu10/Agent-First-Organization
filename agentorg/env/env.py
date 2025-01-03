@@ -44,7 +44,7 @@ class Env():
             response_state = tool.execute(message_state, **self.tools[name]["fixed_args"])
             params["history"] = response_state.get("trajectory", [])
             current_node = params.get("curr_node")
-            params["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE)
+            params["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE.value)
                 
         elif name in self.workers:
             logger.info(f"{name} worker selected")
