@@ -33,4 +33,5 @@ class RetrieveEngine():
         retrieved_text, retriever_params = milvus_retriever.retrieve(user_message.history)
 
         state["message_flow"] = retrieved_text
+        state["metadata"]["tool_response"] = retriever_params
         return state
