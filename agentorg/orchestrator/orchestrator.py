@@ -76,10 +76,11 @@ class AgentOrg:
         chat_history_str = format_chat_history(chat_history)
         params["dialog_states"] = params.get("dialog_states", [])
         metadata = params.get("metadata", {})
-        metadata["conv_id"] = metadata.get("conv_id", str(uuid.uuid4()))
+        metadata["chat_id"] = metadata.get("chat_id", str(uuid.uuid4()))
         metadata["turn_id"] = metadata.get("turn_id", 0) + 1
+        metadata["tool_response"] = {}
         params["metadata"] = metadata
-        params["history"] = params.get("history", "")
+        params["history"] = params.get("history", [])
         if not params["history"]:
             params["history"] = copy.deepcopy(chat_history)
         else:
@@ -128,7 +129,7 @@ class AgentOrg:
                     "curr_global_intent": params.get("curr_pred_intent"),
                     "dialog_states": params.get("dialog_states"),
                     "node_status": params.get("node_status")}, 
-                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+                metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
 
         # Tool/Worker
@@ -159,10 +160,13 @@ class AgentOrg:
         
         logger.info(f"{response_state=}")
 
+        tool_response = params.get("metadata", {}).get("tool_response", {})
+        params["metadata"]["tool_response"] = {}
+
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
                 outputs={"metadata": params.get("metadata"), **response_state}, 
-                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+                metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
 
         # ReAct framework to decide whether return to user or continue
@@ -186,6 +190,8 @@ class AgentOrg:
                 params["history"] = msg_history
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True
+                else:
+                    tool_response = {}
             else:
                 if node_info["id"] in self.env.tools:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "arguments": self.env.tools[node_info["id"]]["execute"]().info}]
@@ -208,11 +214,15 @@ class AgentOrg:
                 else:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     response_state, params = self.env.step(self.env.name2id[action], message_state, params)
+                    tool_response = params.get("metadata", {}).get("tool_response", {})
 
         if not response_state.get("response", ""):
+            tool_response = {}
             response_state = ToolGenerator.context_generate(response_state)
 
         response = response_state.get("response", "")
+        params["metadata"]["tool_response"] = {}
+        params["tool_response"] = tool_response
         output = {
             "answer": response,
             "parameters": params
@@ -221,7 +231,7 @@ class AgentOrg:
         with ls.trace(name=TraceRunName.OrchestResponse) as rt:
             rt.end(
                 outputs={"metadata": params.get("metadata"), **output},
-                metadata={"conv_id": metadata.get("conv_id"), "turn_id": metadata.get("turn_id")}
+                metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
 
         return output
