@@ -14,7 +14,7 @@ def import_all_modules_from_package(package_name: str):
             importlib.import_module(module_info.name)
 
 # Dynamically import all modules under workers.tools
-import_all_modules_from_package("agentorg.tools")
+import_all_modules_from_package("agentorg.env.tools")
 
 # Expose TOOL_REGISTRY
 from .tools import TOOL_REGISTRY

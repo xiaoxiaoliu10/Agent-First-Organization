@@ -69,8 +69,8 @@ class SlotFilling:
                 logger.error('Remote Server Error when predicting Slot Filling')
         else:
             logger.info(f"Using Slot Filling function to predict the slots")
-            pred_slots = slotfilling_openai.predict(**data)
-            pred_slots = [Slot(**pred_slot) for pred_slot in pred_slots]
+            pred_slots = slotfilling_openai.predict(**data).slots
+            # pred_slots = [Slot(**pred_slot) for pred_slot in pred_slots]
             logger.info(f"pred_slots is {pred_slots}")
         with ls.trace(name=TraceRunName.SlotFilling, inputs=data) as rt:
             rt.end(

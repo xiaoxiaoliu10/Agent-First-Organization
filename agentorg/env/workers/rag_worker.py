@@ -4,10 +4,10 @@ import os
 from langgraph.graph import StateGraph, START
 from langchain_openai import ChatOpenAI
 
-from agentorg.workers.worker import BaseWorker, register_worker
+from agentorg.env.workers.worker import BaseWorker, register_worker
 from agentorg.utils.graph_state import MessageState
-from agentorg.tools.utils import ToolGenerator
-from agentorg.tools.RAG.retriever import RetrieveEngine
+from agentorg.env.tools.utils import ToolGenerator
+from agentorg.env.tools.RAG.retriever import RetrieveEngine
 from agentorg.utils.model_config import MODEL
 
 
@@ -38,7 +38,7 @@ class RAGWorker(BaseWorker):
         workflow.add_node("milvus_retriever", RetrieveEngine.milvus_retrieve)
         workflow.add_node("tool_generator", ToolGenerator.context_generate)
         # Add edges
-        workflow.add_conditional_edges(START, self.verify_action)
+        workflow.add_conditional_edges(START, self.choose_retriever)
         workflow.add_edge("faiss_retriever", "tool_generator")
         workflow.add_edge("milvus_retriever", "tool_generator")
         return workflow

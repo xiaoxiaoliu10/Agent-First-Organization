@@ -5,8 +5,8 @@ from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 
-from agentorg.workers.worker import BaseWorker, register_worker
-from agentorg.workers.prompts import load_prompts
+from agentorg.env.workers.worker import BaseWorker, register_worker
+from agentorg.env.prompts import load_prompts
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL

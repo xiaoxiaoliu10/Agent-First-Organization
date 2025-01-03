@@ -1,7 +1,7 @@
 import logging
 
 from agentorg.utils.model_config import MODEL
-from agentorg.workers.prompts import load_prompts
+from agentorg.env.prompts import load_prompts
 from agentorg.utils.graph_state import MessageState
 
 from langchain.prompts import PromptTemplate

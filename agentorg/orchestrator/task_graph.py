@@ -9,7 +9,6 @@ from langchain_openai import ChatOpenAI
 from agentorg.utils.utils import normalize, str_similarity
 from agentorg.utils.graph_state import StatusEnum
 from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
-from agentorg.workers.worker import WORKER_REGISTRY
 from agentorg.utils.model_config import MODEL
 
 logger = logging.getLogger(__name__)
@@ -148,7 +147,7 @@ class TaskGraph(TaskGraphBase):
         params["curr_node"] = sample_node
         params["available_nodes"] = available_nodes
         params["available_intents"] = available_intents
-        worker_class = WORKER_REGISTRY.get(worker_name)
+        # worker_class = WORKER_REGISTRY.get(worker_name)
         # TODO: This will be used to check whether we skip the worker or not, which is handled by the task graph framework
         # skip = self._check_skip(worker_class, sample_node)
         # if skip:
@@ -207,8 +206,8 @@ class TaskGraph(TaskGraphBase):
         curr_pred_intent = params.get("curr_pred_intent", None)
 
         node_status = params.get("node_status", {})
-        status = node_status.get(curr_node, StatusEnum.COMPLETE)
-        if status == StatusEnum.INCOMPLETE:
+        status = node_status.get(curr_node, StatusEnum.COMPLETE.value)
+        if status == StatusEnum.INCOMPLETE.value:
             node_info = {"name": self.graph.nodes[curr_node]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
             return node_info, params
             
