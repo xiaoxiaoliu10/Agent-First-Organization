@@ -4,13 +4,14 @@ import json
 import shopify
 
 from agentorg.env.tools.tools import register_tool
+from agentorg.env.tools.shopify.utils import SHOPIFY_AUTH_ERROR
 
 description = "Find user id by email. If the user is not found, the function will return an error message."
 slots = [
     {
         "name": "email",
         "type": "string",
-        "description": "The email of the user.",
+        "description": "The email of the user, such as 'something@example.com'.",
         "prompt": "In order to proceed, please provide the email for identity verification.",
         "required": True,
     }
@@ -23,16 +24,25 @@ outputs = [
     }
 ]
 
-@register_tool(description, slots, outputs)
+USER_NOT_FOUND_ERROR = "error: user not found"
+MULTIPLE_USERS_SAME_EMAIL_ERROR = "error: there are multiple users with the same email"
+errors = [
+    SHOPIFY_AUTH_ERROR,
+    USER_NOT_FOUND_ERROR,
+    MULTIPLE_USERS_SAME_EMAIL_ERROR
+]
+
+@register_tool(description, slots, outputs, lambda x: x not in errors)
 def find_user_id_by_email(email: str, **kwargs) -> str:
     shop_url = kwargs.get("shop_url")
     api_version = kwargs.get("api_version")
     token = kwargs.get("token")
-
+    
     if not shop_url or not api_version or not token:
-        return "error: missing some or all required shopify authentication parameters: shop_url, api_version, token. Please set up 'fixed_args' in the config file. For example, {'name': <unique name of the tool>, 'fixed_args': {'token': <shopify_access_token>, 'shop_url': <shopify_shop_url>, 'api_version': <Shopify API version>}}"
+        return SHOPIFY_AUTH_ERROR
     
     user_id = ""
+    
     try:
         with shopify.Session.temp(shop_url, api_version, token):
             response = shopify.GraphQL().execute(f"""
@@ -51,6 +61,6 @@ def find_user_id_by_email(email: str, **kwargs) -> str:
             user_id = nodes[0]["node"]["id"]
             return user_id
         else:
-            return "error: there are multiple users with the same email"
+            return MULTIPLE_USERS_SAME_EMAIL_ERROR
     except Exception as e:
-        return "error: user not found"
+        return USER_NOT_FOUND_ERROR
