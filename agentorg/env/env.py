@@ -45,7 +45,8 @@ class Env():
             filepath = os.path.join("agentorg.env.workers", path)
             module_name = filepath.replace(os.sep, ".").rstrip(".py")
             module = importlib.import_module(module_name)
-            worker_registry[id] = {"name": name, "execute": getattr(module, name)}
+            func = getattr(module, name)
+            worker_registry[id] = {"name": name, "execute": func, "description": func().description}
         return worker_registry
     
     def initialize_slotfillapi(self, slotsfillapi):
@@ -53,7 +54,7 @@ class Env():
 
     def step(self, id, message_state, params):
         if id in self.tools:
-            logger.info(f"{self.tools[id]["name"]} tool selected")
+            logger.info(f"{self.tools[id]['name']} tool selected")
             tool: Tool = self.tools[id]["execute"]()
             tool.init_slotfilling(self.slotfillapi)
             response_state = tool.execute(message_state, **self.tools[id]["fixed_args"])
@@ -63,7 +64,7 @@ class Env():
                 
         elif id in self.workers:
             message_state["metadata"]["worker"] = self.workers
-            logger.info(f"{self.workers[id]["name"]} worker selected")
+            logger.info(f"{self.workers[id]['name']} worker selected")
             worker = self.workers[id]["execute"]()
             response_state = worker.execute(message_state)
             call_id = str(uuid.uuid4())
