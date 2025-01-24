@@ -234,6 +234,7 @@ class AgentOrg:
 
         response = response_state.get("response", "")
         params["metadata"]["tool_response"] = {}
+        # TODO: params["metadata"]["worker"] is not serialization, make it empty for now
         params["metadata"]["worker"] = {}
         params["tool_response"] = tool_response
         output = {
