@@ -135,6 +135,18 @@ class AgentOrg:
                 metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
 
+        # Direct response
+        node_attribute = node_info["attribute"]
+        if node_attribute["value"].strip():
+            if node_attribute.get("direct_response"):                    
+                return_response = {
+                    "answer": node_attribute["value"],
+                    "parameters": params
+                }
+                if node_attribute["type"] == "multiple-choice":
+                    return_response["choice_list"] = node_attribute["choice_list"]
+                return return_response
+
         # Tool/Worker
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
