@@ -75,7 +75,8 @@ class AgentOrg:
         chat_history = inputs["chat_history"]
         params = inputs["parameters"]
         params["timing"] = {}
-        chat_history.append({"role": self.user_prefix, "content": text})
+        chat_history_copy = copy.deepcopy(chat_history)
+        chat_history_copy.append({"role": self.user_prefix, "content": text})
         chat_history_str = format_chat_history(chat_history)
         params["dialog_states"] = params.get("dialog_states", [])
         metadata = params.get("metadata", {})

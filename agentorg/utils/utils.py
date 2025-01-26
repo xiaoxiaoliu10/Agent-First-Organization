@@ -51,8 +51,7 @@ def init_logger(log_level=logging.INFO, filename=None):
     root_logger.setLevel(log_level)
 
     # Suppress noisy loggers
-    logging.getLogger("transformers.tokenization_utils").setLevel(logging.ERROR)
-    logging.getLogger("transformers.tokenization_utils_base").setLevel(logging.ERROR)
+    logging.getLogger("LiteLLM").setLevel(logging.ERROR)
 
     return logging.getLogger(__name__)
 

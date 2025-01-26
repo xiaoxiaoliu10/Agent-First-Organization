@@ -70,7 +70,7 @@ class Tool:
     def init_slotfilling(self, slotfillapi: SlotFilling):
         self.slotfillapi = slotfillapi
         
-    def preprocess(self, state: MessageState, **fixed_args):
+    def _execute(self, state: MessageState, **fixed_args):
         response = "error"
         max_tries = 3
         while max_tries > 0 and "error" in response:
@@ -133,7 +133,7 @@ class Tool:
         return state
 
     def execute(self, state: MessageState, **fixed_args):
-        state = self.preprocess(state, **fixed_args)
+        state = self._execute(state, **fixed_args)
         ## postprocess if any
         ## Currently, the value of the tool is stored and returned in state["message_flow"]
         return state
