@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 from langchain_openai import ChatOpenAI
 
-from agentorg.utils.utils import normalize, str_similarity
+from agentorg.utils.utils import normalize, str_similarity, format_chat_history
 from agentorg.utils.graph_state import StatusEnum
 from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
 from agentorg.utils.model_config import MODEL
@@ -439,10 +439,10 @@ class TaskGraph(TaskGraphBase):
         node_info = node[0]
         params = node[1]
 
-        dialog_states = params.get("dialog_states", [])
+        dialog_states = params.get("dialog_states", {})
         # update the dialog states
-        if dialog_states:
-            dialog_states = self.slotfillapi.execute(self.text, dialog_states, self.chat_history_str, params.get("metadata", {}))
+        if dialog_states.get(node_info["id"]):
+            dialog_states = self.slotfillapi.execute(dialog_states.get(node_info["id"]), format_chat_history(params.get("history")), params.get("metadata", {}))
         params["dialog_states"] = dialog_states
 
         return node_info, params

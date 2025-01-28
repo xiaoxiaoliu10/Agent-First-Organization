@@ -50,6 +50,28 @@ class SlotFilling:
     def __init__(self, url):
         self.url = url
 
+    def verify_needed(self, slot: Slot, chat_history_str:str, metadata: dict) -> Slot:
+        logger.info(f"verify slot: {slot}")
+        data = {
+            "slot": slot.dict(),
+            "chat_history_str": chat_history_str
+        }
+        if self.url:
+            logger.info(f"Using Slot Filling API to verify the slot")
+            response = requests.post(self.url + "/verify", json=data)
+            if response.status_code == 200:
+                verification_needed = response.json().get("verification_needed")
+                logger.info(f"verify_needed is {verification_needed}")
+            else:
+                verification_needed = False
+                logger.error('Remote Server Error when verifying Slot Filling')
+        else:
+            logger.info(f"Using Slot Filling function to verify the slot")
+            verification_needed = slotfilling_openai.verify(**data).verification_needed
+            logger.info(f"verify_needed is {verification_needed}")
+
+        return verification_needed
+
     def execute(self, slots:list, chat_history_str:str, metadata: dict) -> dict:
         logger.info(f"extracted slots: {slots}")
         if not slots: return []
@@ -60,10 +82,9 @@ class SlotFilling:
         }
         if self.url:
             logger.info(f"Using Slot Filling API to predict the slots")
-            response = requests.post(self.url, json=data)
+            response = requests.post(self.url + "/predict", json=data)
             if response.status_code == 200:
                 pred_slots = response.json()
-                logger.info(f"The raw pred_slots is {pred_slots}")
                 pred_slots = [Slot(**pred_slot) for pred_slot in pred_slots]
                 logger.info(f"pred_slots is {pred_slots}")
             else:
@@ -72,7 +93,6 @@ class SlotFilling:
         else:
             logger.info(f"Using Slot Filling function to predict the slots")
             pred_slots = slotfilling_openai.predict(**data).slots
-            # pred_slots = [Slot(**pred_slot) for pred_slot in pred_slots]
             logger.info(f"pred_slots is {pred_slots}")
         with ls.trace(name=TraceRunName.SlotFilling, inputs=data) as rt:
             rt.end(

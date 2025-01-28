@@ -77,8 +77,8 @@ class AgentOrg:
         params["timing"] = {}
         chat_history_copy = copy.deepcopy(chat_history)
         chat_history_copy.append({"role": self.user_prefix, "content": text})
-        chat_history_str = format_chat_history(chat_history)
-        params["dialog_states"] = params.get("dialog_states", [])
+        chat_history_str = format_chat_history(chat_history_copy)
+        params["dialog_states"] = params.get("dialog_states", {})
         metadata = params.get("metadata", {})
         metadata["chat_id"] = metadata.get("chat_id", str(uuid.uuid4()))
         metadata["turn_id"] = metadata.get("turn_id", 0) + 1
@@ -86,10 +86,10 @@ class AgentOrg:
         params["metadata"] = metadata
         params["history"] = params.get("history", [])
         if not params["history"]:
-            params["history"] = copy.deepcopy(chat_history)
+            params["history"] = copy.deepcopy(chat_history_copy)
         else:
-            params["history"].append(chat_history[-2])
-            params["history"].append(chat_history[-1])
+            params["history"].append(chat_history_copy[-2])
+            params["history"].append(chat_history_copy[-1])
 
         ##### Model safety checking
         # check the response, decide whether to give template response or not
