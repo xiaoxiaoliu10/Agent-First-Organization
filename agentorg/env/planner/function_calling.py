@@ -62,19 +62,25 @@ class FunctionCallingPlanner:
         for _ in range(max_num_steps):
             logger.info(f"messages in function calling: {messages}")
             logger.info(f"tools_info in function calling: {self.tools_info}")
-
-            res = completion(
-                messages=messages,
-                model=MODEL["model_type_or_path"],
-                custom_llm_provider="openai",
-                tools=self.tools_info,
-                temperature=0.0
-            )
+            if not self.tools_info:
+                res = completion(
+                    messages=messages,
+                    model=MODEL["model_type_or_path"],
+                    custom_llm_provider="openai",
+                    temperature=0.0
+                )
+            else:
+                res = completion(
+                    messages=messages,
+                    model=MODEL["model_type_or_path"],
+                    custom_llm_provider="openai",
+                    tools=self.tools_info,
+                    temperature=0.0
+                )
             next_message = res.choices[0].message.model_dump()
             actions = self.message_to_actions(next_message)
             messages.append(next_message)
             msg_history.append(next_message)
-            logger.info(f"Predicted action in function calling: {actions}")
             logger.info("===============Function calling actions=====================")
             logger.info(actions)
             for idx, action in enumerate(actions):
@@ -100,6 +106,9 @@ class FunctionCallingPlanner:
                             }
                         ]
                     )
+                else:
+                    return msg_history, action.name, env_response.observation
+                
         return msg_history, action.name, env_response.observation
         
     

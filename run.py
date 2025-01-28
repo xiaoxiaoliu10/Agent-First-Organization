@@ -95,8 +95,8 @@ if __name__ == "__main__":
     # Initialize env
     config = json.load(open(os.path.join(args.input_dir, "taskgraph.json")))
     env = Env(
-        tools = config["tools"],
-        workers = config["workers"],
+        tools = config.get("tools", []),
+        workers = config.get("workers", []),
         slotsfillapi = config["slotfillapi"]
     )
         

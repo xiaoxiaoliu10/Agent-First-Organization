@@ -189,6 +189,13 @@ class AgentOrg:
         # ReAct framework to decide whether return to user or continue
         FINISH = False
         while not FINISH:
+            # if the last response is from the assistant with content(which means not from tool or worker but from function calling response), 
+            # then directly return the response otherwise it will continue to the next node but treat the previous response has been return to user.
+            if response_state.get("trajectory", []) \
+                and response_state["trajectory"][-1]["role"] == "assistant" \
+                and response_state["trajectory"][-1]["content"]: 
+                response_state["response"] = response_state["trajectory"][-1]["content"]
+                break
             node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
             logger.info("=============node_info=============")
             logger.info(f"The while node info is : {node_info}")
