@@ -330,7 +330,6 @@ class Generator:
                 node = []
                 node.append(str(node_id))
                 node.append({
-                    "id": str(node_id),
                     "resource": {
                         "id": step["resource_id"],
                         "name": step['resource'],
@@ -388,7 +387,6 @@ class Generator:
                 message_worker_id = worker_id
                 break
         start_node.append({
-            "id": "0",
             "resource": {
                 "id": message_worker_id,
                 "name": "MessageWorker",
