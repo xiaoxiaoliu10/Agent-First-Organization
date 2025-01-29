@@ -181,6 +181,7 @@ class Generator:
         # return dict of valid tools with name and description
         tool_registry = {}
         for tool in tools:
+            tool_id = tool["id"]
             name = tool["name"]
             path = tool["path"]
             try: # try to import the tool to check its existance
@@ -192,13 +193,16 @@ class Generator:
                 logger.error(f"Tool {name} is not registered, error: {e}")
             tool_name = func().name
             tool_desc = func().description
-            tool_registry[tool_name] = {"name": tool_name, "description": tool_desc}
+            tool_registry[tool_id] = {
+                "name": tool_name,
+                "description": tool_desc
+            }
         return tool_registry
     
     def _init_workers(self, workers):
         worker_registry = {}
         for worker in workers:
-            id = worker["id"]
+            worker_id = worker["id"]
             name = worker["name"]
             path = worker["path"]
             try: # try to import the worker to check its existance
@@ -210,7 +214,7 @@ class Generator:
                 logger.error(f"Worker {name} is not registered, error: {e}")
             worker_name = name
             worker_desc = func().description
-            worker_registry[id] = {
+            worker_registry[worker_id] = {
                 "name": worker_name,
                 "description": worker_desc,
                 "function": func
@@ -240,7 +244,7 @@ class Generator:
     def _generate_best_practice(self, task):
         # Best practice detection
         resources = {}
-        for _, worker_info in self.workers.items():
+        for worker_id, worker_info in self.workers.items():
             worker_name = worker_info["name"]
             worker_desc = worker_info["description"]
             worker_func = worker_info["function"]
@@ -289,20 +293,31 @@ class Generator:
         # mapping resources to the best practice
         prompt = PromptTemplate.from_template(embed_resources_sys_prompt)
         resources = {}
-        for _, worker_info in self.workers.items():
+        resource_id_map = {}
+        for worker_id, worker_info in self.workers.items():
             worker_name = worker_info["name"]
             worker_desc = worker_info["description"]
             resources[worker_name] = worker_desc
+            resource_id_map[worker_name] = worker_id
         
-        for _, tool_info in self.tools.items():
+        for tool_id, tool_info in self.tools.items():
             tool_name = tool_info["name"]
             tool_desc = tool_info["description"]
             resources[tool_name] = tool_desc
+            resource_id_map[tool_name] = tool_id
             
         input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources})
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
-        return postprocess_json(answer)
+        json_answer = postprocess_json(answer)
+        # add resource id
+        for i in range(len(json_answer)):
+            ans = json_answer[i]
+            resource_id = resource_id_map.get(ans["resource"], None)
+            if not resource_id:
+                logger.info("Error while retrieving resource id")
+            json_answer[i]["resource_id"] = resource_id
+        return json_answer
     
     def _format_task_graph(self, finetuned_best_practices):
         node_id = 1
@@ -315,8 +330,11 @@ class Generator:
                 node = []
                 node.append(str(node_id))
                 node.append({
-                    "name": step['resource'],
-                    # "name": "DefaultWorker", # Use DefaultWorker to decide which worker to use for specific task
+                    "id": str(node_id),
+                    "resource": {
+                        "id": step["resource_id"],
+                        "name": step['resource'],
+                    },
                     "attribute": {
                         "value": step['example_response'],
                         "task": step['task'],
@@ -364,8 +382,17 @@ class Generator:
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         start_msg = postprocess_json(answer)
+        message_worker_id = None
+        for worker_id, worker_info in self.workers.items():
+            if worker_info["name"] == "MessageWorker":
+                message_worker_id = worker_id
+                break
         start_node.append({
-            "name": "MessageWorker",
+            "id": "0",
+            "resource": {
+                "id": message_worker_id,
+                "name": "MessageWorker",
+            },
             "attribute": {
                 "value": start_msg['message'],
                 "task": "start message",
