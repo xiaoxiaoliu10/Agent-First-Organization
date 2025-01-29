@@ -3,7 +3,10 @@
         [
             "0",
             {
-                "name": "MessageAgent",
+                "resource": {
+                    "id": "26bb6634-3bee-417d-ad75-23269ac17bc3",
+                    "name": "MessageWorker"
+                },
                 "attribute": {
                     "value": "Hello! Welcome to our Shopping Assistant. How can I assist you today?",
                     "task": "start message",
@@ -15,9 +18,11 @@
         ],
         [
             "1",
-            {
-                "id": "ddbe6adc-cd0e-40bc-8a95-91cb69ed807b",
-                "name": "find_user_id_by_email",
+            {   
+                "resource": {
+                    "id": "ddbe6adc-cd0e-40bc-8a95-91cb69ed807b",
+                    "name": "find_user_id_by_email"
+                },
                 "attribute": {
                     "value": "",
                     "task": "Find user id by email",
@@ -29,8 +34,10 @@
         [
             "2",
             {
-                "id": "0",
-                "name": "Planner",
+                "resource": {
+                    "id": "b9dbef8b-8219-4e0a-a50d-3b01614e5443",
+                    "name": "get_user_details"
+                },
                 "attribute": {
                     "value": "",
                     "task": "Find order id by user id",
@@ -42,8 +49,10 @@
         [
             "3",
             {
-                "id": "2a2750cb-6226-4068-ba05-a4db83da3e16",
-                "name": "get_order_details",
+                "resource": {
+                    "id": "2a2750cb-6226-4068-ba05-a4db83da3e16",
+                    "name": "get_order_details"
+                },
                 "attribute": {
                     "value": "",
                     "task": "Get the product id for each order",
@@ -55,8 +64,10 @@
         [
             "5",
             {
-                "id": "40f05456-525c-4d9d-ac37-54482d6b220b",
-                "name": "FaissRAGWorker",
+                "resource": {
+                    "id": "40f05456-525c-4d9d-ac37-54482d6b220b",
+                    "name": "FaissRAGWorker"
+                },
                 "attribute": {
                     "value": "",
                     "task": "Answer user's question about product",
@@ -136,6 +147,7 @@
         {"id": "2a2750cb-6226-4068-ba05-a4db83da3e16", "name": "get_order_details", "path": "shopify/get_order_details.py", "fixed_args": {"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}}
     ],
     "workers": [
+        {"id": "26bb6634-3bee-417d-ad75-23269ac17bc3", "name": "MessageWorker","path": "message_worker.py"},
         {"id": "40f05456-525c-4d9d-ac37-54482d6b220b", "name": "FaissRAGWorker", "path": "faiss_rag_worker.py"}
     ],
     "nluapi": "http://localhost:55135/nlu",

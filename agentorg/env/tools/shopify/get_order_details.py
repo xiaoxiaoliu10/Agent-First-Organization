@@ -39,7 +39,7 @@ errors = [
 
 @register_tool(description, slots, outputs, lambda x: x not in errors)
 def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
-    limit = int(limit) or 10
+    limit = int(limit) if limit else 10
     shop_url = kwargs.get("shop_url")
     api_version = kwargs.get("api_version")
     token = kwargs.get("token")
@@ -81,6 +81,6 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                 """)
             parsed_response = json.loads(response)["data"]["order"]
             results.append(json.dumps(parsed_response))
-        return results
+        return json.dumps(results)
     except Exception as e:
         return ORDERS_NOT_FOUND
