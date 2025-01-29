@@ -21,8 +21,8 @@ logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirna
 load_dotenv()
 
 API_PORT = "55135"
-NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu/predict"
-SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill/predict"
+NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu"
+SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill"
 
 def generate_taskgraph(args):
     model = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)

@@ -138,6 +138,6 @@
     "workers": [
         {"id": "40f05456-525c-4d9d-ac37-54482d6b220b", "name": "FaissRAGWorker", "path": "faiss_rag_worker.py"}
     ],
-    "nluapi": "http://localhost:55135/nlu/predict",
-    "slotfillapi": "http://localhost:55135/slotfill/predict"
+    "nluapi": "http://localhost:55135/nlu",
+    "slotfillapi": "http://localhost:55135/slotfill"
 }

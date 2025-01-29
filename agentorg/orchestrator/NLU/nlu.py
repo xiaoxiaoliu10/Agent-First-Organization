@@ -25,7 +25,7 @@ class NLU:
         }
         if self.url:
             logger.info(f"Using NLU API to predict the intent")
-            response = requests.post(self.url, json=data)
+            response = requests.post(self.url + "/predict", json=data)
             if response.status_code == 200:
                 results = response.json()
                 pred_intent = results['intent']
@@ -60,7 +60,7 @@ class SlotFilling:
         }
         if self.url:
             logger.info(f"Using Slot Filling API to predict the slots")
-            response = requests.post(self.url, json=data)
+            response = requests.post(self.url + "/predict", json=data)
             if response.status_code == 200:
                 pred_slots = response.json()
                 logger.info(f"The raw pred_slots is {pred_slots}")
