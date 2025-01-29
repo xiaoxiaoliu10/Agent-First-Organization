@@ -135,8 +135,8 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"available_intents in _get_node: {available_intents}")
         logger.info(f"intent in _get_node: {intent}")
         candidates_intents = collections.defaultdict(list)
-        node_name = self.graph.nodes[sample_node]["name"]
-        id = self.graph.nodes[sample_node]["id"]
+        node_name = self.graph.nodes[sample_node]["resource"]["name"]
+        id = self.graph.nodes[sample_node]["resource"]["id"]
         available_nodes[sample_node]["limit"] -= 1
         if intent and available_nodes[sample_node]["limit"] <= 0 and intent in available_intents:
             # delete the corresponding node item from the intent list
@@ -209,7 +209,7 @@ class TaskGraph(TaskGraphBase):
         node_status = params.get("node_status", {})
         status = node_status.get(curr_node, StatusEnum.COMPLETE.value)
         if status == StatusEnum.INCOMPLETE.value:
-            node_info = {"id": self.graph.nodes[curr_node]["id"], "name": self.graph.nodes[curr_node]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
+            node_info = {"id": self.graph.nodes[curr_node]["resource"]["id"], "name": self.graph.nodes[curr_node]["resource"]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
             return node_info, params
             
 
