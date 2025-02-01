@@ -37,6 +37,8 @@ def num_user_turns(convo):
 
 def extract_task_completion_metrics(data, bot_goal=None):
     num_convos = len(data)
+    if num_convos == 0:
+        return "Error while extracting task completion metrics"
     goal_completetions = 0
     bot_goal_completions = 0
     completion_efficiency = 0

@@ -7,6 +7,7 @@ from langchain_openai import ChatOpenAI
 from agentorg.env.workers.worker import BaseWorker, register_worker
 from agentorg.env.workers.message_worker import MessageWorker
 from agentorg.env.workers.milvus_rag_worker import MilvusRAGWorker
+from agentorg.env.workers.faiss_rag_worker import FaissRAGWorker
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
 
@@ -27,7 +28,7 @@ class RagMsgWorker(BaseWorker):
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each worker
-        rag_wkr = MilvusRAGWorker(stream_response=False)
+        rag_wkr = FaissRAGWorker(stream_response=False)
         msg_wkr = MessageWorker()
         workflow.add_node("rag_worker", rag_wkr.execute)
         workflow.add_node("message_worker", msg_wkr.execute)
