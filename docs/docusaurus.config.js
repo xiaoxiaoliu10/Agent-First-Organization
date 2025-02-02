@@ -83,7 +83,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/articulateai.png',
       navbar: {
-        title: 'Articulate.AI',
+        title: 'Arklex.AI',
         logo: {
           alt: 'Articulate.AI Logo',
           src: 'img/articulateai.png',
