@@ -197,6 +197,14 @@ class AgentOrg:
                 and response_state["trajectory"][-1]["content"]: 
                 response_state["response"] = response_state["trajectory"][-1]["content"]
                 break
+            
+            # If the current node is not complete, then no need to continue to the next node
+            node_status = params.get("node_status", {})
+            curr_node = params.get("curr_node", None)
+            status = node_status.get(curr_node, StatusEnum.COMPLETE.value)
+            if status == StatusEnum.INCOMPLETE.value:
+                break
+
             node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
             logger.info("=============node_info=============")
             logger.info(f"The while node info is : {node_info}")

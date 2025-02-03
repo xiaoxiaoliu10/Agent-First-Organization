@@ -59,7 +59,7 @@ class Env():
             tool.init_slotfilling(self.slotfillapi)
             response_state = tool.execute(message_state, **self.tools[id]["fixed_args"])
             params["history"] = response_state.get("trajectory", [])
-            params["dialogue_state"] = response_state.get("slots", [])
+            params["dialog_states"] = response_state.get("slots", [])
             current_node = params.get("curr_node")
             params["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE.value)
                 

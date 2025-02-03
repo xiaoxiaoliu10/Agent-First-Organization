@@ -47,6 +47,7 @@ class SlotDetail(Slot):
     confirmed: bool
 
 class Verification(BaseModel):
+    thought: str
     verification_needed: bool
 
 
