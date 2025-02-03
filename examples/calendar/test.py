@@ -68,6 +68,7 @@ class Logic_Test(unittest.TestCase):
             history.append({"role": self.user_prefix, "content": user_text})
             history.append({"role": self.worker_prefix, "content": output})
         print(f"{self.TEST_CASES[0]['criteria']}")
+        # print(json.dumps(history, indent=4))
         self.assertEqual(nodes, self.TEST_CASES[0]["trajectory"])
 
     def test_Unittest1(self):
@@ -90,6 +91,7 @@ class Logic_Test(unittest.TestCase):
             history.append({"role": self.user_prefix, "content": user_text})
             history.append({"role": self.worker_prefix, "content": output})
         print(f"{self.TEST_CASES[1]['criteria']}")
+        # print(json.dumps(history, indent=4))
         self.assertEqual(nodes, self.TEST_CASES[1]["trajectory"])
         
 
