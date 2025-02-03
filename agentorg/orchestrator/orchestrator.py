@@ -8,13 +8,15 @@ from typing import List, Dict, Any, Tuple
 import ast
 import copy
 from agentorg.env.env import Env
+from agentorg.utils.model_safety import model_safety_check
+from agentorg.utils.utils import format_messages_by_provider
 import janus
 from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
 import langsmith as ls
-from openai import OpenAI
 from litellm import completion
+import litellm
 
 from agentorg.orchestrator.task_graph import TaskGraph
 from agentorg.env.tools.utils import ToolGenerator
@@ -46,14 +48,15 @@ class AgentOrg:
         self.env = env
 
     def generate_next_step(
-        self, messages: List[Dict[str, Any]]
+        self, messages: List[Dict[str, Any]], text:str
     ) -> Tuple[Dict[str, Any], str, float]:
+        litellm.modify_params=True
         res = completion(
-                messages=messages,
-                model=MODEL["model_type_or_path"],
-                custom_llm_provider="openai",
-                temperature=0.0
-            )
+            **format_messages_by_provider(messages, text),
+            model=MODEL["model_type_or_path"],
+            custom_llm_provider=MODEL["llm_provider"],
+            temperature=0.0
+        )
         message = res.choices[0].message
         action_str = message.content.split("Action:")[-1].strip()
         try:
@@ -92,13 +95,10 @@ class AgentOrg:
 
         ##### Model safety checking
         # check the response, decide whether to give template response or not
-        client = OpenAI()
-        text = inputs["text"]
-        moderation_response = client.moderations.create(input=text).model_dump()
-        is_flagged = moderation_response["results"][0]["flagged"]
+        is_flagged, safety_response = model_safety_check(inputs)
         if is_flagged:
             return_response = {
-                "answer": self.product_kwargs["safety_response"],
+                "answer": safety_response,
                 "parameters": params,
                 "has_follow_up": True
             }
@@ -211,7 +211,7 @@ class AgentOrg:
                     is_stream=True if stream_type is not None else False,
                     message_queue=message_queue
                 )
-                
+
                 action, response_state, msg_history = self.env.planner.execute(message_state, params["history"])
                 params["history"] = msg_history
                 if action == RESPOND_ACTION_NAME:
@@ -234,7 +234,7 @@ class AgentOrg:
                 messages: List[Dict[str, Any]] = [
                     {"role": "system", "content": prompt}
                 ]
-                _, action, _ = self.generate_next_step(messages)
+                _, action, _ = self.generate_next_step(messages, text)
                 logger.info("Predicted action: " + action)
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True

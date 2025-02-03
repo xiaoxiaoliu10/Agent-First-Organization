@@ -67,7 +67,7 @@ python run.py --input-dir ./examples/customer_service
   * `--input-dir`: The directory that contains the generated files
   * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
   
-* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUOpenAIAPI` and `SlotFillOpenAIAPI` services defined under `./agentorg/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
+* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUModelAPI ` and `SlotFillModelAPI` services defined under `./agentorg/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
 * Then it will start the chatbot and you could chat with the chatbot
 
 

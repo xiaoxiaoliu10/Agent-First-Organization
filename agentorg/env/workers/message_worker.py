@@ -12,7 +12,7 @@ from agentorg.types import EventType
 from agentorg.utils.utils import chunk_string
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
-
+from agentorg.utils.model_provider_config import PROVIDER_MAP
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,9 @@ class MessageWorker(BaseWorker):
 
     def __init__(self):
         super().__init__()
-        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
+        self.llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+            model=MODEL["model_type_or_path"], timeout=30000
+        )
         self.action_graph = self._create_action_graph()
 
     def generator(self, state: MessageState) -> MessageState:

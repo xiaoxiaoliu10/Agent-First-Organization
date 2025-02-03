@@ -1,17 +1,22 @@
 import sys
+import os
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 import logging
 import string
 
-from openai import OpenAI
+from openai.lib._parsing import parse_chat_completion
+from openai._types import NOT_GIVEN
+import litellm
+from litellm import completion
 from fastapi import FastAPI, Response
 
 from agentorg.utils.graph_state import Slots, Slot
 from dotenv import load_dotenv
 load_dotenv()
 
+from agentorg.utils.utils import format_messages_by_provider
 from agentorg.utils.model_config import MODEL
 
 logger = logging.getLogger(__name__)
@@ -19,29 +24,25 @@ logger = logging.getLogger(__name__)
 SYSTEM_PROMPT_NLU = """According to the conversation, decide what is the user's intent in the last turn? \nHere are the definitions for each intent:\n{definition}\nHere are some sample utterances from user that indicate each intent:\n{exemplars}\nConversation:\n{formatted_chat}\n\nOnly choose from the following options.\n{intents_choice}\n\nAnswer:
 """
 
-
-class OpenAIAPI:
+class NLUModelAPI ():
     def __init__(self):
-        self.client = OpenAI()
-
-
-class NLUOpenAIAPI(OpenAIAPI):
-    def __init__(self):
-        super().__init__()
         self.user_prefix = "user"
         self.assistant_prefix = "assistant"
 
-    def get_response(self, sys_prompt, response_format="text", debug_text="none", params=MODEL):
+    def get_response(self, sys_prompt, response_format="text", debug_text="none", params=MODEL, text=""):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
-        dialog_history = {"role": "system", "content": sys_prompt}
-        completion = self.client.chat.completions.create(
+        dialog_history = [{"role": "system", "content": sys_prompt}]
+        litellm.modify_params=True
+        res = completion(
             model=params.get("model_type_or_path", "gpt-4o"),
+            custom_llm_provider = params.get("llm_provider", "openai"),
             response_format={"type": "json_object"} if response_format=="json" else {"type": "text"},
-            messages=[dialog_history],
+            **format_messages_by_provider(dialog_history, text),
             n=1,
-            temperature = 0.7
+            temperature = 0.7,
         )
-        response = completion.choices[0].message.content
+       
+        response = res.choices[0].message.content
         logger.info(f"response for {debug_text} is \n{response}")
         return response
 
@@ -110,7 +111,7 @@ class NLUOpenAIAPI(OpenAIAPI):
             intents, chat_history_str
         )
         response = self.get_response(
-            system_prompt, debug_text="get intent"
+            system_prompt, debug_text="get intent", text=text
         )
         logger.info(f"postprocessed intent response: {response}")
         try:
@@ -122,23 +123,28 @@ class NLUOpenAIAPI(OpenAIAPI):
         return pred_intent
 
 
-class SlotFillOpenAIAPI(OpenAIAPI):
+class SlotFillModelAPI():
     def __init__(self):
-        super().__init__()
         self.user_prefix = "user"
         self.assistant_prefix = "assistant"
 
-    def get_response(self, sys_prompt, debug_text="none", params=MODEL):
+    def get_response(self, sys_prompt, debug_text="none", params=MODEL, text=""):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
-        dialog_history = {"role": "system", "content": sys_prompt}
-        completion = self.client.beta.chat.completions.parse(
+        dialog_history = [{"role": "system", "content": sys_prompt}]
+        res = completion(
             model=params.get("model_type_or_path", "gpt-4o"),
-            messages=[dialog_history],
+            custom_llm_provider = params.get("llm_provider", "openai"),
             response_format=Slots,
+            **format_messages_by_provider(dialog_history, text),
             n=1,
-            temperature = 0.7
+            temperature = 0.7,
         )
-        response = completion.choices[0].message
+        res.choices[0].message.refusal = None 
+        parsed = parse_chat_completion(response_format=Slots,
+                                    input_tools = NOT_GIVEN,
+                                 chat_completion=res)
+        
+        response = parsed.choices[0].message
         if (response.refusal):
             return None
         logger.info(f"response for {debug_text} is \n{response.parsed}")
@@ -158,8 +164,9 @@ class SlotFillOpenAIAPI(OpenAIAPI):
         system_prompt = self.format_input(
             slots, chat_history_str
         )
+        user_input =  chat_history_str.splitlines()[-1].split('user:')[-1].strip()
         response = self.get_response(
-            system_prompt, debug_text="get slots"
+            system_prompt, debug_text="get slots", text=user_input
         )
         if not response:
             logger.info(f"Failed to update dialogue states")
@@ -169,8 +176,8 @@ class SlotFillOpenAIAPI(OpenAIAPI):
 
 
 app = FastAPI()
-nlu_openai = NLUOpenAIAPI()
-slotfilling_openai = SlotFillOpenAIAPI()
+nlu_openai = NLUModelAPI()
+slotfilling_openai = SlotFillModelAPI()
 
 
 @app.post("/nlu/predict")

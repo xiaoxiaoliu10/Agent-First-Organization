@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import traceback
 
 from litellm import completion
+import litellm
 
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
@@ -62,18 +63,26 @@ class FunctionCallingPlanner:
         for _ in range(max_num_steps):
             logger.info(f"messages in function calling: {messages}")
             logger.info(f"tools_info in function calling: {self.tools_info}")
+             # issue with gemini: https://github.com/BerriAI/litellm/issues/7808
+            # another issue: Unable to convert openai tool calls to gemini tool calls: https://github.com/BerriAI/litellm/issues/6833
+            # TRY TO CALL GEMINI THROUGH OPENAI: https://developers.googleblog.com/en/gemini-is-now-accessible-from-the-openai-library/
+            litellm.modify_params = True
             if not self.tools_info:
                 res = completion(
                     messages=messages,
-                    model=MODEL["model_type_or_path"],
-                    custom_llm_provider="openai",
+                    # model=MODEL["model_type_or_path"],
+                    # custom_llm_provider=MODEL["llm_provider"],
+                    model='gpt-4o',
+                    custom_llm_provider='openai',
                     temperature=0.0
                 )
             else:
                 res = completion(
                     messages=messages,
-                    model=MODEL["model_type_or_path"],
-                    custom_llm_provider="openai",
+                    # model=MODEL["model_type_or_path"],
+                    # custom_llm_provider=MODEL["llm_provider"],
+                    model='gpt-4o',
+                    custom_llm_provider='openai',
                     tools=self.tools_info,
                     temperature=0.0
                 )

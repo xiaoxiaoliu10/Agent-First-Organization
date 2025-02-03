@@ -10,6 +10,7 @@ from agentorg.utils.utils import normalize, str_similarity
 from agentorg.utils.graph_state import StatusEnum
 from agentorg.orchestrator.NLU.nlu import NLU, SlotFilling
 from agentorg.utils.model_config import MODEL
+from agentorg.utils.model_provider_config import PROVIDER_MAP
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,9 @@ class TaskGraph(TaskGraphBase):
                 }
             }
         self.initial_node = self.get_initial_flow()
-        self.model = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
+        self.model = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+            model=MODEL["model_type_or_path"], timeout=30000
+        )
         self.nluapi = NLU(self.product_kwargs.get("nluapi"))
         self.slotfillapi = SlotFilling(self.product_kwargs.get("slotfillapi"))
 
