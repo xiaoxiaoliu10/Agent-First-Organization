@@ -107,23 +107,21 @@ class TaskGraph(TaskGraphBase):
 
         return next_node
     
-    def _check_skip(self, worker_class, sample_node):
-        worker_desp = worker_class.description
+    def _check_skip(self, node_info):
+        task_desp = node_info["attribute"]["task"]
         skip = False
-        sys_prompt = """Given the conversation history and the proposed worker, you task is to decide whether the user has already provided the answer for the following worker's response. Reply with 'yes' if already answered, otherwise 'no'.
+        sys_prompt = """Given the conversation history and the proposed worker, you job is to decide whether the user has already provided the answer for the following task or assistant already did that task before. Reply with 'yes' if user already answered or assistant already did, otherwise 'no'.
         
         Conversation history:
         {chat_history_str}
-        Proposed worker: 
-        The purpose of this worker is to {worker_desp}
-        The prompt of the worker response could be {msg}
+        Task: 
+        {task_desp}
         
         Answer:
         """
         system_prompt = sys_prompt.format(
             chat_history_str=self.chat_history_str, 
-            worker_desp=worker_desp, 
-            msg=self.graph.nodes[sample_node]["attribute"]
+            task_desp=task_desp
         )
         skip_status = self.model.invoke(system_prompt)
         logger.debug(f"skip_status: {skip_status}")
@@ -135,8 +133,9 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"available_intents in _get_node: {available_intents}")
         logger.info(f"intent in _get_node: {intent}")
         candidates_intents = collections.defaultdict(list)
-        node_name = self.graph.nodes[sample_node]["resource"]["name"]
-        id = self.graph.nodes[sample_node]["resource"]["id"]
+        node_info = self.graph.nodes[sample_node]
+        node_name = node_info["resource"]["name"]
+        id = node_info["resource"]["id"]
         available_nodes[sample_node]["limit"] -= 1
         if intent and available_nodes[sample_node]["limit"] <= 0 and intent in available_intents:
             # delete the corresponding node item from the intent list
@@ -148,13 +147,19 @@ class TaskGraph(TaskGraphBase):
         params["curr_node"] = sample_node
         params["available_nodes"] = available_nodes
         params["available_intents"] = available_intents
-        # worker_class = WORKER_REGISTRY.get(worker_name)
-        # TODO: This will be used to check whether we skip the worker or not, which is handled by the task graph framework
-        # skip = self._check_skip(worker_class, sample_node)
-        # if skip:
-        #     node_info = {"name": None, "attribute": None}
-        # else:
-        node_info = {"id": id, "name": node_name, "attribute": self.graph.nodes[sample_node]["attribute"]}
+        # This will be used to check whether we skip the worker or not, which is handled by the task graph framework
+        skip = self._check_skip(node_info)
+        if skip: # continue check the candidate intents under this node
+            node_info = {"id": None, "name": None, "attribute": None}
+            for u, v, data in self.graph.out_edges(sample_node, data=True):
+                intent = data.get("intent")
+                if intent != "none" and data.get("intent") and available_nodes[v]["limit"] >= 1:
+                    edge_info = copy.deepcopy(data)
+                    edge_info["source_node"] = u
+                    edge_info["target_node"] = v
+                    candidates_intents[intent].append(edge_info)
+        else: # return the node info
+            node_info = {"id": id, "name": node_name, "attribute": node_info["attribute"]}
         
         return node_info, params, candidates_intents
 
@@ -205,13 +210,6 @@ class TaskGraph(TaskGraphBase):
 
         # get the current global intent
         curr_pred_intent = params.get("curr_pred_intent", None)
-
-        node_status = params.get("node_status", {})
-        status = node_status.get(curr_node, StatusEnum.COMPLETE.value)
-        if status == StatusEnum.INCOMPLETE.value:
-            node_info = {"id": self.graph.nodes[curr_node]["resource"]["id"], "name": self.graph.nodes[curr_node]["resource"]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
-            return node_info, params
-            
 
         # give a initial flow for the most common / important service, in case it miss the highest level intent information, it still have the chance to finally enter this from flow stack
         if self.initial_node:
@@ -264,6 +262,7 @@ class TaskGraph(TaskGraphBase):
             if len(available_intents) == 1 and self.unsure_intent.get("intent") in available_intents.keys():
                 pred_intent = self.unsure_intent.get("intent")
             else: # global intent prediction
+                # Another checking to make sure the user indeed want to switch the current task
                 if not self._switch_pred_intent(curr_pred_intent, available_intents):
                     logger.info(f"User doesn't want to switch the current task: {curr_pred_intent}")
                     pred_intent = self.unsure_intent.get("intent")
@@ -302,7 +301,14 @@ class TaskGraph(TaskGraphBase):
             while not candidates_intents:  
                 # 1. no global intent found and no local intent found
                 # 2. gload intent found but skipped based on the _get_node function
-                # move to the next connected node(s) (randomly choose one of them if there are multiple "None" intent connected)
+                # Then check whether the current node completed or not
+                node_status = params.get("node_status", {})
+                status = node_status.get(curr_node, StatusEnum.COMPLETE.value)
+                if status == StatusEnum.INCOMPLETE.value:
+                    logger.info(f"no local or global intent found, the current node is not complete")
+                    node_info = {"id": self.graph.nodes[curr_node]["resource"]["id"], "name": self.graph.nodes[curr_node]["resource"]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
+                    return node_info, params
+                # If completed, then move to the next connected node(s) (randomly choose one of them if there are multiple "None" intent connected)
                 logger.info(f"no local or global intent found, move to the next connected node(s)")
                 next_node = self.move_to_node(curr_node, available_nodes)
                 if next_node == curr_node:  # leaf node
@@ -327,6 +333,13 @@ class TaskGraph(TaskGraphBase):
         available_nodes = params["available_nodes"]
         next_node = curr_node
         logger.info(f"curr_node: {curr_node}")
+
+        # before local intent prediction, check whether the current node complete or not
+        node_status = params.get("node_status", {})
+        status = node_status.get(curr_node, StatusEnum.COMPLETE.value)
+        if status == StatusEnum.INCOMPLETE.value:
+            node_info = {"id": self.graph.nodes[curr_node]["resource"]["id"], "name": self.graph.nodes[curr_node]["resource"]["name"], "attribute": self.graph.nodes[curr_node]["attribute"]}
+            return node_info, params
 
         while candidates_intents:  # local intent prediction
             # there are local intent(s) to chooose from
@@ -380,19 +393,25 @@ class TaskGraph(TaskGraphBase):
                 for key, value in available_intents.items():
                     if key not in candidates_intents and key != "none":
                         other_intents[key] = value
-                if self.unsure_intent.get("intent") not in other_intents.keys():
-                    other_intents[self.unsure_intent.get("intent")].append(self.unsure_intent)
-                logger.info(f"Check other intent (including unsure): {other_intents}")
+
+                if self.unsure_intent.get("intent") in other_intents.keys():
+                    other_intents_w_unsure = copy.deepcopy(other_intents)
+                else:
+                    other_intents_w_unsure = copy.deepcopy(other_intents)
+                    other_intents_w_unsure[self.unsure_intent.get("intent")].append(self.unsure_intent)
+
+                logger.info(f"Check other intent (including unsure): {other_intents_w_unsure}")
                 
-                pred_intent = self.nluapi.execute(self.text, other_intents, self.chat_history_str, params.get("metadata", {}))
+                pred_intent = self.nluapi.execute(self.text, other_intents_w_unsure, self.chat_history_str, params.get("metadata", {}))
                 nlu_records.append({"candidate_intents": other_intents, 
                                     "pred_intent": pred_intent, "no_intent": False, "global_intent": True})
                 params["nlu_records"] = nlu_records
                 found_pred_in_avil, pred_intent, intent_idx = self._postprocess_intent(pred_intent, other_intents)
-                if pred_intent.lower() != self.unsure_intent.get("intent") and found_pred_in_avil:  # found global intent
-                    logger.info(f"Global intent changed from {curr_pred_intent} to {pred_intent}")
-                    curr_pred_intent = pred_intent
-                    params["curr_pred_intent"] = curr_pred_intent
+                if found_pred_in_avil:  # found global intent
+                    if pred_intent.lower() != self.unsure_intent.get("intent"):  # global intent is not unsure
+                        logger.info(f"Global intent changed from {curr_pred_intent} to {pred_intent}")
+                        curr_pred_intent = pred_intent
+                        params["curr_pred_intent"] = curr_pred_intent
                     next_node, next_intent = self.jump_to_node(pred_intent, intent_idx, available_nodes, curr_node)
                     logger.info(f"curr_node: {next_node}")
                     node_info, params, candidates_intents = \
@@ -416,15 +435,14 @@ class TaskGraph(TaskGraphBase):
                     self._get_node(next_node, available_nodes, available_intents, params)
                     if node_info["name"]:  # It will move to the node that with None as intent
                         return node_info, params
-                    # neither local nor global intent found
-                    # In this case, even though there are local intents to choose from but none of them match, so it cannot randomly choose one of the local intent,
+                    # neither local nor global intent found and even for the None intent node, it has been skipped
                     # So we just stay at the curr_node and do the next step at the next turn.
                     # Similar to the following else break.
                     break
 
             else: # neither local nor global intent found
                 break
-        # if none of the available intents can represent user's utterance, stay at the current node without any dialog flow value from the node
+        # if none of the available intents can represent user's utterance, transfer to the DefaultWorker to let it decide for the next step
         if nlu_records:
             nlu_records[-1]["no_intent"] = True  # no intent found
         else: # didn't do prediction at all for the current turn
