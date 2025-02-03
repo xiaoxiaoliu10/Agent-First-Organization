@@ -84,6 +84,24 @@ class Tool:
             chat_history_str = format_chat_history(state["trajectory"])
             slots : list[Slot] = self.slotfillapi.execute(self.slots, chat_history_str, state["metadata"])
             logger.info(f'{slots=}')
+            if not all([slot.value and slot.verified for slot in slots if slot.required]):
+                for slot in slots:
+                    # if there is extracted slots values but haven't been verified
+                    if slot.value and not slot.verified:
+                        # check whether it verified or not
+                        verification_needed, thought = self.slotfillapi.verify_needed(slot, chat_history_str, state["metadata"])
+                        if verification_needed:
+                            response = slot.prompt + "The reason is: " + thought
+                            break
+                        else:
+                            slot.verified = True
+                    # if there is no extracted slots values, then should prompt the user to fill the slot
+                    if not slot.value:
+                        response = slot.prompt
+                        break
+                
+                state["status"] = StatusEnum.INCOMPLETE.value
+                break
             # if slot.value is not empty for all slots, and all the slots has been verified, then execute the function
             if all([slot.value and slot.verified for slot in slots if slot.required]):
                 logger.info("all slots filled")
@@ -128,23 +146,7 @@ class Tool:
                     max_tries -= 1
                     continue
                 state["status"] = StatusEnum.COMPLETE.value if self.isComplete(response) else StatusEnum.INCOMPLETE.value
-            else:
-                for slot in slots:
-                    # if there is extracted slots values but haven't been verified
-                    if slot.value and not slot.verified:
-                        # check whether it verified or not
-                        verified = not self.slotfillapi.verify_needed(slot, chat_history_str, state["metadata"])
-                        if not verified:
-                            response = slot.prompt
-                            break
-                        else:
-                            slot.verified = True
-                    # if there is no extracted slots values, then should prompt the user to fill the slot
-                    if not slot.value:
-                        response = slot.prompt
-                        break
-                state["status"] = StatusEnum.INCOMPLETE.value
-                break
+                
         state["message_flow"] = response
         state["slots"][self.name] = slots
         return state

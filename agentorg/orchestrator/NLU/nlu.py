@@ -53,7 +53,7 @@ class SlotFilling:
     def verify_needed(self, slot: Slot, chat_history_str:str, metadata: dict) -> Slot:
         logger.info(f"verify slot: {slot}")
         data = {
-            "slot": slot.dict(),
+            "slot": slot.model_dump(),
             "chat_history_str": chat_history_str
         }
         if self.url:
@@ -61,23 +61,27 @@ class SlotFilling:
             response = requests.post(self.url + "/verify", json=data)
             if response.status_code == 200:
                 verification_needed = response.json().get("verification_needed")
+                thought = response.json().get("thought")
                 logger.info(f"verify_needed is {verification_needed}")
             else:
                 verification_needed = False
+                thought = "No need to verify"
                 logger.error('Remote Server Error when verifying Slot Filling')
         else:
             logger.info(f"Using Slot Filling function to verify the slot")
-            verification_needed = slotfilling_openai.verify(**data).verification_needed
+            verification = slotfilling_openai.verify(**data)
+            verification_needed = verification.verification_needed
+            thought = verification.thought
             logger.info(f"verify_needed is {verification_needed}")
 
-        return verification_needed
+        return verification_needed, thought
 
     def execute(self, slots:list, chat_history_str:str, metadata: dict) -> dict:
         logger.info(f"extracted slots: {slots}")
         if not slots: return []
         
         data = {
-            "slots": [slot.dict() for slot in slots],
+            "slots": [slot.model_dump() for slot in slots],
             "chat_history_str": chat_history_str
         }
         if self.url:

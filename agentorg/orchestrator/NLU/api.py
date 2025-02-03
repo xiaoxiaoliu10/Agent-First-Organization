@@ -179,7 +179,7 @@ class SlotFillOpenAIAPI(OpenAIAPI):
         )
         if not response: # no need to verification, we want to make sure it is really confident that we need to ask the question again
             logger.info(f"Failed to verify dialogue states")
-            return Verification(verification_needed=False)
+            return Verification(verification_needed=False, thought="No need to verify")
         logger.info(f"Verified dialogue states: {response}")
         return response
 
