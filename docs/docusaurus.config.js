@@ -83,11 +83,7 @@ const config = {
       // Replace with your project's social card
       image: 'img/articulateai.png',
       navbar: {
-        title: 'Articulate.AI',
-        logo: {
-          alt: 'Articulate.AI Logo',
-          src: 'img/articulateai.png',
-        },
+        title: 'Home',
         items: [
           {
             type: 'docSidebar',
@@ -156,6 +152,13 @@ const config = {
         darkTheme: prismThemes.dracula,
       },
     }),
+
+    scripts: [
+      {
+        src: '/js/rb2b-tracking.js',
+        async: false,
+      },
+    ],
 };
 
 export default config;
