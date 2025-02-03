@@ -1,0 +1,26 @@
+[
+    {
+        "test_id": 0,
+        "user_utterance": [
+            "I want to book a demo!",
+            "yl4021@columbia.edu",
+            "Tmr",
+            "Anytime between 2 - 4pm",
+            "New York"
+        ],
+        "description": "Test create event on Google calendar with ambiguous time",
+        "criteria": "Tmr is not a valid specified date. The bot should ask again for more details.",
+        "final_state": "Setup a meeting on the google calendar at 2pm for 30 mins",
+        "trajectory": ["1", "1", "1", "1", "1"]
+    },
+    {
+        "test_id": 1,
+        "user_utterance": [
+            "I want to book a demo for my email yl4021@columbia.edu at Tmr 2pm in New York time!"
+        ],
+        "description": "Directly provide all the necessary information for the event.",
+        "criteria": "Directly success",
+        "final_state": "Setup a meeting on the google calendar at 2pm for 30 mins",
+        "trajectory": ["1"]
+    }
+]
