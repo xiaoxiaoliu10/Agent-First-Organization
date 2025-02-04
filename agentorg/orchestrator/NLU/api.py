@@ -8,7 +8,7 @@ import string
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from agentorg.utils.graph_state import Slots, Slot
+from agentorg.utils.graph_state import Slots, Slot, Verification
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -128,13 +128,13 @@ class SlotFillOpenAIAPI(OpenAIAPI):
         self.user_prefix = "user"
         self.assistant_prefix = "assistant"
 
-    def get_response(self, sys_prompt, debug_text="none", params=MODEL):
+    def get_response(self, sys_prompt, debug_text="none", params=MODEL, format=Slots):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = {"role": "system", "content": sys_prompt}
         completion = self.client.beta.chat.completions.parse(
             model=params.get("model_type_or_path", "gpt-4o"),
             messages=[dialog_history],
-            response_format=Slots,
+            response_format=format,
             n=1,
             temperature = 0.7
         )
@@ -146,7 +146,7 @@ class SlotFillOpenAIAPI(OpenAIAPI):
 
     def format_input(self, slots: Slots, chat_history_str) -> str:
         """Format input text before feeding it to the model."""
-        system_prompt = f"Given the conversation and definition of dialog states definition, update the value of following dialogue states.\nDialogue Statues:\n{slots}\nConversation:\n{chat_history_str}\n\n"
+        system_prompt = f"Given the conversation and definition of each dialog state, update the value of following dialogue states.\nDialogue Statues:\n{slots}\nConversation:\n{chat_history_str}\n\n"
         return system_prompt
 
     def predict(
@@ -165,6 +165,22 @@ class SlotFillOpenAIAPI(OpenAIAPI):
             logger.info(f"Failed to update dialogue states")
             return slots
         logger.info(f"Updated dialogue states: {response}")
+        return response
+    
+    def verify(
+        self,
+        slot: dict,
+        chat_history_str
+    ) -> Verification:
+        reformat_slot = {key: value for key, value in slot.items() if key in ["name", "type", "value", "enum", "description", "required"]}
+        system_prompt = f"Given the conversation, definition and extracted value of each dialog state, decide whether the following dialog states values need further verification from the user. If there is a list of enum value, which means the value has to be chosen from the enum list. Only Return boolean value: True or False. \nDialogue Statues:\n{reformat_slot}\nConversation:\n{chat_history_str}\n\n"
+        response = self.get_response(
+            system_prompt, debug_text="verify slots", format=Verification
+        )
+        if not response: # no need to verification, we want to make sure it is really confident that we need to ask the question again
+            logger.info(f"Failed to verify dialogue states")
+            return Verification(verification_needed=False, thought="No need to verify")
+        logger.info(f"Verified dialogue states: {response}")
         return response
 
 
@@ -188,3 +204,11 @@ def predict(data: dict, res: Response):
 
     logger.info(f"pred_slots: {results.slots}")
     return results.slots
+
+@app.post("/slotfill/verify")
+def verify(data: dict, res: Response):
+    logger.info(f"Received data: {data}")
+    verify_needed = slotfilling_openai.verify(**data)
+
+    logger.info(f"verify_needed: {verify_needed}")
+    return verify_needed

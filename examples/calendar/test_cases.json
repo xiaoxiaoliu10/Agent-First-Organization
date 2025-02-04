@@ -1,0 +1,86 @@
+[
+    {
+        "test_id": 0,
+        "user_utterance": [
+            "I want to book a demo!",
+            "yl4021@columbia.edu",
+            "Tmr",
+            "Anytime between 2 - 4pm",
+            "New York"
+        ],
+        "description": "Test create event on Google calendar with ambiguous time",
+        "criteria": "Tmr is not a valid specified date. The bot should ask again for more details.",
+        "final_state": "Setup a meeting on the google calendar at 2pm for 30 mins",
+        "trajectory": ["1", "1", "1", "1", "1"],
+        "expected_conversation": [
+            {
+                "role": "assistant",
+                "content": "Hello! Welcome to our store. How can I assist you today?"
+            },
+            {
+                "role": "user",
+                "content": "I want to book a demo!"
+            },
+            {
+                "role": "assistant",
+                "content": "To book a demo, could you please provide your email address? This will help us set up the meeting for you."
+            },
+            {
+                "role": "user",
+                "content": "yl4021@columbia.edu"
+            },
+            {
+                "role": "assistant",
+                "content": "Could you please provide the time when you will be available for the meeting? This will help us schedule your demo at a convenient time for you."
+            },
+            {
+                "role": "user",
+                "content": "Tmr"
+            },
+            {
+                "role": "assistant",
+                "content": "Could you please provide the exact date and time for the meeting? This will help us schedule your demo accurately. Thank you!"
+            },
+            {
+                "role": "user",
+                "content": "Anytime between 2 - 4pm"
+            },
+            {
+                "role": "assistant",
+                "content": "Thank you for providing the time range. To ensure we schedule the demo at a time that suits you best, would you like the meeting to start at 2:00 PM, or is there another specific time within 2:00 PM to 4:00 PM that you prefer?"
+            },
+            {
+                "role": "user",
+                "content": "New York"
+            },
+            {
+                "role": "assistant",
+                "content": "Your demo has been successfully scheduled for tomorrow, February 4th, at 2:00 PM (New York time). You will receive an invitation at your email address: yl4021@columbia.edu. \n\nIf you have any further questions or need to make changes, feel free to let me know!"
+            }
+        ]
+    },
+    {
+        "test_id": 1,
+        "user_utterance": [
+            "I want to book a demo for my email yl4021@columbia.edu at Tmr 2pm in New York time!"
+        ],
+        "description": "Directly provide all the necessary information for the event.",
+        "criteria": "Directly success",
+        "final_state": "Setup a meeting on the google calendar at 2pm for 30 mins",
+        "trajectory": ["1"],
+        "expected_conversation": [
+            {
+                "role": "assistant",
+                "content": "Hello! Welcome to our store. How can I assist you today?"
+            },
+            {
+                "role": "user",
+                "content": "I want to book a demo for my email yl4021@columbia.edu at Tmr 2pm in New York time!"
+            },
+            {
+                "role": "assistant",
+                "content": "Your demo has been successfully scheduled for tomorrow, February 4th, at 2:00 PM (New York time). You will receive an invitation at your email address: yl4021@columbia.edu. \n\nIf you have any further questions or need to make changes, feel free to let me know!"
+            }
+        ]
+    }
+]

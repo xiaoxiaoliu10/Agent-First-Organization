@@ -43,16 +43,18 @@ class Tool:
                 name=slot["name"], 
                 type=slot["type"], 
                 value="", 
+                enum=slot.get("enum", []),
                 description=slot["description"], 
                 prompt=slot["prompt"], 
-                required=slot.get("required", False)
+                required=slot.get("required", False),
+                verified=False
             ))
         return format_slots
 
     def get_info(self, slots):
         self.properties = {}
         for slot in slots:
-            self.properties[slot["name"]] = {k: v for k, v in slot.items() if k != "name" and k != "required"}
+            self.properties[slot["name"]] = {k: v for k, v in slot.items() if k == "type" or k == "description" or k == "prompt"}
         required = [slot["name"] for slot in slots if slot.get("required", False)]
         return {
             "type": "function",
@@ -70,15 +72,38 @@ class Tool:
     def init_slotfilling(self, slotfillapi: SlotFilling):
         self.slotfillapi = slotfillapi
         
-    def preprocess(self, state: MessageState, **fixed_args):
+    def _execute(self, state: MessageState, **fixed_args):
+        # if this tool has been called before, then load the previous slots status
+        if state["slots"].get(self.name):
+            self.slots = state["slots"][self.name]
+        else:
+            state["slots"][self.name] = self.slots
         response = "error"
         max_tries = 3
         while max_tries > 0 and "error" in response:
             chat_history_str = format_chat_history(state["trajectory"])
             slots : list[Slot] = self.slotfillapi.execute(self.slots, chat_history_str, state["metadata"])
             logger.info(f'{slots=}')
-            # if slot.value is not empty for all slots, then execute the tool
-            if all([slot.value for slot in slots if slot.required]):
+            if not all([slot.value and slot.verified for slot in slots if slot.required]):
+                for slot in slots:
+                    # if there is extracted slots values but haven't been verified
+                    if slot.value and not slot.verified:
+                        # check whether it verified or not
+                        verification_needed, thought = self.slotfillapi.verify_needed(slot, chat_history_str, state["metadata"])
+                        if verification_needed:
+                            response = slot.prompt + "The reason is: " + thought
+                            break
+                        else:
+                            slot.verified = True
+                    # if there is no extracted slots values, then should prompt the user to fill the slot
+                    if not slot.value:
+                        response = slot.prompt
+                        break
+                
+                state["status"] = StatusEnum.INCOMPLETE.value
+                break
+            # if slot.value is not empty for all slots, and all the slots has been verified, then execute the function
+            if all([slot.value and slot.verified for slot in slots if slot.required]):
                 logger.info("all slots filled")
                 for slot in slots:
                     if slot.type in ["list", "dict", "array"]:
@@ -121,19 +146,13 @@ class Tool:
                     max_tries -= 1
                     continue
                 state["status"] = StatusEnum.COMPLETE.value if self.isComplete(response) else StatusEnum.INCOMPLETE.value
-            else:
-                # tool_response is the slot.prompt of the first slot where slot.value is empty
-                for slot in slots:
-                    if not slot.value:
-                        response = slot.prompt
-                        break
-                state["status"] = StatusEnum.INCOMPLETE.value
-                break
+                
         state["message_flow"] = response
+        state["slots"][self.name] = slots
         return state
 
     def execute(self, state: MessageState, **fixed_args):
-        state = self.preprocess(state, **fixed_args)
+        state = self._execute(state, **fixed_args)
         ## postprocess if any
         ## Currently, the value of the tool is stored and returned in state["message_flow"]
         return state

@@ -1,4 +1,4 @@
-from typing import TypedDict, Annotated
+from typing import TypedDict, Annotated, Any, Optional, Union
 import janus
 from pydantic import BaseModel
 from enum import Enum
@@ -29,20 +29,26 @@ class OrchestratorMessage(BaseModel):
 
 class Slot(BaseModel):
     name: str
-    type: str
-    value: str
+    type: Union[str, int, float, bool, None]
+    value: Union[str, int, float, bool, None]
+    enum: Optional[list[Union[str, int, float, bool, None]]]
     description: str
     prompt: str
     required: bool
+    verified: bool
 
 
 class Slots(BaseModel):
     slots: list[Slot]
 
-
+# May not be needed
 class SlotDetail(Slot):
     verified_value: str
     confirmed: bool
+
+class Verification(BaseModel):
+    thought: str
+    verification_needed: bool
 
 
 ### Task status-related classes
@@ -68,7 +74,7 @@ class MessageState(TypedDict):
     response: str
     # task-related params
     status: StatusEnum
-    slots: list[Slot]  # probably won't need anymore
+    slots: dict[str, list[Slot]]  # record the dialogue states of each action
     metadata: dict[str, any]
     # stream
     is_stream: bool

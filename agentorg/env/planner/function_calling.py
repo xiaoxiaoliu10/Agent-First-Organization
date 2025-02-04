@@ -108,7 +108,6 @@ class FunctionCallingPlanner:
                     )
                 else:
                     return msg_history, action.name, env_response.observation
-                
         return msg_history, action.name, env_response.observation
         
     
