@@ -8,7 +8,6 @@ from typing import List, Dict, Any, Tuple
 import ast
 import copy
 from agentorg.env.env import Env
-from agentorg.utils.model_safety import model_safety_check
 from agentorg.utils.utils import format_messages_by_provider
 import janus
 from dotenv import load_dotenv
@@ -93,16 +92,6 @@ class AgentOrg:
             params["history"].append(chat_history[-2])
             params["history"].append(chat_history[-1])
 
-        ##### Model safety checking
-        # check the response, decide whether to give template response or not
-        is_flagged, safety_response = model_safety_check(inputs)
-        if is_flagged:
-            return_response = {
-                "answer": safety_response,
-                "parameters": params,
-                "has_follow_up": True
-            }
-            return return_response
 
         ##### TaskGraph Chain
         taskgraph_inputs = {
