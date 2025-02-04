@@ -1,6 +1,7 @@
 import logging
 
 from agentorg.utils.model_config import MODEL
+from agentorg.utils.model_provider_config import PROVIDER_MAP
 from agentorg.env.prompts import load_prompts
 from agentorg.utils.graph_state import MessageState
 
@@ -15,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 class SearchEngine():
     def __init__(self):
-        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
+        self.llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+            model=MODEL["model_type_or_path"], timeout=30000
+        )
         self.search_tool = TavilySearchResults(
             max_results=5,
             search_depth="advanced",

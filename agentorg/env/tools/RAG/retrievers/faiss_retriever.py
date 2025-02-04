@@ -11,6 +11,7 @@ from langchain_community.vectorstores.faiss import FAISS
 from langchain_openai import OpenAIEmbeddings
 
 from agentorg.utils.model_config import MODEL
+from agentorg.utils.model_provider_config import PROVIDER_MAP
 from agentorg.env.prompts import load_prompts
 from agentorg.utils.graph_state import MessageState
 
@@ -42,7 +43,9 @@ class FaissRetrieverExecutor:
         self.texts = texts
         self.index_path = index_path
         self.embedding_model_name = embedding_model_name
-        self.llm = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
+        self.llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+            model=MODEL["model_type_or_path"], timeout=30000
+        )
         self.retriever = self._init_retriever()
 
     def _init_retriever(self, **kwargs):
