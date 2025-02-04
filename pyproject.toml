@@ -12,46 +12,44 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "email_validator==2.2.0",
+    "fastapi==0.115.3",
+    "fastapi-cli==0.0.5",
+    "greenlet==3.1.1",
+    "httptools==0.6.4",
+    "langchain-community==0.3.3",
+    "langchain-openai==0.2.3",
+    "langgraph==0.2.39",
+    "linkify-it-py==2.0.3",
+    "mdit-py-plugins==0.4.2",
+    "networkx==3.4.2",
+    "phonenumbers==8.13.48",
+    "PySocks==1.7.1",
+    "python-Levenshtein==0.26.0",
+    "python-multipart==0.0.12",
+    "selenium==4.26.1",
+    "textual==0.85.2",
+    "unstructured==0.16.4",
+    "unstructured-client==0.27.0",
+    "uvloop==0.21.0",
+    "watchfiles==0.24.0",
+    "websockets==13.1",
+    "faiss-cpu==1.9.0",
+    "tavily-python==0.5.0",
+    "webdriver-manager==4.0.2",
+    "scipy==1.14.1",
+    "litellm==1.56.4",
+    "pymilvus==2.4.7",
+    "mysql-connector-python==8.3.0",
+    "PyMySQL==1.1.0",
+    "ShopifyAPI==12.7.0",
+    "janus==1.0.0"
 ]
 license = "MIT"
 
 [project.urls]
 Homepage = "https://github.com/ArticulateAI/Agent-First-Organization"
 Issues = "https://github.com/ArticulateAI/Agent-First-Organization/issues"
-
-[tool.poetry.dependencies]
-email_validator = "2.2.0"
-fastapi = "0.115.3"
-fastapi-cli = "0.0.5"
-greenlet = "3.1.1"
-httptools = "0.6.4"
-langchain-community = "0.3.3"
-langchain-openai = "0.2.3"
-langgraph = "0.2.39"
-linkify-it-py = "2.0.3"
-mdit-py-plugins = "0.4.2"
-networkx = "3.4.2"
-phonenumbers = "8.13.48"
-PySocks = "1.7.1"
-python-Levenshtein = "0.26.0"
-python-multipart = "0.0.12"
-selenium = "4.26.1"
-textual = "0.85.2"
-unstructured = "0.16.4"
-unstructured-client = "0.27.0"
-uvloop = "0.21.0"
-watchfiles = "0.24.0"
-websockets = "13.1"
-faiss-cpu = "1.9.0"
-tavily-python = "0.5.0"
-webdriver-manager = "4.0.2"
-scipy = "1.14.1"
-litellm = "1.56.4"
-pymilvus = "2.4.7"
-mysql-connector-python = "8.3.0"
-PyMySQL = "1.1.0"
-ShopifyAPI = "12.7.0"
-janus = "1.0.0"
 
 [build-system]
 requires = ["hatchling"]
