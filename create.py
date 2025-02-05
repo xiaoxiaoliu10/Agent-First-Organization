@@ -66,7 +66,7 @@ def init_worker(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default="./agentorg/orchestrator/examples/customer_service_config.json")
+    parser.add_argument('--config', type=str, default="./arklex/orchestrator/examples/customer_service_config.json")
     parser.add_argument('--output-dir', type=str, default="./examples/test")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
     parser.add_argument('--log-level', type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])

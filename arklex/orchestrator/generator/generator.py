@@ -185,7 +185,7 @@ class Generator:
             name = tool["name"]
             path = tool["path"]
             try: # try to import the tool to check its existance
-                filepath = os.path.join("agentorg.env.tools", path)
+                filepath = os.path.join("arklex.env.tools", path)
                 module_name = filepath.replace(os.sep, ".").rstrip(".py")
                 module = importlib.import_module(module_name)
                 func = getattr(module, name)
@@ -206,7 +206,7 @@ class Generator:
             name = worker["name"]
             path = worker["path"]
             try: # try to import the worker to check its existance
-                filepath = os.path.join("agentorg.env.workers", path)
+                filepath = os.path.join("arklex.env.workers", path)
                 module_name = filepath.replace(os.sep, ".").rstrip(".py")
                 module = importlib.import_module(module_name)
                 func = getattr(module, name)

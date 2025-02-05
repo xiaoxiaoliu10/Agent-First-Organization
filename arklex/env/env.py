@@ -29,7 +29,7 @@ class Env():
             id = tool["id"]
             name = tool["name"]
             path = tool["path"]
-            filepath = os.path.join("agentorg.env.tools", path)
+            filepath = os.path.join("arklex.env.tools", path)
             module_name = filepath.replace(os.sep, ".").rstrip(".py")
             module = importlib.import_module(module_name)
             func = getattr(module, name)
@@ -42,7 +42,7 @@ class Env():
             id = worker["id"]
             name = worker["name"]
             path = worker["path"]
-            filepath = os.path.join("agentorg.env.workers", path)
+            filepath = os.path.join("arklex.env.workers", path)
             module_name = filepath.replace(os.sep, ".").rstrip(".py")
             module = importlib.import_module(module_name)
             func = getattr(module, name)

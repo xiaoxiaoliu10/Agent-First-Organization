@@ -70,7 +70,7 @@ def start_apis():
     
     command = [
         "uvicorn",
-        "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
+        "arklex.orchestrator.NLU.api:app",  # Replace with proper import path
         "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "info"
