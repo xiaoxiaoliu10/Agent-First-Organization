@@ -61,7 +61,8 @@ class TauBenchResourceInitializer(DefaulResourceInitializer):
                 slot["type"] = param_info["type"]
                 slot["items"] = {}
                 slot["description"] = param_info["description"]
-                slot["prompt"] = ""
+                prompt_param_name = param_name.replace("_", " ")
+                slot["prompt"] = f"In order to proceed, please provide the {prompt_param_name}"
                 slot["required"] = param_name in params["required"]
                 tool_slots.append(slot)
             tool_output = []
@@ -186,7 +187,7 @@ def run_tau_bench_eval(
         start_index=start_index,
         end_index=end_index,
         task_ids=None,
-        # task_ids=[1],
+        # task_ids=[0],
         log_dir=log_dir,
         max_concurrency=max_concurrency,
         seed=seed,
