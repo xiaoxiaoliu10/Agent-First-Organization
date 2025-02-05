@@ -49,9 +49,14 @@ def flip_hist(hist):
             new_hist.append(turn)
     return new_hist
 
-def query_chatbot(model_api, history, params):
+def query_chatbot(model_api, history, params, env_config):
     history = flip_hist_content_only(history)
-    data = {"history": history, "parameters": params}
+    data = {
+        "history": history,
+        "parameters": params,
+        "workers": env_config["workers"],
+        "tools": env_config["tools"],
+    }
     data = json.dumps(data)
     response = requests.post(model_api, headers={"Content-Type": "application/json"}, data=data)
     return response.json()

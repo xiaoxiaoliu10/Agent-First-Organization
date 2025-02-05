@@ -313,7 +313,15 @@ class Generator:
         # add resource id
         for i in range(len(json_answer)):
             ans = json_answer[i]
-            resource_id = resource_id_map.get(ans["resource"], None)
+            resource_name = ans["resource"]
+            # we need to enforce the answer to be only one worker or tool
+            if isinstance(resource_name, list):
+                resource_name = resource_name[0]
+            if not isinstance(resource_name, str): 
+                resource_name = str(resource_name)
+            resource_name = resource_name.split(" ")[0]
+            resource_id = resource_id_map.get(resource_name, None)
+            
             if not resource_id:
                 logger.info("Error while retrieving resource id")
             json_answer[i]["resource_id"] = resource_id

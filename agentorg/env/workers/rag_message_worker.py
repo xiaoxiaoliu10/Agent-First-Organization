@@ -7,6 +7,7 @@ from langchain_openai import ChatOpenAI
 from agentorg.env.workers.worker import BaseWorker, register_worker
 from agentorg.env.workers.message_worker import MessageWorker
 from agentorg.env.workers.milvus_rag_worker import MilvusRAGWorker
+from agentorg.env.workers.faiss_rag_worker import FaissRAGWorker
 from agentorg.utils.graph_state import MessageState
 from agentorg.utils.model_config import MODEL
 
