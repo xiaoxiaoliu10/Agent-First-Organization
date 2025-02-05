@@ -2,6 +2,7 @@ import os
 import logging
 import uuid
 import importlib
+from typing import Optional
 
 from agentorg.env.tools.tools import Tool
 from agentorg.env.planner.function_calling import FunctionCallingPlanner
@@ -11,10 +12,66 @@ from agentorg.orchestrator.NLU.nlu import SlotFilling
 
 logger = logging.getLogger(__name__)
 
+class BaseResourceInitializer:
+    @staticmethod
+    def init_tools(tools):
+        raise NotImplementedError
+
+    @staticmethod
+    def init_workers(workers):
+        raise NotImplementedError
+    
+class DefaulResourceInitializer(BaseResourceInitializer):
+    @staticmethod
+    def init_tools(tools):
+        # return dict of valid tools with name and description
+        tool_registry = {}
+        for tool in tools:
+            tool_id = tool["id"]
+            name = tool["name"]
+            path = tool["path"]
+            try: # try to import the tool to check its existance
+                filepath = os.path.join("agentorg.env.tools", path)
+                module_name = filepath.replace(os.sep, ".").rstrip(".py")
+                module = importlib.import_module(module_name)
+                func = getattr(module, name)
+            except Exception as e:
+                logger.error(f"Tool {name} is not registered, error: {e}")
+            tool_registry[tool_id] = {
+                "name": func().name,
+                "description": func().description,
+                "execute": func,
+                "fixed_args": tool.get("fixed_args", {}),
+            }
+        return tool_registry
+    
+    @staticmethod
+    def init_workers(workers):
+        worker_registry = {}
+        for worker in workers:
+            worker_id = worker["id"]
+            name = worker["name"]
+            path = worker["path"]
+            try: # try to import the worker to check its existance
+                filepath = os.path.join("agentorg.env.workers", path)
+                module_name = filepath.replace(os.sep, ".").rstrip(".py")
+                module = importlib.import_module(module_name)
+                func = getattr(module, name)
+            except Exception as e:
+                logger.error(f"Worker {name} is not registered, error: {e}")
+            worker_registry[worker_id] = {
+                "name": name,
+                "description": func().description,
+                "execute": func
+            }
+        return worker_registry
+
 class Env():
-    def __init__(self, tools, workers, slotsfillapi):
-        self.tools = self.initialize_tools(tools)
-        self.workers = self.initialize_workers(workers)
+    def __init__(self, tools, workers, slotsfillapi, resource_inizializer: Optional[BaseResourceInitializer] = None):
+        if resource_inizializer is None:
+            resource_inizializer = DefaulResourceInitializer()
+        self.tools = resource_inizializer.init_tools(tools)
+        self.workers = resource_inizializer.init_workers(workers)
         self.name2id = {resource["name"]: id for id, resource in {**self.tools, **self.workers}.items()}
         self.id2name = {id: resource["name"] for id, resource in {**self.tools, **self.workers}.items()}
         self.slotfillapi = self.initialize_slotfillapi(slotsfillapi)
@@ -23,32 +80,6 @@ class Env():
             name2id=self.name2id
         )
 
-    def initialize_tools(self, tools):
-        tool_registry = {}
-        for tool in tools:
-            id = tool["id"]
-            name = tool["name"]
-            path = tool["path"]
-            filepath = os.path.join("agentorg.env.tools", path)
-            module_name = filepath.replace(os.sep, ".").rstrip(".py")
-            module = importlib.import_module(module_name)
-            func = getattr(module, name)
-            tool_registry[id] = {"name": func().name, "execute": func, "fixed_args": tool.get("fixed_args", {})}
-        return tool_registry
-
-    def initialize_workers(self, workers):
-        worker_registry = {}
-        for worker in workers:
-            id = worker["id"]
-            name = worker["name"]
-            path = worker["path"]
-            filepath = os.path.join("agentorg.env.workers", path)
-            module_name = filepath.replace(os.sep, ".").rstrip(".py")
-            module = importlib.import_module(module_name)
-            func = getattr(module, name)
-            worker_registry[id] = {"name": name, "execute": func, "description": func().description}
-        return worker_registry
-    
     def initialize_slotfillapi(self, slotsfillapi):
         return SlotFilling(slotsfillapi)
 
