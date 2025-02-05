@@ -28,7 +28,7 @@ class RagMsgWorker(BaseWorker):
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each worker
-        rag_wkr = FaissRAGWorker(stream_response=False)
+        rag_wkr = MilvusRAGWorker(stream_response=False)
         msg_wkr = MessageWorker()
         workflow.add_node("rag_worker", rag_wkr.execute)
         workflow.add_node("message_worker", msg_wkr.execute)
