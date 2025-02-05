@@ -6,7 +6,8 @@ import langsmith as ls
 
 from agentorg.utils.trace import TraceRunName
 from agentorg.utils.graph_state import Slots, Slot
-from agentorg.orchestrator.NLU.api import nlu_openai, slotfilling_openai
+from agentorg.orchestrator.NLU.api import nlu_api, slotfilling_api
+from agentorg.utils.model_config import MODEL
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -21,7 +22,8 @@ class NLU:
         data = {
             "text": text,
             "intents": intents,
-            "chat_history_str": chat_history_str
+            "chat_history_str": chat_history_str,
+            "model":MODEL
         }
         if self.url:
             logger.info(f"Using NLU API to predict the intent")
@@ -35,7 +37,7 @@ class NLU:
                 logger.error('Remote Server Error when predicting NLU')
         else:
             logger.info(f"Using NLU function to predict the intent")
-            pred_intent = nlu_openai.predict(**data)
+            pred_intent = nlu_api.predict(**data)
             logger.info(f"pred_intent is {pred_intent}")
 
         with ls.trace(name=TraceRunName.NLU, inputs=data) as rt:
@@ -71,7 +73,7 @@ class SlotFilling:
                 logger.error('Remote Server Error when predicting Slot Filling')
         else:
             logger.info(f"Using Slot Filling function to predict the slots")
-            pred_slots = slotfilling_openai.predict(**data).slots
+            pred_slots = slotfilling_api.predict(**data).slots
             # pred_slots = [Slot(**pred_slot) for pred_slot in pred_slots]
             logger.info(f"pred_slots is {pred_slots}")
         with ls.trace(name=TraceRunName.SlotFilling, inputs=data) as rt:

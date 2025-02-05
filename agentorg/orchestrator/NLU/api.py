@@ -18,6 +18,7 @@ load_dotenv()
 
 from agentorg.utils.utils import format_messages_by_provider
 from agentorg.utils.model_config import MODEL
+import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
@@ -29,20 +30,27 @@ class NLUModelAPI ():
         self.user_prefix = "user"
         self.assistant_prefix = "assistant"
 
-    def get_response(self, sys_prompt, response_format="text", debug_text="none", params=MODEL, text=""):
+    def get_response(self, sys_prompt, model, response_format="text", debug_text="none",  text=""):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = [{"role": "system", "content": sys_prompt}]
         litellm.modify_params=True
-        res = completion(
-            model=params.get("model_type_or_path", "gpt-4o"),
-            custom_llm_provider = params.get("llm_provider", "openai"),
-            response_format={"type": "json_object"} if response_format=="json" else {"type": "text"},
-            **format_messages_by_provider(dialog_history, text),
-            n=1,
-            temperature = 0.7,
-        )
-       
-        response = res.choices[0].message.content
+        if model['llm_provider'] == 'gemini':
+            genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+            llm = genai.GenerativeModel(
+                f"models/{model['model_type_or_path']}",
+                system_instruction=sys_prompt)
+            response = llm.generate_content(" ").text
+        else:
+            res = completion(
+                    model=model["model_type_or_path"],
+                    custom_llm_provider=model["llm_provider"],
+                    response_format={"type": "json_object"} if response_format=="json" else {"type": "text"},
+                    **format_messages_by_provider(dialog_history, text),
+                    n=1,
+                    temperature = 0.7,
+                )
+            response = res.choices[0].message.content
+        
         logger.info(f"response for {debug_text} is \n{response}")
         return response
 
@@ -104,14 +112,15 @@ class NLUModelAPI ():
         self,
         text,
         intents,
-        chat_history_str
+        chat_history_str,
+        model
     ) -> str:
 
         system_prompt, idx2intents_mapping = self.format_input(
             intents, chat_history_str
         )
         response = self.get_response(
-            system_prompt, debug_text="get intent", text=text
+            system_prompt,model, debug_text="get intent", text=text
         )
         logger.info(f"postprocessed intent response: {response}")
         try:
@@ -132,8 +141,8 @@ class SlotFillModelAPI():
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = [{"role": "system", "content": sys_prompt}]
         res = completion(
-            model=params.get("model_type_or_path", "gpt-4o"),
-            custom_llm_provider = params.get("llm_provider", "openai"),
+            model=MODEL["model_type_or_path"],
+            custom_llm_provider=MODEL["llm_provider"],
             response_format=Slots,
             **format_messages_by_provider(dialog_history, text),
             n=1,
@@ -176,14 +185,14 @@ class SlotFillModelAPI():
 
 
 app = FastAPI()
-nlu_openai = NLUModelAPI()
-slotfilling_openai = SlotFillModelAPI()
+nlu_api = NLUModelAPI()
+slotfilling_api = SlotFillModelAPI()
 
 
 @app.post("/nlu/predict")
 def predict(data: dict, res: Response):
     logger.info(f"Received data: {data}")
-    pred_intent = nlu_openai.predict(**data)
+    pred_intent = nlu_api.predict(**data)
 
     logger.info(f"pred_intent: {pred_intent}")
     return {"intent": pred_intent}
@@ -191,7 +200,7 @@ def predict(data: dict, res: Response):
 @app.post("/slotfill/predict")
 def predict(data: dict, res: Response):
     logger.info(f"Received data: {data}")
-    results = slotfilling_openai.predict(**data)
+    results = slotfilling_api.predict(**data)
 
     logger.info(f"pred_slots: {results.slots}")
     return results.slots
