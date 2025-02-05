@@ -100,7 +100,6 @@ def generate_tau_bench_config(output_dir):
         "tasks": [],
         "workers": [
             {"id": "26bb6634-3bee-417d-ad75-23269ac17bc3", "name": "MessageWorker", "path": "message_worker.py"},
-            {"id": "b06c2b58-12c5-41fe-9838-e93b530e42e8", "name": "DefaultWorker", "path": "default_worker.py"}
         ],
         "tools": tools,
         "tool_initialization": False
@@ -187,7 +186,7 @@ def run_tau_bench_eval(
         start_index=start_index,
         end_index=end_index,
         task_ids=None,
-        # task_ids=[0],
+        # task_ids=[28],
         log_dir=log_dir,
         max_concurrency=max_concurrency,
         seed=seed,
