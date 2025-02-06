@@ -12,11 +12,11 @@ from pprint import pprint
 from langchain_openai import ChatOpenAI
 import shopify
 
-from agentorg.utils.utils import init_logger
-from agentorg.orchestrator.orchestrator import AgentOrg
+from arklex.utils.utils import init_logger
+from arklex.orchestrator.orchestrator import AgentOrg
 # from create import API_PORT
-from agentorg.utils.model_config import MODEL
-from agentorg.env.env import Env
+from arklex.utils.model_config import MODEL
+from arklex.env.env import Env
 
 API_PORT = "55135"
 load_dotenv()
