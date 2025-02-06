@@ -167,32 +167,25 @@ def run_tau_bench_eval(
     start_index = 0
     end_index = -1
     log_dir="results"
-    temperature=0
     seed=10
     shuffle=0
-    agent_strategy = "agent-first-org"
     
     
     config = RunConfig(
-        model_provider="openai",
         user_model_provider="openai",
-        model="gpt-4o",
         user_model="gpt-4o",
         num_trials=num_trials,
         env=env,
-        agent_strategy=agent_strategy,
-        temperature=temperature,
         task_split=task_split,
         start_index=start_index,
         end_index=end_index,
-        task_ids=None,
-        # task_ids=[28],
+        # task_ids=None,
+        task_ids=[28],
         log_dir=log_dir,
         max_concurrency=max_concurrency,
         seed=seed,
         shuffle=shuffle,
         user_strategy=user_strategy,
-        few_shot_displays_path=None,
         taskgraph_dir=taskgraph_dir
     )
     run(config)
