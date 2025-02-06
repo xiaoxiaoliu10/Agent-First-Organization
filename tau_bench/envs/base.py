@@ -97,7 +97,6 @@ class Env(object):
             observation = self.user.step(action.kwargs["content"])
             info.source = "user"
             done = "###STOP###" in observation
-            if done: print("1"*100)
         elif action.name in self.tools_map:
             try:
                 observation = self.tools_map[action.name].invoke(
@@ -108,7 +107,6 @@ class Env(object):
             info.source = action.name
             if action.name in self.terminate_tools:
                 done = True
-                print("2"*100)
         else:
             observation = f"Unknown action {action.name}"
             info.source = action.name

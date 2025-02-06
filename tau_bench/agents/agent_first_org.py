@@ -51,47 +51,51 @@ class AgentFirstOrg(Agent):
         history = [
             {"role": "assistant", "content": self.start_message}
         ]
-        messages = []
+        messages = [
+            {"role": "assistant", "content": self.start_message}
+        ]
         params = {}
 
         user_text = obs
         
         for _ in range(max_num_steps):
             message_index = len(history)
-            try:
-                output, params = self.get_api_bot_response(deepcopy(history), user_text, params)
-            except Exception as e:
-                print("Error:", e)
+            new_messages = []
+            output, params = self.get_api_bot_response(deepcopy(history), user_text, params)
+
             user_message = {"role": "user", "content": user_text}
             assistant_message = {"role": "assistant", "content": output}
             history.append(user_message)
             history.append(assistant_message)
 
-            messages = params["history"]
-            # print("*"*100)
-            # print(messages)
-            while message_index < len(messages):
-                msg = messages[message_index]
+            # new_messages.append(user_message)
+            while message_index < len(params["history"]):
+                msg = params["history"][message_index]
 
-                if msg.get("role") == "assistant" and not is_message_worker_tool_call(msg):
-                    action = message_to_action(msg)
-                    env_response = env.step(action)
-                    reward = env_response.reward
-                    info = {**info, **env_response.info.model_dump()}
+                if not is_message_worker(msg):
+                    new_messages.append(msg)
+                    if msg.get("role") == "assistant":
+                        action = message_to_action(msg)
+                        env_response = env.step(action)
+                        reward = env_response.reward
+                        info = {**info, **env_response.info.model_dump()}
 
                 message_index += 1
             
             # total_cost += res._hidden_params["response_cost"]
-
+            new_messages.append(assistant_message)
             action = message_to_action(assistant_message)
             env_response = env.step(action)
             reward = env_response.reward
             info = {**info, **env_response.info.model_dump()}
             
             user_text = env_response.observation
+
             if env_response.done:
                 user_message = {"role": "user", "content": user_text}
-                history.append(user_message)
+                new_messages.append(user_message)
+            messages.extend(new_messages)
+            if env_response.done:
                 break
         return SolveResult(
             reward=reward,
@@ -101,7 +105,8 @@ class AgentFirstOrg(Agent):
         )
 
 
-def is_message_worker_tool_call(message):
+def is_message_worker(message):
+    if message.get("name") == "MessageWorker": return True
     if "tool_calls" not in message: return False
     if message["tool_calls"] is None: return False
     if len(message["tool_calls"]) == 0: return False
