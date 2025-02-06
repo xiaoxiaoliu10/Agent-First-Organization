@@ -19,11 +19,11 @@ from agentorg.orchestrator.generator.generator import Generator
 from agentorg.env.env import DefaulResourceInitializer
 from agentorg.env.tools.tools import Tool
 
-from tau_bench.tau_bench.envs.retail.tools import ALL_TOOLS
-from tau_bench.tau_bench.envs import get_env
-from tau_bench.tau_bench.types import RunConfig
-from tau_bench.tau_bench.run import run
-from tau_bench.tau_bench.envs.retail.data import load_data
+from tau_bench.envs.retail.tools import ALL_TOOLS
+from tau_bench.envs import get_env
+from tau_bench.types import RunConfig
+from tau_bench.run import run
+from tau_bench.envs.retail.data import load_data
 
 load_dotenv()
 
