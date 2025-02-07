@@ -6,7 +6,7 @@ from pathlib import Path
 from os.path import dirname, abspath
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
-from agentorg.utils.loader import Loader, CrawledURLObject
+from arklex.utils.loader import Loader, CrawledURLObject
 
 def get_domain_info(documents):
     summary = None
