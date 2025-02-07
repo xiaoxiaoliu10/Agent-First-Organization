@@ -12,8 +12,8 @@ import os
 sys.path.insert(0, os.path.abspath('../../'))
 print(sys.path)
 
-from agentorg.orchestrator.orchestrator import AgentOrg
-from agentorg.env.env import Env
+from arklex.orchestrator.orchestrator import AgentOrg
+from arklex.env.env import Env
 
 
 class Logic_Test(unittest.TestCase):

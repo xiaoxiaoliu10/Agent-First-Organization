@@ -15,9 +15,9 @@ import uvicorn
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from agentorg.orchestrator.orchestrator import AgentOrg
+from arklex.orchestrator.orchestrator import AgentOrg
 from create import API_PORT
-from agentorg.utils.model_config import MODEL
+from arklex.utils.model_config import MODEL
 
 NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu"
 SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill"
@@ -70,7 +70,7 @@ def start_apis():
     
     command = [
         "uvicorn",
-        "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
+        "arklex.orchestrator.NLU.api:app",  # Replace with proper import path
         "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "info"

@@ -30,14 +30,14 @@ Agent First Organization provides a framework for developing **task-oriented dia
         * `tasks (Optional, List(Dict))`: The pre-defined list of tasks that the chatbot need to handle. If empty, the system will generate the tasks and the steps to complete the tasks based on the role, objective, domain, intro and docs fields. The more information you provide in the fields, the more accurate the tasks and steps will be generated. If you provide the tasks, it should contain the following fields:
             * `task_name (Required, Str)`: The task that the chatbot need to handle
             * `steps (Required, List(Str))`: The steps to complete the task
-        * `workers (Required, List(Dict))`: The workers pre-defined under agentorg/env/workers folder that you want to use for the chatbot. Each worker will be defined as a class decorated with @register_worker. Please refer to the agentorg/env/workers/message_worker.py for an example. The field required for each worker object is:
+        * `workers (Required, List(Dict))`: The workers pre-defined under arklex/env/workers folder that you want to use for the chatbot. Each worker will be defined as a class decorated with @register_worker. Please refer to the arklex/env/workers/message_worker.py for an example. The field required for each worker object is:
             * `id (Required, uuid)`: The unique id for the worker
             * `name (Required, Str)`: The WorkerClassName. Such as `MessageWorker`
-            * `path (Required, Str)`: The file path of the worker start from the agentorg/env/workers folder. Such as `message_worker.py`.
-        * `tools (Optional, List(Dict))`: The tools (e.g. APIs, function, etc.) pre-defined under agentorg/env/tools folder that you want to use for the chatbot. Each tool will be defined as a function decorated with @register_tool. The decorator includes the **description** - the purpose of the function, **slots** - the arguments needed for the function, **outputs** - expected result of the function. For more details, please refer to the agentorg/env/tools/shopify/find_user_id_by_email.py as an example. The field required for each tool object is:
+            * `path (Required, Str)`: The file path of the worker start from the arklex/env/workers folder. Such as `message_worker.py`.
+        * `tools (Optional, List(Dict))`: The tools (e.g. APIs, function, etc.) pre-defined under arklex/env/tools folder that you want to use for the chatbot. Each tool will be defined as a function decorated with @register_tool. The decorator includes the **description** - the purpose of the function, **slots** - the arguments needed for the function, **outputs** - expected result of the function. For more details, please refer to the arklex/env/tools/shopify/find_user_id_by_email.py as an example. The field required for each tool object is:
             * `id (Required, uuid)`: The unique id for the worker
             * `name (Required, Str)`: The tool function name. Such as `find_user_id_by_email`.
-            * `path (Required, Str)`: The file path of the worker start from the agentorg/env/tools folder. Such as `shopify/find_user_id_by_email.py`.
+            * `path (Required, Str)`: The file path of the worker start from the arklex/env/tools folder. Such as `shopify/find_user_id_by_email.py`.
             * `fixed_args (Optional, Dict)`: All the must and deterministic arguments for the tool function, such as credentials or already known argument during development. It should be a dictionary. Such as `{"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}`
 
 ## Build Chatbot
@@ -67,7 +67,7 @@ python run.py --input-dir ./examples/customer_service
   * `--input-dir`: The directory that contains the generated files
   * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
   
-* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUOpenAIAPI` and `SlotFillOpenAIAPI` services defined under `./agentorg/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
+* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUOpenAIAPI` and `SlotFillOpenAIAPI` services defined under `./arklex/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
 * Then it will start the chatbot and you could chat with the chatbot
 
 
@@ -101,4 +101,4 @@ python run.py --input-dir ./examples/customer_service
       * `--max_turns`: Maximum number of turns per conversation. Default is 5.
       * `--model`: The openai model type used to synthesize user's utterance. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
   
-  * For more details, check out the [Evaluation README](./agentorg/evaluation/README.md).
+  * For more details, check out the [Evaluation README](./arklex/evaluation/README.md).
