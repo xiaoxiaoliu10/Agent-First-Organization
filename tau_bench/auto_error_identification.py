@@ -1,5 +1,5 @@
 # Copyright Sierra
-
+import os
 import json
 import argparse
 from enum import Enum
@@ -17,7 +17,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--env", type=str, required=True, choices=["airline", "retail"], help="The environment that the original trajectories are from (used to fetch the user instructions)")
     parser.add_argument("--results-path", type=str, help="Path to the results file")
     parser.add_argument("--max-concurrency", type=int, default=1, help="Maximum number of concurrent API calls")
-    parser.add_argument("--output-path", type=str, required=True, help="Path to the output file")
+    parser.add_argument("--output-dir", type=str, required=True, help="Path to the output file")
     parser.add_argument("--max-num-failed-results", "-n", type=int, help="Maximum number of failed results to analyze")
     return parser.parse_args()
 
@@ -174,8 +174,7 @@ def fault_type_analysis(api: API, results: List[OriginalResult], max_concurrency
         results = list(executor.map(get_fault_type, task_ids, user_instructions, trajs, ground_truth_actions, ground_truth_outputs))
     return results
 
-def main() -> None:
-    args = get_args()
+def run_error_identification(args) -> None:
     api = default_api_from_args(args)
     with open(args.results_path, "r") as f:
         results = json.load(f)
@@ -219,12 +218,10 @@ Fault type distribution (only failures marked as being caused by the agent):
   - Goal partially completed: {sum(1 for r in fault_type_results if r.fault_type == FaultType.GOAL_PARTIALLY_COMPLETED)} ({round(sum(1 for r in fault_type_results if r.fault_type == FaultType.GOAL_PARTIALLY_COMPLETED) / len(fault_type_results) * 100, 2)}%)
   - Other: {sum(1 for r in fault_type_results if r.fault_type == FaultType.OTHER)} ({round(sum(1 for r in fault_type_results if r.fault_type == FaultType.OTHER) / len(fault_type_results) * 100, 2)}%)
 """)
-    with open(args.output_path, "w") as f:
+    tau_bench_analysis_file = os.path.join(args.output_dir, 'tau_bench_analysis.json')
+    with open(tau_bench_analysis_file, "w") as f:
         json.dump({
             "fault_assignment_analysis": [r.model_dump() for r in fault_assignment_results],
             "fault_type_analysis": [r.model_dump() for r in fault_type_results],
         }, f, indent=4)
-    print(f"Saved results to {args.output_path}")
-
-if __name__ == "__main__":
-    main()
+    print(f"Saved results to {args.output_dir}")
