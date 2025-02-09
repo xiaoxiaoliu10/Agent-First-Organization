@@ -12,7 +12,6 @@ if __name__ == "__main__":
     sys.argv += ['--env', 'retail']
     sys.argv += ['--platform', 'openai']
     sys.argv += ['--max-concurrency', '16']
-    sys.argv += ['--max-num-failed-results', '10']
     args = get_args()
     run_error_identification(args)
     
