@@ -3,16 +3,18 @@
 
 Agent First Organization provides a framework for developing **task-oriented dialogue agents** to complete complex tasks powered by LLMs. The framework is designed to be modular and extensible, allowing developers to customize workers/tools that can interact with each other in a variety of ways under the supervision of the orchestrator managed by *Taskgraph*. 
 
-# How to start?
-## Preparation
+# Installation
+```
+pip install arklex
+```
+
+# Preparation
 0. Set up environment
-    * Run on Python 3.10
     * Add `OPENAI_API_KEY` to `.env`
     * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional] (In order to use Trace function, you need to create a LangChain account from [here](https://langchain.com/) and create a API key in the settings.)
     * Set `LANGCHAIN_API_KEY` to `.env` if enable Trace.
     * If you are going to use the `SearchWorker`, you need to set up the `TAVILY_API_KEY` to `.env` as well. (In order to use Tavily, you need to create a Tavily account from [here](https://docs.tavily.com/) and create a API key by click [Get API Key](https://app.tavily.com/home).)
-1. Create venv and Install the dependencies by running `pip install -r requirements.txt`
-2. Create a config file, similar to the `project/examples/customer_service_config.json`
+1. Create a config file, similar to the `project/examples/customer_service_config.json`
     * The config file should contain the following fields:
         * `role (Required)`: The general role of the chatbot you want to create
         * `user_objective (Required)`: The user's goal that you want the chatbot to achieve. Describe in third person.
@@ -40,7 +42,7 @@ Agent First Organization provides a framework for developing **task-oriented dia
             * `path (Required, Str)`: The file path of the worker start from the arklex/env/tools folder. Such as `shopify/find_user_id_by_email.py`.
             * `fixed_args (Optional, Dict)`: All the must and deterministic arguments for the tool function, such as credentials or already known argument during development. It should be a dictionary. Such as `{"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}`
 
-## Build Chatbot
+# Build Chatbot
 > **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
 
 **1. Create Taskgraph and Initialize Worker**

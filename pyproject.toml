@@ -1,6 +1,6 @@
 [project]
 name = "arklex"
-version = "0.0.1"
+version = "0.0.3"
 description = "The official Python library for the arklex API"
 authors = [
   { name="Arklex.AI", email="support@arklex.ai" },
@@ -29,12 +29,12 @@ dependencies = [
   "python-multipart==0.0.12",
   "selenium==4.26.1",
   "textual==0.85.2",
-  "unstructured==0.16.4",
+  "unstructured>=0.16.4",
   "unstructured-client==0.27.0",
   "uvloop==0.21.0",
   "watchfiles==0.24.0",
   "websockets==13.1",
-  "faiss-cpu==1.9.0",
+  "faiss-cpu>=1.10.0",
   "tavily-python==0.5.0",
   "webdriver-manager==4.0.2",
   "scipy==1.14.1",
@@ -52,8 +52,8 @@ milvus = [
 shopify = ["ShopifyAPI==12.7.0"]
 
 [project.urls]
-Homepage = "https://github.com/ArticulateAI/Agent-First-Organization"
-Issues = "https://github.com/ArticulateAI/Agent-First-Organization/issues"
+Homepage = "https://github.com/arklexai/Agent-First-Organization"
+Issues = "https://github.com/arklexai/Agent-First-Organization/issues"
 
 [build-system]
 requires = ["hatchling"]
