@@ -2,10 +2,10 @@ import os
 import json
 import argparse
 
-from agentorg.evaluation.simulate_first_pass_convos import simulate_conversations
-from agentorg.evaluation.extract_conversation_info import extract_task_completion_metrics
-from agentorg.evaluation.simulate_second_pass_convos import get_labeled_convos
-from agentorg.utils.model_config import MODEL
+from arklex.evaluation.simulate_first_pass_convos import simulate_conversations
+from arklex.evaluation.extract_conversation_info import extract_task_completion_metrics
+from arklex.evaluation.simulate_second_pass_convos import get_labeled_convos
+from arklex.utils.model_config import MODEL
 
 
 def evaluate(config):
