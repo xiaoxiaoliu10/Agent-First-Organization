@@ -5,8 +5,8 @@ import json
 from copy import deepcopy
 from typing import List, Optional, Dict, Any
 
-from agentorg.orchestrator.orchestrator import AgentOrg
-from agentorg.env.env import Env
+from arklex.orchestrator.orchestrator import AgentOrg
+from arklex.env.env import Env
 
 # from tau_bench.envs.base import Env
 from tau_bench.agents.base import Agent

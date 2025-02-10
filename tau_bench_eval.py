@@ -12,12 +12,12 @@ from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
 
-from agentorg.orchestrator.orchestrator import AgentOrg
-from agentorg.utils.utils import init_logger
-from agentorg.utils.model_config import MODEL
-from agentorg.orchestrator.generator.generator import Generator
-from agentorg.env.env import DefaulResourceInitializer
-from agentorg.env.tools.tools import Tool
+from arklex.orchestrator.orchestrator import AgentOrg
+from arklex.utils.utils import init_logger
+from arklex.utils.model_config import MODEL
+from arklex.orchestrator.generator.generator import Generator
+from arklex.env.env import DefaulResourceInitializer
+from arklex.env.tools.tools import Tool
 
 from tau_bench.envs.retail.tools import ALL_TOOLS
 from tau_bench.envs import get_env
@@ -139,7 +139,7 @@ def start_apis():
     global nlu_process
     command = [
         "uvicorn",
-        "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
+        "arklex.orchestrator.NLU.api:app",  # Replace with proper import path
         "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "warning"
@@ -179,8 +179,8 @@ def run_tau_bench_eval(
         task_split=task_split,
         start_index=start_index,
         end_index=end_index,
-        task_ids=None,
-        # task_ids=[12],
+        # task_ids=None,
+        task_ids=[2, 3, 4, 5, 6, 7, 8, 9, 10],
         log_dir=log_dir,
         max_concurrency=max_concurrency,
         seed=seed,

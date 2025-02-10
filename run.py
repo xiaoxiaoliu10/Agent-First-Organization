@@ -87,7 +87,7 @@ if __name__ == "__main__":
     os.environ["DATA_DIR"] = args.input_dir
     MODEL["model_type_or_path"] = args.model
     log_level = getattr(logging, args.log_level.upper(), logging.WARNING)
-    logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "agentorg.log"))
+    logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "arklex.log"))
 
     # Initialize NLU and Slotfill APIs
     start_apis()
