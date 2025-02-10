@@ -180,7 +180,7 @@ def run_tau_bench_eval(
         start_index=start_index,
         end_index=end_index,
         task_ids=None,
-        # task_ids=[28],
+        # task_ids=[12],
         log_dir=log_dir,
         max_concurrency=max_concurrency,
         seed=seed,

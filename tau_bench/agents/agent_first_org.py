@@ -55,11 +55,10 @@ class AgentFirstOrg(Agent):
             {"role": "assistant", "content": self.start_message}
         ]
         params = {}
-
         user_text = obs
+        message_index = 1
         
         for _ in range(max_num_steps):
-            message_index = len(history)
             new_messages = []
             output, params = self.get_api_bot_response(deepcopy(history), user_text, params)
 
@@ -68,13 +67,17 @@ class AgentFirstOrg(Agent):
             history.append(user_message)
             history.append(assistant_message)
 
-            # new_messages.append(user_message)
             while message_index < len(params["history"]):
                 msg = params["history"][message_index]
-
+                
                 if not is_message_worker(msg):
-                    new_messages.append(msg)
-                    if msg.get("role") == "assistant":
+
+                    if is_assistant_with_tool_calls(msg) or \
+                        is_user(msg) or \
+                        is_tool(msg):
+                        new_messages.append(msg)
+                        
+                    if is_assistant_with_tool_calls(msg):
                         action = message_to_action(msg)
                         env_response = env.step(action)
                         reward = env_response.reward
@@ -105,6 +108,25 @@ class AgentFirstOrg(Agent):
         )
 
 
+def is_user(message):
+    if message.get("role") == "user":
+        return True
+    return False
+
+def is_tool(message):
+    if message.get("role") == "tool":
+        return True
+    return False
+
+def is_assistant_with_tool_calls(message):
+    if message.get("role") != "assistant": return False
+    if "tool_calls" not in message: return False
+    if message["tool_calls"] is None: return False
+    if len(message["tool_calls"]) == 0: return False
+    if "function" not in message["tool_calls"][0]: return False
+    if message["tool_calls"][0]["function"] is None: return False
+    return True
+
 def is_message_worker(message):
     if message.get("name") == "MessageWorker": return True
     if "tool_calls" not in message: return False
@@ -113,6 +135,8 @@ def is_message_worker(message):
     if "function" not in message["tool_calls"][0]: return False
     if message["tool_calls"][0]["function"] is None: return False
     return message["tool_calls"][0]["function"].get("name") == "MessageWorker"
+
+
 
 def message_to_action(
     message: Dict[str, Any],
