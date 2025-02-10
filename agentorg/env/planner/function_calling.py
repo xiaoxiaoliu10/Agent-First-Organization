@@ -63,13 +63,13 @@ class FunctionCallingPlanner:
         for _ in range(max_num_steps):
             logger.info(f"messages in function calling: {messages}")
             logger.info(f"tools_info in function calling: {self.tools_info}")
-             # issue with gemini: https://github.com/BerriAI/litellm/issues/7808
-            # another issue: Unable to convert openai tool calls to gemini tool calls: https://github.com/BerriAI/litellm/issues/6833
             litellm.modify_params = True
+            if MODEL['llm_provider'] == 'gemini' and len(self.tools_info)!=0:
+                self.tools_info = convert_to_gemini_tools(self.tools_info)
             if not self.tools_info:
                 res = completion(
                     messages=messages,
-                    model=MODEL["model_type_or_path"],
+                    model=MODEL['model_type_or_path'],
                     custom_llm_provider=MODEL["llm_provider"],
                     temperature=0.0
                 )
@@ -141,3 +141,25 @@ class FunctionCallingPlanner:
         msg_history, action, response = self.plan(msg_state, msg_history)
         msg_state['response'] = response
         return action, msg_state, msg_history
+
+
+def convert_to_gemini_tools(tools):
+    converted_tools = {
+        "tools": [
+            {
+                "function_declarations": []
+            }
+        ]
+    }
+    for tool in tools:
+        if 'function' in tool:
+            converted_tool = {
+                "name": tool["function"]["name"],
+                "description": tool["function"]["description"],
+                "parameters": tool["function"]["parameters"]
+            }
+            converted_tools["tools"][0]["function_declarations"].append(converted_tool)
+        else:
+            converted_tools["tools"].append(tool)
+
+    return converted_tools

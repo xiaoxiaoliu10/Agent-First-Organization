@@ -58,7 +58,8 @@ class SlotFilling:
         
         data = {
             "slots": [slot.dict() for slot in slots],
-            "chat_history_str": chat_history_str
+            "chat_history_str": chat_history_str,
+            "model":MODEL
         }
         if self.url:
             logger.info(f"Using Slot Filling API to predict the slots")
