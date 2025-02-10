@@ -6,7 +6,7 @@ Agent First Organization provides a framework for developing **task-oriented dia
 # Installation
 ```
 # install from PyPI
-pip install openai
+pip install arklex
 ```
 
 # Preparation
