@@ -11,11 +11,11 @@ from pprint import pprint
 
 import shopify
 
-from agentorg.utils.utils import init_logger
-from agentorg.orchestrator.orchestrator import AgentOrg
+from arklex.utils.utils import init_logger
+from arklex.orchestrator.orchestrator import AgentOrg
 # from create import API_PORT
-from agentorg.utils.model_config import MODEL
-from agentorg.env.env import Env
+from arklex.utils.model_config import MODEL
+from arklex.env.env import Env
 
 API_PORT = "55135"
 load_dotenv()
@@ -59,7 +59,7 @@ def start_apis():
     global process
     command = [
         "uvicorn",
-        "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
+        "arklex.orchestrator.NLU.api:app",  # Replace with proper import path
         "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "info"
@@ -118,7 +118,7 @@ if __name__ == "__main__":
                 break
             start_time = time.time()
             output, params = get_api_bot_response(args, history, user_text, params, env)
-            print(params["history"])
+            # print(params["history"])
             history.append({"role": user_prefix, "content": user_text})
             history.append({"role": worker_prefix, "content": output})
             print(f"getAPIBotResponse Time: {time.time() - start_time}")

@@ -9,15 +9,18 @@ import json
 from http import HTTPStatus
 import argparse
 
+from arklex.env.env import Env
 import uvicorn
 
 from openai import OpenAI
 from fastapi import FastAPI, Response
 
-from agentorg.orchestrator.orchestrator import AgentOrg
+from arklex.orchestrator.orchestrator import AgentOrg
 from create import API_PORT
-from agentorg.utils.model_config import MODEL
+from arklex.utils.model_config import MODEL
 
+NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu"
+SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill"
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
@@ -53,9 +56,9 @@ signal.signal(signal.SIGINT, lambda signum, frame: exit(0))
 signal.signal(signal.SIGTERM, lambda signum, frame: exit(0))
 
 
-def get_api_bot_response(args, history, user_text, parameters):
+def get_api_bot_response(args, history, user_text, parameters, env):
     data = {"text": user_text, 'chat_history': history, 'parameters': parameters}
-    orchestrator = AgentOrg(config=os.path.join(args.input_dir, "taskgraph.json"))
+    orchestrator = AgentOrg(config=os.path.join(args.input_dir, "taskgraph.json"), env=env)
     result = orchestrator.get_response(data)
 
     return result['answer'], result['parameters']
@@ -67,7 +70,7 @@ def start_apis():
     
     command = [
         "uvicorn",
-        "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
+        "arklex.orchestrator.NLU.api:app",  # Replace with proper import path
         "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "info"
@@ -88,8 +91,16 @@ def start_apis():
 def predict(data: Dict):
     history = data['history']
     params = data['parameters']
+    workers = data['workers']
+    tools = data['tools']
     user_text = history[-1]['content']
-    answer, params = get_api_bot_response(args, history[:-1], user_text, params)
+
+    env = Env(
+        tools = tools,
+        workers = workers,
+        slotsfillapi = SLOTFILLAPI_ADDR
+    )
+    answer, params = get_api_bot_response(args, history[:-1], user_text, params, env)
     return {"answer": answer, "parameters": params}
 
 
