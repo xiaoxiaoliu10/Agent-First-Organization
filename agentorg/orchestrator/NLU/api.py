@@ -38,7 +38,10 @@ class NLUModelAPI ():
             genai.configure(api_key=os.environ["GEMINI_API_KEY"])
             llm = genai.GenerativeModel(
                 f"models/{model['model_type_or_path']}",
-                system_instruction=sys_prompt)
+                system_instruction=sys_prompt,
+                 generation_config=genai.GenerationConfig(
+                temperature = 0.7, candidate_count = 1, response_mime_type = ' application/json' if response_format == "json" else 'text/plain'
+                ))
             response = llm.generate_content(" ").text
         else:
             res = completion(
@@ -137,14 +140,14 @@ class SlotFillModelAPI():
         self.user_prefix = "user"
         self.assistant_prefix = "assistant"
 
-    def get_response(self, sys_prompt, debug_text="none", params=MODEL, text=""):
+    def get_response(self, sys_prompt,model, debug_text="none", text=" "):
         logger.info(f"gpt system_prompt for {debug_text} is \n{sys_prompt}")
         dialog_history = [{"role": "system", "content": sys_prompt}]
         res = completion(
-            model=MODEL["model_type_or_path"],
-            custom_llm_provider=MODEL["llm_provider"],
+            model=model["model_type_or_path"],
+            custom_llm_provider=model["llm_provider"],
             response_format=Slots,
-            **format_messages_by_provider(dialog_history, text),
+            **format_messages_by_provider(dialog_history, text, model),
             n=1,
             temperature = 0.7,
         )
@@ -167,7 +170,8 @@ class SlotFillModelAPI():
     def predict(
         self,
         slots,
-        chat_history_str
+        chat_history_str,
+        model
     ):
         slots = [Slot(**slot_data) for slot_data in slots]
         system_prompt = self.format_input(
@@ -175,7 +179,7 @@ class SlotFillModelAPI():
         )
         user_input =  chat_history_str.splitlines()[-1].split('user:')[-1].strip()
         response = self.get_response(
-            system_prompt, debug_text="get slots", text=user_input
+            system_prompt,model, debug_text="get slots", text=user_input
         )
         if not response:
             logger.info(f"Failed to update dialogue states")

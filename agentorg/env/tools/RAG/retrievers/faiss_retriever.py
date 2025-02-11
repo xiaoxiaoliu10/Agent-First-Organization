@@ -9,6 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from agentorg.utils.model_config import MODEL
 from agentorg.utils.model_provider_config import PROVIDER_MAP
@@ -50,9 +51,14 @@ class FaissRetrieverExecutor:
 
     def _init_retriever(self, **kwargs):
         # initiate FAISS retriever
-        embedding_model = OpenAIEmbeddings(
-            model=self.embedding_model_name,
-        )
+        if MODEL['llm_provider'] == 'gemini':
+            embedding_model = GoogleGenerativeAIEmbeddings(
+                model=self.embedding_model_name,
+            )
+        else:
+            embedding_model = OpenAIEmbeddings(
+                model=self.embedding_model_name,
+            )
         docsearch = FAISS.from_documents(self.texts, embedding_model)
         retriever = docsearch.as_retriever(**kwargs)
         return retriever     
