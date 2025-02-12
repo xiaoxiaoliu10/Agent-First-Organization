@@ -15,14 +15,14 @@ const config = {
   favicon: 'img/articulateai.png',
 
   // Set the production url of your site here
-  url: 'https://articulateai.github.io',
+  url: 'https://arklexai.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/Agent-First-Organization/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'articulateai', // Usually your GitHub org/user name.
+  organizationName: 'arklexai', // Usually your GitHub org/user name.
   projectName: 'Agent-First-Organization', // Usually your repo name.
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
@@ -53,7 +53,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/ArticulateAI/Agent-First-Organization/tree/v0.0.1/docs',
+            'https://github.com/arklexai/Agent-First-Organization/tree/main/docs',
         },
         blog: {
           showReadingTime: true,
@@ -64,7 +64,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/ArticulateAI/Agent-First-Organization/tree/v0.0.1/docs',
+            'https://github.com/arklexai/Agent-First-Organization/tree/main/docs',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -94,7 +94,7 @@ const config = {
           // {to: '/blog', label: 'Blog', position: 'left'},
           {
             "aria-label": 'Discord Invite',
-            href: 'https://github.com/ArticulateAI/Agent-First-Organization',
+            href: 'https://github.com/arklexai/Agent-First-Organization',
             className: 'navbar--github-link',
             position: 'right',
           },
@@ -123,7 +123,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/ArticulateAI/Agent-First-Organization',
+                href: 'https://github.com/arklexai/Agent-First-Organization',
               },
               {
                 label: 'Discord',
