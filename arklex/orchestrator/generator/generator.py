@@ -9,6 +9,7 @@ import pickle
 from pathlib import Path
 import inspect
 import importlib
+from typing import Optional
 
 from langchain.prompts import PromptTemplate
 from langchain_openai.chat_models import ChatOpenAI
@@ -23,6 +24,7 @@ from textual.widgets.tree import TreeNode
 from arklex.utils.utils import postprocess_json
 from arklex.orchestrator.generator.prompts import *
 from arklex.utils.loader import Loader
+from arklex.env.env import BaseResourceInitializer, DefaulResourceInitializer
 
 
 logger = logging.getLogger(__name__)
@@ -160,8 +162,12 @@ class TaskEditorApp(App):
         logger.debug(log_message)
 
 
+
+
 class Generator:
-    def __init__(self, args, config, model, output_dir):
+    def __init__(self, args, config, model, output_dir, resource_inizializer: Optional[BaseResourceInitializer]  = None):
+        if resource_inizializer is None:
+            resource_inizializer = DefaulResourceInitializer()
         self.args = args
         self.product_kwargs = json.load(open(config))
         self.role = self.product_kwargs.get("role")
@@ -171,55 +177,11 @@ class Generator:
         self.task_docs = self.product_kwargs.get("task_docs") 
         self.rag_docs = self.product_kwargs.get("rag_docs") 
         self.tasks = self.product_kwargs.get("tasks")
-        self.workers = self._init_workers(self.product_kwargs.get("workers"))
-        self.tools = self._init_tools(self.product_kwargs.get("tools"))
+        self.workers = resource_inizializer.init_workers(self.product_kwargs.get("workers"))
+        self.tools = resource_inizializer.init_tools(self.product_kwargs.get("tools"))
         self.model = model
         self.timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         self.output_dir = output_dir
-    
-    def _init_tools(self, tools):
-        # return dict of valid tools with name and description
-        tool_registry = {}
-        for tool in tools:
-            tool_id = tool["id"]
-            name = tool["name"]
-            path = tool["path"]
-            try: # try to import the tool to check its existance
-                filepath = os.path.join("arklex.env.tools", path)
-                module_name = filepath.replace(os.sep, ".").rstrip(".py")
-                module = importlib.import_module(module_name)
-                func = getattr(module, name)
-            except Exception as e:
-                logger.error(f"Tool {name} is not registered, error: {e}")
-            tool_name = func().name
-            tool_desc = func().description
-            tool_registry[tool_id] = {
-                "name": tool_name,
-                "description": tool_desc
-            }
-        return tool_registry
-    
-    def _init_workers(self, workers):
-        worker_registry = {}
-        for worker in workers:
-            worker_id = worker["id"]
-            name = worker["name"]
-            path = worker["path"]
-            try: # try to import the worker to check its existance
-                filepath = os.path.join("arklex.env.workers", path)
-                module_name = filepath.replace(os.sep, ".").rstrip(".py")
-                module = importlib.import_module(module_name)
-                func = getattr(module, name)
-            except Exception as e:
-                logger.error(f"Worker {name} is not registered, error: {e}")
-            worker_name = name
-            worker_desc = func().description
-            worker_registry[worker_id] = {
-                "name": worker_name,
-                "description": worker_desc,
-                "function": func
-            }
-        return worker_registry
     
     
     def _generate_tasks(self):
@@ -247,7 +209,7 @@ class Generator:
         for worker_id, worker_info in self.workers.items():
             worker_name = worker_info["name"]
             worker_desc = worker_info["description"]
-            worker_func = worker_info["function"]
+            worker_func = worker_info["execute"]
             # Retrieve all methods of the class
             skeleton = {}
             for name, method in inspect.getmembers(worker_func, predicate=inspect.isfunction):

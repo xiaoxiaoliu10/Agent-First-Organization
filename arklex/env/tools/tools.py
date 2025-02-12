@@ -54,7 +54,7 @@ class Tool:
     def get_info(self, slots):
         self.properties = {}
         for slot in slots:
-            self.properties[slot["name"]] = {k: v for k, v in slot.items() if k == "type" or k == "description" or k == "prompt"}
+            self.properties[slot["name"]] = {k: v for k, v in slot.items() if k in ["type", "description", "prompt", "items"]}
         required = [slot["name"] for slot in slots if slot.get("required", False)]
         return {
             "type": "function",
