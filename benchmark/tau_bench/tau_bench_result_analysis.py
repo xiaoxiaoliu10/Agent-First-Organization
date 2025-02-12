@@ -8,6 +8,9 @@ from benchmark.tau_bench.auto_error_identification import get_args, run_error_id
 load_dotenv()
 
 if __name__ == "__main__":
+    '''
+    Provide --results-path and --output-dir
+    '''
     sys.argv += ['--env', 'retail']
     sys.argv += ['--platform', 'openai']
     sys.argv += ['--max-concurrency', '16']

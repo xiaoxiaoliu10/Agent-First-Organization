@@ -196,6 +196,9 @@ def run_tau_bench_eval(
 
 
 if __name__ == "__main__":
+    '''
+        Provide --output-dir
+    '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--output-dir', type=str, default="./examples/tau_bench")
     parser.add_argument('--num-trials', type=int, default=1)

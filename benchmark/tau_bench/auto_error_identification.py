@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 def get_args() -> argparse.Namespace:
     parser = api_parser()
     parser.add_argument("--env", type=str, required=True, choices=["airline", "retail"], help="The environment that the original trajectories are from (used to fetch the user instructions)")
-    parser.add_argument("--results-path", type=str, help="Path to the results file")
+    parser.add_argument("--results-path", type=str, required=True, help="Path to the results file")
     parser.add_argument("--max-concurrency", type=int, default=1, help="Maximum number of concurrent API calls")
     parser.add_argument("--output-dir", type=str, required=True, help="Path to the output file")
     parser.add_argument("--max-num-failed-results", "-n", type=int, help="Maximum number of failed results to analyze")
