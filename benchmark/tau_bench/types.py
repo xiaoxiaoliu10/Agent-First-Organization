@@ -83,4 +83,5 @@ class RunConfig(BaseModel):
     seed: int = 10
     shuffle: int = 0
     user_strategy: str = "llm"
+    output_dir: str
     taskgraph_dir: str

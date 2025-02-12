@@ -24,8 +24,7 @@ def run(config: RunConfig) -> List[EnvRunResult]:
     assert config.user_strategy in [item.value for item in UserStrategy], "Invalid user strategy"
 
     random.seed(config.seed)
-    time_str = datetime.now().strftime("%m%d%H%M%S")
-    ckpt_path = f"{config.log_dir}/agent-first-organization_range-{config.start_index}-{config.end_index}_user-{config.user_model}-{config.user_strategy}_{time_str}.json"
+    ckpt_path = f"{config.output_dir}/tau_bench_evaluation.json"
     if not os.path.exists(config.log_dir):
         os.makedirs(config.log_dir)
 
@@ -96,9 +95,6 @@ def run(config: RunConfig) -> List[EnvRunResult]:
             print("-----")
             with lock:
                 data = []
-                if os.path.exists(ckpt_path):
-                    with open(ckpt_path, "r") as f:
-                        data = json.load(f)
                 with open(ckpt_path, "w") as f:
                     json.dump(data + [result.model_dump()], f, indent=2)
             return result
@@ -107,10 +103,17 @@ def run(config: RunConfig) -> List[EnvRunResult]:
             res = list(executor.map(_run, idxs))
             results.extend(res)
 
-    display_metrics(results)
+    avg_reward, pass_hat_ks = get_metrics(results)
+    display_metrics(avg_reward, pass_hat_ks)
 
+    tasks_res = [result.model_dump() for result in results]
     with open(ckpt_path, "w") as f:
-        json.dump([result.model_dump() for result in results], f, indent=2)
+        tau_bench_evaluation = {
+            "Average reward": avg_reward,
+            "Pass^k": pass_hat_ks,
+            "Tasks Results": tasks_res
+        }
+        json.dump(tau_bench_evaluation, f, indent=2)
         print(f"\n📄 Results saved to {ckpt_path}\n")
     return results
 
@@ -120,7 +123,7 @@ def agent_factory(config: RunConfig) -> Agent:
     return AgentFirstOrg(taskgraph_dir=config.taskgraph_dir)
 
 
-def display_metrics(results: List[EnvRunResult]) -> None:
+def get_metrics(results: List[EnvRunResult]):
     def is_successful(reward: float) -> bool:
         return (1 - 1e-6) <= reward <= (1 + 1e-6)
 
@@ -140,7 +143,11 @@ def display_metrics(results: List[EnvRunResult]) -> None:
         for c in c_per_task_id.values():
             sum_task_pass_hat_k += comb(c, k) / comb(num_trials, k)
         pass_hat_ks[k] = sum_task_pass_hat_k / len(c_per_task_id)
+    return avg_reward, pass_hat_ks
+
+def display_metrics(avg_reward, pass_hat_ks) -> None:
     print(f"🏆 Average reward: {avg_reward}")
     print("📈 Pass^k")
     for k, pass_hat_k in pass_hat_ks.items():
         print(f"  k={k}: {pass_hat_k}")
+    

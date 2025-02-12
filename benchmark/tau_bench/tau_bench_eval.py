@@ -148,7 +148,7 @@ def start_apis():
     ]
 
     # Redirect FastAPI logs to a file
-    with open("./logs/api.log", "w") as log_file:
+    with open(os.path.join(root_dir, "logs", "api.log"), "w") as log_file:
         nlu_process = subprocess.Popen(
             command,
             stdout=log_file,  # Redirect stdout to a log file
@@ -159,6 +159,7 @@ def start_apis():
 
 def run_tau_bench_eval(
         taskgraph_dir,
+        output_dir,
         num_trials,
         task_ids,
         env,
@@ -169,7 +170,6 @@ def run_tau_bench_eval(
  
     start_index = 0
     end_index = -1
-    log_dir="results"
     seed=10
     shuffle=0
     
@@ -183,7 +183,7 @@ def run_tau_bench_eval(
         start_index=start_index,
         end_index=end_index,
         task_ids=task_ids,
-        log_dir=log_dir,
+        output_dir=output_dir,
         max_concurrency=max_concurrency,
         seed=seed,
         shuffle=shuffle,
@@ -214,6 +214,7 @@ if __name__ == "__main__":
     os.makedirs(os.path.join(args.output_dir, 'temp'), exist_ok=True)
 
     temp_output_dir = os.path.join(args.output_dir, 'temp')
+    eval_output_dir = os.path.join(args.output_dir, 'eval')
 
     MODEL["model_type_or_path"] = args.model
     log_level = getattr(logging, args.log_level.upper(), logging.INFO)
@@ -226,6 +227,7 @@ if __name__ == "__main__":
     start_apis()
     run_tau_bench_eval(
         taskgraph_dir=temp_output_dir,
+        output_dir=eval_output_dir,
         num_trials=args.num_trials,
         env=args.env,
         task_ids=args.task_ids
