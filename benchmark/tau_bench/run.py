@@ -109,9 +109,9 @@ def run(config: RunConfig) -> List[EnvRunResult]:
     tasks_res = [result.model_dump() for result in results]
     with open(ckpt_path, "w") as f:
         tau_bench_evaluation = {
-            "Average reward": avg_reward,
-            "Pass^k": pass_hat_ks,
-            "Tasks Results": tasks_res
+            "average_reward": avg_reward,
+            "pass_k": pass_hat_ks,
+            "task_results": tasks_res
         }
         json.dump(tau_bench_evaluation, f, indent=2)
         print(f"\n📄 Results saved to {ckpt_path}\n")

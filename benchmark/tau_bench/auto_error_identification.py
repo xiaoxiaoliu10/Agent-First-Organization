@@ -178,6 +178,8 @@ def run_error_identification(args) -> None:
     api = default_api_from_args(args)
     with open(args.results_path, "r") as f:
         results = json.load(f)
+        if isinstance(results, dict):
+            results = results["task_results"]
     print(f"Loaded {len(results)} results")
     env = args.env
     if env == "airline":
