@@ -191,12 +191,13 @@ class SlotFillModelAPI():
     def verify(
         self,
         slot: dict,
-        chat_history_str
+        chat_history_str,
+        model
     ) -> Verification:
         reformat_slot = {key: value for key, value in slot.items() if key in ["name", "type", "value", "enum", "description", "required"]}
         system_prompt = f"Given the conversation, definition and extracted value of each dialog state, decide whether the following dialog states values need further verification from the user. If there is a list of enum value, which means the value has to be chosen from the enum list. Only Return boolean value: True or False. \nDialogue Statues:\n{reformat_slot}\nConversation:\n{chat_history_str}\n\n"
         response = self.get_response(
-            system_prompt, debug_text="verify slots", format=Verification
+            system_prompt, model,debug_text="verify slots", format=Verification
         )
         if not response: # no need to verification, we want to make sure it is really confident that we need to ask the question again
             logger.info(f"Failed to verify dialogue states")

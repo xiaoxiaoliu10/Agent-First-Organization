@@ -9,12 +9,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from langchain_community.vectorstores.faiss import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
 
 from arklex.utils.model_config import MODEL
 from arklex.env.prompts import load_prompts
 from arklex.utils.graph_state import MessageState
-from arklex.utils.model_provider_config import PROVIDER_MAP
+from arklex.utils.model_provider_config import PROVIDER_MAP, PROVIDER_EMBEDDINGS, PROVIDER_EMBEDDING_MODELS
 
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class FaissRetrieverExecutor:
             self, 
             texts: List[Document], 
             index_path: str,
-            embedding_model_name: str = "text-embedding-ada-002", 
+            embedding_model_name: str =  PROVIDER_EMBEDDING_MODELS[MODEL['llm_provider']]
         ):
         self.texts = texts
         self.index_path = index_path
@@ -51,14 +51,9 @@ class FaissRetrieverExecutor:
 
     def _init_retriever(self, **kwargs):
         # initiate FAISS retriever
-        if MODEL['llm_provider'] == 'gemini':
-            embedding_model = GoogleGenerativeAIEmbeddings(
-                model=self.embedding_model_name,
-            )
-        else:
-            embedding_model = OpenAIEmbeddings(
-                model=self.embedding_model_name,
-            )
+        embedding_model = PROVIDER_EMBEDDINGS.get(MODEL['llm_provider'], OpenAIEmbeddings)(
+            model=self.embedding_model_name
+        )
         docsearch = FAISS.from_documents(self.texts, embedding_model)
         retriever = docsearch.as_retriever(**kwargs)
         return retriever     

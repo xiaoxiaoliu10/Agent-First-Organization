@@ -56,7 +56,8 @@ class SlotFilling:
         logger.info(f"verify slot: {slot}")
         data = {
             "slot": slot.model_dump(),
-            "chat_history_str": chat_history_str
+            "chat_history_str": chat_history_str,
+            "model":MODEL
         }
         if self.url:
             logger.info(f"Using Slot Filling API to verify the slot")

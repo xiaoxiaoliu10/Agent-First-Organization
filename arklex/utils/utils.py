@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 from logging.handlers import RotatingFileHandler
-from agentorg.utils.model_config import MODEL
+from arklex.utils.model_config import MODEL
 
 import tiktoken
 import Levenshtein
