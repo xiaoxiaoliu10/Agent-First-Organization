@@ -153,7 +153,7 @@ class SlotFillModelAPI():
             temperature = 0.7,
         )
         res.choices[0].message.refusal = None 
-        parsed = parse_chat_completion(response_format=Slots,
+        parsed = parse_chat_completion(response_format=format,
                                     input_tools = NOT_GIVEN,
                                  chat_completion=res)
         
