@@ -10,8 +10,8 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Agent First Organization',
-  tagline: 'A New Generation of AI Agents with the capability of',
+  title: 'Arklex AI Agent Framework',
+  tagline: `Blends structured AI workflows with adaptive agents, and delivers reliability, control, and efficiency for complex tasks.`,
   favicon: 'img/articulateai.png',
 
   // Set the production url of your site here
@@ -76,82 +76,11 @@ const config = {
       }),
     ],
   ],
-
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
-      // Replace with your project's social card
-      image: 'img/articulateai.png',
-      navbar: {
-        title: 'Home',
-        items: [
-          {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Docs',
-          },
-          // {to: '/blog', label: 'Blog', position: 'left'},
-          {
-            "aria-label": 'Discord Invite',
-            href: 'https://github.com/arklexai/Agent-First-Organization',
-            className: 'navbar--github-link',
-            position: 'right',
-          },
-          {
-            "aria-label": 'Discord Invite',
-            href: 'https://discord.gg/jpZs3GqnTG',
-					  className: 'navbar--discord-link',
-            position: 'right',
-          },
-        ],
-      },
-      footer: {
-        style: 'dark',
-        links: [
-          {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Tutorial',
-                to: '/docs/tutorials/customer-service',
-              },
-            ],
-          },
-          {
-            title: 'Community',
-            items: [
-              {
-                label: 'GitHub',
-                href: 'https://github.com/arklexai/Agent-First-Organization',
-              },
-              {
-                label: 'Discord',
-                href: 'https://discord.gg/jpZs3GqnTG',
-              },
-            ],
-          },
-          // {
-          //   title: 'More',
-          //   items: [
-          //     {
-          //       label: 'Blog',
-          //       to: '/blog',
-          //     },
-          //     {
-          //       label: 'GitHub',
-          //       href: 'https://github.com/facebook/docusaurus',
-          //     },
-          //   ],
-          // },
-        ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
-      },
-      prism: {
-        theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
-      },
-    }),
+  themeConfig: {
+    colorMode: {
+      disableSwitch: true, // Disables the theme toggle button
+    },
+  },
 
     scripts: [
       {
