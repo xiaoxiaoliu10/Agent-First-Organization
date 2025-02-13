@@ -81,8 +81,22 @@ export default function Home() {
       <HomepageHeader />
       <main>
         <div style={{ margin: '20px 8%'}}>
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '50px 0'}}>
-            <img src={arklexDiagram} alt="Arklex Diagram" width="60%" />
+          <div className='row' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '50px 0'}}>
+            <div className='col col--6'>
+              <img src={arklexDiagram} alt="Arklex Diagram" />
+            </div>
+            <div className='col col--6'>
+              <iframe 
+                width="100%"
+                height='300px'
+                src="https://www.loom.com/embed/f5a45bcc8c834ec998083eaf7793a912?sid=7525fc12-ffd2-403c-9623-cab087bb2ced" 
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen
+                webkitallowfullscreen>
+              </iframe>
+            </div>
           </div>
           <p >AI is no longer just about automation—it’s about intelligent collaboration between humans and machines. 
           Arklex redefines AI agents by ensuring goal alignment, structured decision-making, and continuous adaptability. 
