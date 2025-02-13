@@ -40,11 +40,11 @@ function HomepageHeader() {
               </Link>
             </div>
             <div className={styles.buttons}>
-              <Link
+              <button
                 className="button button--secondary button--lg"
-                to="/docs/tutorials/customer-service">
+                onClick={() => window.location.href = "https://www.arklex.ai/qa/open-source/docs/intro"}>
                 Documentation
-              </Link>
+              </button>
             </div>
           </div>
           
