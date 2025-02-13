@@ -64,8 +64,6 @@ class FunctionCallingPlanner:
             logger.info(f"messages in function calling: {messages}")
             logger.info(f"tools_info in function calling: {self.tools_info}")
             litellm.modify_params = True
-            if MODEL['llm_provider'] == 'gemini' and len(self.tools_info)!=0:
-                self.tools_info = convert_to_gemini_tools(self.tools_info)
             if not self.tools_info:
                 res = completion(
                     messages=messages,
@@ -78,7 +76,7 @@ class FunctionCallingPlanner:
                     messages=messages,
                     model=MODEL["model_type_or_path"],
                     custom_llm_provider=MODEL["llm_provider"],
-                    tools=self.tools_info,
+                    tools= convert_to_gemini_tools(self.tools_info) if MODEL['llm_provider'] == 'gemini' else self.tools_info,
                     temperature=0.0
                 )
             next_message = res.choices[0].message.model_dump()
