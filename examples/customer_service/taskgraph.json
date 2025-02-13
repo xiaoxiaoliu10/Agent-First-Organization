@@ -872,6 +872,6 @@
         }
     ],
     "tools": [],
-    "nluapi": "http://localhost:55135/nlu",
-    "slotfillapi": "http://localhost:55135/slotfill"
+    "nluapi": "",
+    "slotfillapi": ""
 }
