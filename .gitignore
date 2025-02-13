@@ -42,3 +42,5 @@ Thumbs.db
 .bashrc
 .env
 temp_files
+
+results/

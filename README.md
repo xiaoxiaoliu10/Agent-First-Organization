@@ -1,4 +1,8 @@
 # Agent First Organization
+
+[![PyPI version](https://img.shields.io/pypi/v/arklex.svg)](https://pypi.org/project/arklex)
+![Python version](https://img.shields.io/pypi/pyversions/arklex)
+
 :pencil2: <a href="https://www.arklex.ai/qa/open-source">Documentations</a>
 
 Agent First Organization provides a framework for developing **task-oriented dialogue agents** to complete complex tasks powered by LLMs. The framework is designed to be modular and extensible, allowing developers to customize workers/tools that can interact with each other in a variety of ways under the supervision of the orchestrator managed by *Taskgraph*. 
