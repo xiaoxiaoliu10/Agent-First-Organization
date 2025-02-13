@@ -52,7 +52,7 @@ html[data-theme='dark'] .navbar--github-link:before {
 }
 
 .hero {
-	height: 70vh;
+	min-height: 70vh;
 }
 
 .margin-left-sm {
@@ -66,8 +66,26 @@ html[data-theme='dark'] .navbar--github-link:before {
 	width: 330px;
 }
 
+.button-small {
+	display: flex;
+	align-items: center;
+	justify-content: start;
+	width: 330px;
+	padding-left: 80px;
+	padding-right: 80px;
+}
+
 .black-button {
 	background-color: black;
 	border-color: black;
 }
 
+.responsive-margin {
+	margin: 0 13vw;
+}
+
+@media (max-width: 480px) {
+	.responsive-margin {
+	  margin: 0;
+	}
+  }

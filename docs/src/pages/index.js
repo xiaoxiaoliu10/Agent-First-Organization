@@ -19,20 +19,13 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <br></br>
         <br></br>
-        <div className="row" style={{ margin: '0 13vw'}}>
-          <div className={clsx('col col--6')} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className={styles.buttons}>
-              <Link
-                className="button button--secondary button--lg"
-                to="/docs/tutorials/customer-service">
-                Basic Tutorial - 5min ⏱️
-              </Link>
-            </div>
+        <div className="row responsive-margin">
+          <div className={clsx('col col--6')} style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '20px' }}>
             <div className={styles.buttons}>
               <Link
                 // className={styles.pythonButton}
                 className='button button--secondary button--lg black-button'
-                to="">
+                href='https://pypi.org/project/arklex/'>
                   <svg height="20" preserveAspectRatio="xMidYMid" viewBox="0 0 256 255" width="20" xmlns="http://www.w3.org/2000/svg">
                     <linearGradient id="a" x1="12.959359%" x2="79.638833%" y1="12.039393%" y2="78.200854%">
                       <stop offset="0" stop-color="#387eb8"/><stop offset="1" stop-color="#366994"/>
@@ -46,10 +39,17 @@ function HomepageHeader() {
                   <span className={styles.pythonButtonText}>pip install arklex</span>
               </Link>
             </div>
+            <div className={styles.buttons}>
+              <Link
+                className="button button--secondary button--lg"
+                to="/docs/tutorials/customer-service">
+                Documentation
+              </Link>
+            </div>
           </div>
           
           <div className={clsx('col col--6')} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div className={styles.buttons}>
+            <div className={styles.buttons} style={{ alignItems: 'start'}}>
               <Link
                 className="button button--secondary button--lg button-small"
                 href='https://github.com/arklexai/Agent-First-Organization'>
@@ -80,8 +80,19 @@ export default function Home() {
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
       <main>
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '50px 0' }}>
-          <img src={arklexDiagram} alt="Arklex Diagram" width="60%" />
+        <div style={{ margin: '20px 8%'}}>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '50px 0'}}>
+            <img src={arklexDiagram} alt="Arklex Diagram" width="60%" />
+          </div>
+          <p >AI is no longer just about automation—it’s about intelligent collaboration between humans and machines. 
+          Arklex redefines AI agents by ensuring goal alignment, structured decision-making, and continuous adaptability. 
+          As AI continues to transform industries, Arklex stands at the forefront of the next-generation AI revolution. </p>
+          <div style={{ display: 'flex', justifyContent: 'center'}}>
+            <Link className='button button--secondary button--md'
+            href='https://www.arklex.ai/qa/blogs/57526a0e-7803-4452-96f3-53995394accd'>
+              Read more 🚀
+            </Link>
+          </div>
         </div>
         <HomepageFeatures />
       </main>
