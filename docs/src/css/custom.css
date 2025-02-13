@@ -52,7 +52,7 @@ html[data-theme='dark'] .navbar--github-link:before {
 }
 
 .hero {
-	min-height: 70vh;
+	min-height: 80vh;
 }
 
 .margin-left-sm {
