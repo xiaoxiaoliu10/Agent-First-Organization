@@ -40,7 +40,7 @@ class NLU:
 
         with ls.trace(name=TraceRunName.NLU, inputs=data) as rt:
             rt.end(
-                outputs=pred_intent,
+                outputs={"pred_intent": pred_intent},
                 metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id")}
             )
         return pred_intent
