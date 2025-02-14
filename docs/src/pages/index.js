@@ -97,9 +97,9 @@ export default function Home() {
               </iframe>
             </div>
           </div>
-          <p >AI is no longer just about automation—it’s about intelligent collaboration between humans and machines. 
-          Arklex redefines AI agents by ensuring goal alignment, structured decision-making, and continuous adaptability. 
-          As AI continues to transform industries, Arklex stands at the forefront of the next-generation AI revolution. </p>
+            <p style={{textAlign: "center"}}>AI is no longer just about automation—it’s about intelligent collaboration between humans and machines. 
+            Arklex redefines AI agents by ensuring goal alignment, structured decision-making, and continuous adaptability. 
+            As AI continues to transform industries, Arklex stands at the forefront of the next-generation AI revolution. </p>
           <div style={{ display: 'flex', justifyContent: 'center'}}>
             <Link className='button button--secondary button--md'
             href='https://www.arklex.ai/qa/blogs/57526a0e-7803-4452-96f3-53995394accd'>
