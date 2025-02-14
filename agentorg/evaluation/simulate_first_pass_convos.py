@@ -1,6 +1,6 @@
 import json
 import random
-from agentorg.evaluation.get_documents import load_docs
+from agentorg.evaluation.build_user_profiles import build_profile
 from agentorg.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, adjust_goal,
                                                flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
 
@@ -11,10 +11,10 @@ def check_goal_completion(goal, convo):
     output = chatgpt_chatbot([{'role': 'user', 'content': prompt}])
     return output == "True"
 
-def conversation(model_api, goal, summary, model_params, synthetic_data_params, env_config):
+def conversation(model_api, profile, goal, summary, model_params, synthetic_data_params, env_config):
     history = []
-    instructional_prompt = f'Replicate the writing behavior of a human customer. You are interacting with a customer service chatbot for the following company: {summary}\nYou have the following goal when interacting with this chatbot:\n{goal}\n Have a conversation with the chatbot while trying to achieve this goal. Make sure the conversation is natural. For example, if the chatbot asks you a question you should answer it.'
-    start_text = "Humans write short questions with typos and a neutral sentiment. Here are some examples of what a human customer would type: [how much is it?, Can you send info to my email, yes I need a job, want to check both proposals to rent and buy, How much does it cost a [PRODUCT_HERE], Im interested in [PRODUCT_HERE], hi i would like to rent out [PRODUCT_HERE] but im wondering which countries are available for rental]. Replicate the writing behavior of a human customer and begin the conversation with a question to achieve your goal."
+    instructional_prompt = f'Pretend you are a human interacting with a customer service chatbot for the following company: {summary}\nYou have the following goal when interacting with this chatbot:\n{goal}\nHere is a description of the customer you are pretending to be:\n{profile}\nHave a conversation with the chatbot while trying to achieve your goal as this customer. Make sure the conversation is natural. For example, if the chatbot asks you a question you should answer it.'
+    start_text = "Humans write short questions with occasional typos. Here are some examples of what a human customer would type: [how much is it?, Can you send info to my email, yes I need a job, want to check both proposals to rent and buy, How much does it cost a [PRODUCT_HERE], Im interested in [PRODUCT_HERE], hi i would like to rent out [PRODUCT_HERE] but im wondering which countries are available for rental]. Replicate the writing behavior of a human customer and begin the conversation with a question to achieve your goal."
     history.append({'role': 'system','content': instructional_prompt})
     history.append({'role': 'user', 'content': start_text})
     chatbot_history = []
@@ -41,47 +41,26 @@ def conversation(model_api, goal, summary, model_params, synthetic_data_params, 
     history.append({'trajectory': model_params["history"]})
     return history
 
-def generate_conversations(model_api, goals, summary, model_params, synthetic_data_params, env_config):
+def generate_conversations(model_api, profiles, goals, summary, model_params, synthetic_data_params, env_config):
     convos = []
-    # for i in range(synthetic_data_params['num_convos']):
-    for goal in goals:
-        # goal = random.choice(goals)
-        convo = conversation(model_api, goal, summary, model_params, synthetic_data_params, env_config)
+    for profile, goal in zip(profiles, goals):
+        convo = conversation(model_api, profile, goal, summary, model_params, synthetic_data_params, env_config)
         convos.append(flip_hist(filter_convo(convo, filter_turns=False)))
     return convos
 
 def simulate_conversations(model_api, model_params, synthetic_data_params, config):
-    documents = load_docs(config['documents_dir'], config, synthetic_data_params['num_goals'] * 2)
+    profiles, goals = build_profile(synthetic_data_params, config)
     summary = config['intro']
     env_config = {
         "workers": config['workers'],
         "tools": config["tools"]
     }
     
-    final_goals = []
-    if synthetic_data_params.get('goals', None):
-        raw_goals = []
-        cases = synthetic_data_params['goals']
-        for stage, categories in cases.items():
-            for first_level, second_levels in categories.items():
-                for second_level, goals in second_levels.items():
-                    raw_goal = goals[0]
-                    raw_goals.append(raw_goal)
-        
-        # goal adaptation
-        final_goals = []
-        for goal in raw_goals:
-            doc = random.choice(documents)
-            new_goal = adjust_goal(doc, goal)
-            final_goals.append(new_goal)
-
-    else:
-        final_goals = generate_goals(documents, synthetic_data_params)
-    
     try:
         conversations = generate_conversations(
             model_api,
-            final_goals,
+            profiles,
+            goals,
             summary,
             model_params,
             synthetic_data_params,
@@ -91,7 +70,7 @@ def simulate_conversations(model_api, model_params, synthetic_data_params, confi
         print("Generate conversations failed")
         print("Error: ", e)
         conversations = []
-    return conversations, final_goals
+    return conversations, goals
 
 if __name__ == "__main__":
     model_api = "http://adaptation.cs.columbia.edu:55231/qa/richtech/v1alpha1"

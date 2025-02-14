@@ -44,6 +44,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
     parser.add_argument('--testset', type=str, default=None)
     parser.add_argument('--task', type=str, default='first_pass', choices=['first_pass', 'all'])
+    parser.add_argument('--user_attributes', type=str, default='agentorg/evaluation/user_attributes.json')
     args = parser.parse_args()
 
     MODEL["model_type_or_path"] = args.model
@@ -51,6 +52,7 @@ if __name__ == "__main__":
     assert args.model_api is not None, "Model api must be provided"
     assert args.config is not None, "Config file must be provided"
     assert args.documents_dir is not None, "Documents directory must be provided"
+    assert args.user_attributes is not None, "User attribute file must be provided"
     if not args.output_dir:
         args.output_dir = args.documents_dir
     
@@ -58,6 +60,7 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(args.output_dir, 'eval'), exist_ok=True)
 
     config = json.load(open(args.config))
+    user_attributes = json.load(open(args.user_attributes))
     if args.testset:
         testset = json.load(open(args.testset))
     else:
@@ -68,6 +71,7 @@ if __name__ == "__main__":
     config['synthetic_data_params'] = {'num_convos': args.num_convos, 'num_goals': args.num_goals, 
                                        'max_turns': args.max_turns, 'goals': testset}
     config['task'] = args.task
+    config['user_attributes'] = user_attributes
 
     first_pass_data, final_convos, goal_metrics, goals = evaluate(config)
 

@@ -44,7 +44,7 @@ def extract_task_completion_metrics(data, bot_goal=None):
     completion_efficiency = 0
     for convo in data:
         completion_efficiency += num_user_turns(convo)
-        if convo[-1].get('goal_completetion', False):
+        if convo[-2].get('goal_completetion', False):
             goal_completetions += 1
         if bot_goal is not None and check_bot_goal(convo, bot_goal):
             bot_goal_completions += 1
