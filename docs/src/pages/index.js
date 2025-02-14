@@ -79,8 +79,8 @@ export default function Home() {
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
       <main>
-        <div style={{ margin: '20px 8%'}}>
-          <div className='row' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '50px 0'}}>
+        <div style={{ margin: '40px 8%'}}>
+          <div className='row' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '90px 0 50px 0'}}>
             <div className='col col--6'>
               <img src={arklexDiagram} alt="Arklex Diagram" />
             </div>
