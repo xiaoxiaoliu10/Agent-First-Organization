@@ -20,9 +20,9 @@ from arklex.utils.model_config import MODEL
 logger = init_logger(log_level=logging.INFO, filename=os.path.join(os.path.dirname(__file__), "logs", "arklex.log"))
 load_dotenv()
 
-API_PORT = "55135"
-NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu"
-SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill"
+# API_PORT = "55135"
+# NLUAPI_ADDR = f"http://localhost:{API_PORT}/nlu"
+# SLOTFILLAPI_ADDR = f"http://localhost:{API_PORT}/slotfill"
 
 def generate_taskgraph(args):
     model = ChatOpenAI(model=MODEL["model_type_or_path"], timeout=30000)
@@ -30,8 +30,8 @@ def generate_taskgraph(args):
     taskgraph_filepath = generator.generate()
     # Update the task graph with the API URLs
     task_graph = json.load(open(os.path.join(os.path.dirname(__file__), taskgraph_filepath)))
-    task_graph["nluapi"] = NLUAPI_ADDR
-    task_graph["slotfillapi"] = SLOTFILLAPI_ADDR
+    task_graph["nluapi"] = ""
+    task_graph["slotfillapi"] = ""
     with open(taskgraph_filepath, "w") as f:
         json.dump(task_graph, f, indent=4)
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('--output-dir', type=str, default="./examples/test")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
     parser.add_argument('--log-level', type=str, default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-    parser.add_argument('--task', type=str, choices=["gen_taskgraph", "init", "all"], default="gen_taskgraph")
+    parser.add_argument('--task', type=str, choices=["gen_taskgraph", "init", "all"], default="all")
     args = parser.parse_args()
     MODEL["model_type_or_path"] = args.model
     log_level = getattr(logging, args.log_level.upper(), logging.INFO)
