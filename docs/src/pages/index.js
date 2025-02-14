@@ -23,7 +23,6 @@ function HomepageHeader() {
           <div className={clsx('col col--6')} style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '20px' }}>
             <div className={styles.buttons}>
               <Link
-                // className={styles.pythonButton}
                 className='button button--secondary button--lg black-button'
                 href='https://pypi.org/project/arklex/'>
                   <svg height="20" preserveAspectRatio="xMidYMid" viewBox="0 0 256 255" width="20" xmlns="http://www.w3.org/2000/svg">
@@ -40,11 +39,11 @@ function HomepageHeader() {
               </Link>
             </div>
             <div className={styles.buttons}>
-              <button
+              <Link
                 className="button button--secondary button--lg"
-                onClick={() => window.location.href = "https://www.arklex.ai/qa/open-source/docs/intro"}>
-                Documentation
-              </button>
+                to='/docs/intro'>
+                  Documentation
+              </Link>
             </div>
           </div>
           
@@ -81,8 +80,22 @@ export default function Home() {
       <HomepageHeader />
       <main>
         <div style={{ margin: '20px 8%'}}>
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '50px 0'}}>
-            <img src={arklexDiagram} alt="Arklex Diagram" width="60%" />
+          <div className='row' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '50px 0'}}>
+            <div className='col col--6'>
+              <img src={arklexDiagram} alt="Arklex Diagram" />
+            </div>
+            <div className='col col--6'>
+              <iframe 
+                width="100%"
+                height='300px'
+                src="https://www.loom.com/embed/f5a45bcc8c834ec998083eaf7793a912?sid=7525fc12-ffd2-403c-9623-cab087bb2ced" 
+                title="Arklex: The Future of AI Agents" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen
+                webkitallowfullscreen>
+              </iframe>
+            </div>
           </div>
           <p >AI is no longer just about automation—it’s about intelligent collaboration between humans and machines. 
           Arklex redefines AI agents by ensuring goal alignment, structured decision-making, and continuous adaptability. 
