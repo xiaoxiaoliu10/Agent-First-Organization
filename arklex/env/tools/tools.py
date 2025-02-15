@@ -21,7 +21,7 @@ def register_tool(desc, slots=[], outputs=[], isComplete=lambda x: True):
         # reformat the relative path to replace / with -, and remove .py, because the function calling in openai only allow the function name match the patter the pattern '^[a-zA-Z0-9_-]+$'
         relative_path = relative_path.replace("/", "-").replace(".py", "")
         # In order to handle the file path for Windows
-        # relative_path = relative_path.replace("\\", "-").replace(".py", "")
+        relative_path = relative_path.replace("\\", "-").replace(".py", "")
         key = f"{relative_path}-{func.__name__}"
         tool = lambda : Tool(func, key, desc, slots, outputs, isComplete)
         return tool
