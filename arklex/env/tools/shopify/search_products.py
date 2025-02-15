@@ -5,6 +5,7 @@ import shopify
 # general GraphQL navigation utilities
 from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
 from arklex.env.tools.shopify.utils_nav import *
+from arklex.env.tools.shopify.utils import authorify
 
 # Admin API
 from arklex.env.tools.tools import register_tool
@@ -40,31 +41,35 @@ def search_products(query: str, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
         return nav[0]
+    auth = authorify(kwargs)
+    if auth["error"]:
+        return auth["error"]
     
     try:
-        response = shopify.GraphQL().execute(f"""
-            {{
-                products ({nav[0]}, query: "{query}") {{
-                    nodes {{
-                        id
-                    }}
-                    pageInfo {{
-                        endCursor
-                        hasNextPage
-                        hasPreviousPage
-                        startCursor
+        with shopify.Session.temp(**auth["value"]):
+            response = shopify.GraphQL().execute(f"""
+                {{
+                    products ({nav[0]}, query: "{query}") {{
+                        nodes {{
+                            id
+                        }}
+                        pageInfo {{
+                            endCursor
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                        }}
                     }}
                 }}
-            }}
-        """)
+            """)
         
-        data = json.loads(response)['data']['products']
-        nodes = data['nodes']
-        pageInfo = data['pageInfo']
-        if len(nodes):
-            return nodes, pageInfo
-        else:
-            return NO_PRODUCTS_FOUND_ERROR, ''
+            data = json.loads(response)['data']['products']
+            nodes = data['nodes']
+            pageInfo = data['pageInfo']
+            if len(nodes):
+                return nodes, pageInfo
+            else:
+                return NO_PRODUCTS_FOUND_ERROR, ''
     
     except Exception as e:
         return PRODUCT_SEARCH_ERROR, ''

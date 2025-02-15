@@ -3,7 +3,7 @@ import os
 
 import requests 
 
-from agentorg.env.tools.shopify.utils import *
+from arklex.env.tools.shopify.utils import *
 
 from dotenv import load_dotenv
 load_dotenv()

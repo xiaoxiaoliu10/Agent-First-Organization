@@ -1,8 +1,9 @@
-from agentorg.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
-from agentorg.env.tools.shopify.utils_cart import *
-from agentorg.env.tools.shopify.utils_nav import *
+from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
+from arklex.env.tools.shopify.utils_cart import *
+from arklex.env.tools.shopify.utils_nav import *
+from arklex.env.tools.shopify.utils import make_query
 
-from agentorg.env.tools.tools import register_tool
+from arklex.env.tools.tools import register_tool
 
 description = "Removes a items from cart based on line ids"
 slots = [

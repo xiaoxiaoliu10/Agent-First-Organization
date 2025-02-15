@@ -81,6 +81,8 @@ class AgentOrg:
         dialog_states = params.get("dialog_states", {})
         if dialog_states:
             params["dialog_states"] = {tool: [Slot(**slot_data) for slot_data in slots] for tool, slots in dialog_states.items()}
+        else:
+            params["dialog_states"] = {}
         metadata = params.get("metadata", {})
         metadata["chat_id"] = metadata.get("chat_id", str(uuid.uuid4()))
         metadata["turn_id"] = metadata.get("turn_id", 0) + 1
