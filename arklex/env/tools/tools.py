@@ -102,7 +102,7 @@ class Tool:
                         break
                 
                 state["status"] = StatusEnum.INCOMPLETE.value
-                # break
+                
             # if slot.value is not empty for all slots, and all the slots has been verified, then execute the function
             if all([slot.value and slot.verified for slot in slots if slot.required]):
                 logger.info("all slots filled")
