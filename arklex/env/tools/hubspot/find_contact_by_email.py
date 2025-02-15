@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from ..tools import register_tool, logger
 import hubspot
-from pprint import pprint
 from hubspot.crm.objects.emails import PublicObjectSearchRequest, ApiException
 from hubspot.crm.objects.communications.models import SimplePublicObjectInputForCreate
 from hubspot.crm.associations.v4 import AssociationSpec
@@ -66,7 +65,6 @@ def find_contact_by_email(email: str, chat: str, **kwargs) -> str:
     try:
         contact_search_response = api_client.crm.contacts.search_api.do_search(
             public_object_search_request=public_object_search_request)
-        pprint(contact_search_response)
         logger.info("Found contact by email: {}".format(email))
         contact_search_response = contact_search_response.to_dict()
         if contact_search_response['total'] == 1:
@@ -103,12 +101,10 @@ def find_contact_by_email(email: str, chat: str, **kwargs) -> str:
                         to_object_id=communication_id,
                         association_spec=association_spec
                     )
-                    pprint(association_creation_response)
                 except ApiException as e:
                     logger.info("Exception when calling AssociationV4: %s\n" % e)
             except ApiException as e:
                 logger.info("Exception when calling basic_api: %s\n" % e)
-            pprint(contact_info_properties)
             return str(contact_info_properties)
         else:
             return USER_NOT_FOUND_ERROR
