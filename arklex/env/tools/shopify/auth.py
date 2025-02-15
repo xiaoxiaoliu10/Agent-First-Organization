@@ -1,5 +1,5 @@
-# from agentorg.tools.shopify_new.auth_utils import get_auth_link, get_refresh_token, get_access_token
-# from agentorg.tools.shopify_new.auth_server import authenticate_server
+# from arklex.tools.shopify_new.auth_utils import get_auth_link, get_refresh_token, get_access_token
+# from arklex.tools.shopify_new.auth_server import authenticate_server
 from auth_utils import get_auth_link, get_refresh_token, get_access_token
 from auth_server import authenticate_server
 

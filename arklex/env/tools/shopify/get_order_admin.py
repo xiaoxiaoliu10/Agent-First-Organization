@@ -3,11 +3,11 @@ from typing import Any, Dict
 import logging
 
 
-from agentorg.env.tools.tools import register_tool
+from arklex.env.tools.tools import register_tool
 
 # general GraphQL navigation utilities
-from agentorg.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
-from agentorg.env.tools.shopify.utils_nav import *
+from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
+from arklex.env.tools.shopify.utils_nav import *
 
 # Admin API
 import shopify

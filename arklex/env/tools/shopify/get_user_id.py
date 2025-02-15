@@ -1,11 +1,11 @@
 from typing import Any, Dict
 
-from agentorg.env.tools.tools import register_tool
+from arklex.env.tools.tools import register_tool
 
 # Customer API
-from agentorg.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
-from agentorg.env.tools.shopify.utils import *
-from agentorg.env.tools.shopify.auth_utils import *
+from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
+from arklex.env.tools.shopify.utils import *
+from arklex.env.tools.shopify.auth_utils import *
 
 description = "Find user id by refresh token. If the user is not found, the function will return an error message."
 slots = [

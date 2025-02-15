@@ -1,5 +1,5 @@
-from agentorg.env.tools.tools import register_tool
-from agentorg.env.tools.shopify.auth import *
+from arklex.env.tools.tools import register_tool
+from arklex.env.tools.shopify.auth import *
 
 description = "Get refresh token of customer through the Auth process."
 slots = []
