@@ -24,7 +24,7 @@ class ShopifySlots:
     }
     
     PRODUCT_ID = {
-        "name": "product_ids",
+        "name": "product_id",
         "type": "string",
         "description": "The product id, such as 'gid://shopify/Product/2938501948327'.", # If there is only 1 product, return in list with single item. If there are multiple product ids, please return all of them in a list.",
         "prompt": "In order to proceed, please provide the product id.",
