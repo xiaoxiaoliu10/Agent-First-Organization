@@ -18,8 +18,9 @@ def register_tool(desc, slots=[], outputs=[], isComplete=lambda x: True):
     def inner(func):
         file_path = inspect.getfile(func)
         relative_path = os.path.relpath(file_path, current_file_dir)
-        # reformat the relative path to replace / with -, and remove .py, because the function calling in openai only allow the function name match the patter the pattern '^[a-zA-Z0-9_-]+$'
-        relative_path = relative_path.replace("/", "-").replace(".py", "")
+        # reformat the relative path to replace / and \\ with -, and remove .py, because the function calling in openai only allow the function name match the patter the pattern '^[a-zA-Z0-9_-]+$'
+        # different file paths format in Windows and linux systems
+        relative_path = relative_path.replace("/", "-").replace("\\", "-").replace(".py", "")
         key = f"{relative_path}-{func.__name__}"
         tool = lambda : Tool(func, key, desc, slots, outputs, isComplete)
         return tool
@@ -101,7 +102,7 @@ class Tool:
                         break
                 
                 state["status"] = StatusEnum.INCOMPLETE.value
-                break
+                
             # if slot.value is not empty for all slots, and all the slots has been verified, then execute the function
             if all([slot.value and slot.verified for slot in slots if slot.required]):
                 logger.info("all slots filled")
