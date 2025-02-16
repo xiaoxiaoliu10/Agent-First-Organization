@@ -5,6 +5,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 
+LLM_PROVIDERS = ["openai", "gemini", "anthropic"]
+
 PROVIDER_MAP = {
     "anthropic": ChatAnthropic,
     "gemini": ChatGoogleGenerativeAI,
