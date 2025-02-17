@@ -2,10 +2,10 @@ import os
 import json
 import argparse
 
-from agentorg.evaluation.simulate_first_pass_convos import simulate_conversations
-from agentorg.evaluation.extract_conversation_info import extract_task_completion_metrics
-from agentorg.evaluation.simulate_second_pass_convos import get_labeled_convos
-from agentorg.utils.model_config import MODEL
+from arklex.evaluation.simulate_first_pass_convos import simulate_conversations
+from arklex.evaluation.extract_conversation_info import extract_task_completion_metrics
+from arklex.evaluation.simulate_second_pass_convos import get_labeled_convos
+from arklex.utils.model_config import MODEL
 
 
 def evaluate(config):
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
     parser.add_argument('--testset', type=str, default=None)
     parser.add_argument('--task', type=str, default='first_pass', choices=['first_pass', 'all'])
-    parser.add_argument('--user_attributes', type=str, default='agentorg/evaluation/user_attributes.json')
+    parser.add_argument('--user_attributes', type=str, default='arklex/evaluation/user_attributes.json')
     args = parser.parse_args()
 
     MODEL["model_type_or_path"] = args.model

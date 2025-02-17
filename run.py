@@ -12,13 +12,12 @@ from pprint import pprint
 from langchain_openai import ChatOpenAI
 import shopify
 
-from agentorg.utils.utils import init_logger
-from agentorg.orchestrator.orchestrator import AgentOrg
+from arklex.utils.utils import init_logger
+from arklex.orchestrator.orchestrator import AgentOrg
 # from create import API_PORT
-from agentorg.utils.model_config import MODEL
-from agentorg.env.env import Env
+from arklex.utils.model_config import MODEL
+from arklex.env.env import Env
 
-API_PORT = "55135"
 load_dotenv()
 # session = shopify.Session(os.environ["SHOPIFY_SHOP_URL"], os.environ["SHOPIFY_API_VERSION"], os.environ["SHOPIFY_ACCESS_TOKEN"])
 # shopify.ShopifyResource.activate_session(session)
@@ -60,7 +59,7 @@ def start_apis():
     global process
     command = [
         "uvicorn",
-        "agentorg.orchestrator.NLU.api:app",  # Replace with proper import path
+        "arklex.orchestrator.NLU.api:app",  # Replace with proper import path
         "--port", API_PORT,
         "--host", "0.0.0.0",
         "--log-level", "info"
@@ -87,10 +86,10 @@ if __name__ == "__main__":
     os.environ["DATA_DIR"] = args.input_dir
     MODEL["model_type_or_path"] = args.model
     log_level = getattr(logging, args.log_level.upper(), logging.WARNING)
-    logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "agentorg.log"))
+    logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "arklex.log"))
 
     # Initialize NLU and Slotfill APIs
-    start_apis()
+    # start_apis()
 
     # Initialize env
     config = json.load(open(os.path.join(args.input_dir, "taskgraph.json")))
@@ -117,7 +116,6 @@ if __name__ == "__main__":
                 break
             start_time = time.time()
             output, params = get_api_bot_response(args, history, user_text, params, env)
-            # print(params["history"])
             history.append({"role": user_prefix, "content": user_text})
             history.append({"role": worker_prefix, "content": output})
             print(f"getAPIBotResponse Time: {time.time() - start_time}")

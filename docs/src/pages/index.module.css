@@ -21,3 +21,9 @@
   align-items: center;
   justify-content: center;
 }
+
+.pythonButtonText {
+  margin-left: 20px;
+  color: white;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace;
+}

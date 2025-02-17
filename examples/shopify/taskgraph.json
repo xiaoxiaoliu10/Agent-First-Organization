@@ -150,6 +150,6 @@
         {"id": "26bb6634-3bee-417d-ad75-23269ac17bc3", "name": "MessageWorker","path": "message_worker.py"},
         {"id": "40f05456-525c-4d9d-ac37-54482d6b220b", "name": "FaissRAGWorker", "path": "faiss_rag_worker.py"}
     ],
-    "nluapi": "http://localhost:55135/nlu",
-    "slotfillapi": "http://localhost:55135/slotfill"
+    "nluapi": "",
+    "slotfillapi": ""
 }
