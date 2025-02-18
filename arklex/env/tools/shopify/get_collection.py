@@ -5,6 +5,7 @@ import shopify
 
 # general GraphQL navigation utilities
 from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
+from arklex.env.tools.shopify.utils import authorify
 from arklex.env.tools.shopify.utils_nav import *
 
 from arklex.env.tools.tools import register_tool
@@ -26,33 +27,37 @@ def get_collection(collection_id: list, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
         return nav[0]
+    auth = authorify(kwargs)
+    if auth["error"]:
+        return auth["error"]
     
     try:
-        response = shopify.GraphQL().execute(f"""
-        {{
-            collection (id: "{collection_id}") {{
-                title
-                description
-                productsCount {{
-                    count
-                }}
-                products ({nav[0]}) {{
-                    nodes {{
-                        id
+        with shopify.Session.temp(**auth["value"]):
+            response = shopify.GraphQL().execute(f"""
+            {{
+                collection (id: "{collection_id}") {{
+                    title
+                    description
+                    productsCount {{
+                        count
                     }}
-                    pageInfo {{
-                        endCursor
-                        hasNextPage
-                        hasPreviousPage
-                        startCursor
+                    products ({nav[0]}) {{
+                        nodes {{
+                            id
+                        }}
+                        pageInfo {{
+                            endCursor
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                        }}
                     }}
                 }}
             }}
-        }}
-        """)
-        results = json.loads(response)["data"]["collection"]
-        pageInfo = results['products']['pageInfo']
-        
-        return results, pageInfo
+            """)
+            results = json.loads(response)["data"]["collection"]
+            pageInfo = results['products']['pageInfo']
+            
+            return results, pageInfo
     except Exception as e:
         return COLLECTION_NOT_FOUND

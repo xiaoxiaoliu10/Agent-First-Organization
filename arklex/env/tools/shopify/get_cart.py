@@ -1,3 +1,16 @@
+"""
+This module is currently inactive.
+
+It is reserved for future use and may contain experimental or planned features (dependence on shopping cart id).
+
+Status:
+    - Not in use (as of 2025-02-18)
+    - Intended for future feature expansion
+
+Module Name: get_cart
+
+This file contains the code for getting items in a shopping cart.
+"""
 from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
 from arklex.env.tools.shopify.utils_cart import *
 from arklex.env.tools.shopify.utils_nav import *

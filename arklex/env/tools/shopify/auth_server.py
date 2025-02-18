@@ -1,3 +1,16 @@
+"""
+This module is currently inactive.
+
+It is reserved for future use and may contain experimental or planned features.
+
+Status:
+    - Not in use (as of 2025-02-18)
+    - Intended for future feature expansion
+
+Module Name: auth_server
+
+This file contains the code for a Flask server that listens for an auth token from a Shopify app.
+"""
 import ngrok
 import threading
 from flask import Flask, request
