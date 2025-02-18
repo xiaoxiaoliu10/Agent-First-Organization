@@ -1,74 +1,88 @@
-import json
+"""
+This module is currently inactive.
+
+It is reserved for future use and may contain experimental or planned features (dependence on refresh token).
+
+Status:
+    - Not in use (as of 2025-02-18)
+    - Intended for future feature expansion
+
+Module Name: get_user_details
+
+This file contains the code for getting the details of a user.
+"""
 from typing import Any, Dict
-import shopify
 
 from arklex.env.tools.tools import register_tool
-from arklex.env.tools.shopify.utils import SHOPIFY_AUTH_ERROR
+
+# Customer API
+from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
+from arklex.env.tools.shopify.utils import *
+from arklex.env.tools.shopify.auth_utils import *
+from arklex.env.tools.shopify.utils_nav import *
 
 description = "Get the details of a user."
 slots = [
-    {
-        "name": "user_id",
-        "type": "string",
-        "description": "The user id, such as 'gid://shopify/Customer/13573257450893'.",
-        "prompt": "In order to proceed, Could you please provide the user id?",
-        "required": True,
-    }
+    ShopifySlots.REFRESH_TOKEN,
+    *PAGEINFO_SLOTS
 ]
 outputs = [
-    {
-        "name": "user_details",
-        "type": "dict",
-        "description": "The user details of the user. such as '{\"firstName\": \"John\", \"lastName\": \"Doe\", \"email\": \"example@gmail.com\"}'."
-    }
+    ShopifyOutputs.USER_DETAILS,
+    *PAGEINFO_OUTPUTS
 ]
+
 USER_NOT_FOUND_ERROR = "error: user not found"
 errors = [USER_NOT_FOUND_ERROR]
 
+
 @register_tool(description, slots, outputs, lambda x: x not in errors)
-def get_user_details(user_id: str, **kwargs) -> str:
-    shop_url = kwargs.get("shop_url")
-    api_version = kwargs.get("api_version")
-    token = kwargs.get("token")
+def get_user_details(refresh_token: str, **kwargs) -> str:
+    nav = cursorify(kwargs)
+    if not nav[1]: 
+        return nav[0]
     try:
-        with shopify.Session.temp(shop_url, api_version, token):
-            response = shopify.GraphQL().execute(f"""
-            {{
-                customer(id: "{user_id}") {{
+        body = f'''
+            query {{ 
+                customer {{ 
+                    id
                     firstName
                     lastName
-                    email
-                    phone
-                    numberOfOrders
-                    amountSpent {{
-                        amount
-                        currencyCode
+                    emailAddress {{
+                        emailAddress
                     }}
-                    createdAt
-                    updatedAt
-                    note
-                    verifiedEmail
-                    validEmailAddress
-                    tags
-                    lifetimeDuration
+                    phoneNumber {{
+                        phoneNumber
+                    }}
+                    creationDate
                     defaultAddress {{
-                        formattedArea
-                        address1
+                        formatted
                     }}
-                    addresses {{
-                        address1
-                    }}
-                    orders (first: 10) {{
-                        edges {{
-                            node {{
-                                id         
-                            }}
+                    orders ({nav[0]}) {{
+                        nodes {{
+                            id
+                        }}
+                        pageInfo {{
+                            endCursor
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
                         }}
                     }}
                 }}
             }}
-            """)
-        parsed_response = json.loads(response)["data"]["customer"]
-        return json.dumps(parsed_response)
-    except Exception as e:
-        return USER_NOT_FOUND_ERROR
+        '''
+        try:
+            auth = {'Authorization': get_access_token(refresh_token)}
+        except:
+            return AUTH_ERROR
+        
+        try:
+            response = make_query(customer_url, body, {}, customer_headers | auth)['data']['customer']
+        except Exception as e:
+            return f"error: {e}"
+        
+        pageInfo = response['orders']['pageInfo']
+        return response, pageInfo
+    
+    except Exception:
+        raise PermissionError
