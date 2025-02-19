@@ -18,7 +18,6 @@ from arklex.utils.model_config import MODEL
 from arklex.utils.model_provider_config import LLM_PROVIDERS
 from arklex.env.env import Env
 
-API_PORT = "55135"
 load_dotenv()
 # session = shopify.Session(os.environ["SHOPIFY_SHOP_URL"], os.environ["SHOPIFY_API_VERSION"], os.environ["SHOPIFY_ACCESS_TOKEN"])
 # shopify.ShopifyResource.activate_session(session)
@@ -92,7 +91,7 @@ if __name__ == "__main__":
     logger = init_logger(log_level=log_level, filename=os.path.join(os.path.dirname(__file__), "logs", "arklex.log"))
 
     # Initialize NLU and Slotfill APIs
-    start_apis()
+    # start_apis()
 
     # Initialize env
     config = json.load(open(os.path.join(args.input_dir, "taskgraph.json")))
