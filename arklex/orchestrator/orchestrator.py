@@ -8,15 +8,14 @@ from typing import List, Dict, Any, Tuple
 import ast
 import copy
 from arklex.env.env import Env
-from arklex.utils.utils import format_messages_by_provider
 import janus
 from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
 import langsmith as ls
 from openai import OpenAI
-from litellm import completion
-import litellm
+from langchain_openai import ChatOpenAI
+
 
 from arklex.orchestrator.task_graph import TaskGraph
 from arklex.env.tools.utils import ToolGenerator
@@ -28,6 +27,8 @@ from arklex.utils.utils import init_logger, format_chat_history
 from arklex.orchestrator.NLU.nlu import NLU
 from arklex.utils.trace import TraceRunName
 from arklex.utils.model_config import MODEL
+from arklex.utils.model_provider_config import PROVIDER_MAP
+from arklex.env.planner.function_calling import aimessage_to_dict
 
 
 load_dotenv()
@@ -50,15 +51,18 @@ class AgentOrg:
     def generate_next_step(
         self, messages: List[Dict[str, Any]], text:str
     ) -> Tuple[Dict[str, Any], str, float]:
-        litellm.modify_params=True
-        res = completion(
-            **format_messages_by_provider(messages, text),
-            model=MODEL["model_type_or_path"],
-            custom_llm_provider=MODEL["llm_provider"],
-            temperature=0.0
-        )
-        message = res.choices[0].message
-        action_str = message.content.split("Action:")[-1].strip()
+        llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+                    model=MODEL["model_type_or_path"],
+                    temperature = 0.0,
+                )
+        if MODEL['llm_provider'] == 'gemini':
+            messages = [
+                ("system",str(messages[0]['content']),),
+                ("human", ""),
+            ]
+        res = llm.invoke(messages)        
+        message = aimessage_to_dict(res)
+        action_str = message['content'].split("Action:")[-1].strip()
         try:
             action_parsed = json.loads(action_str)
         except json.JSONDecodeError:
@@ -70,7 +74,8 @@ class AgentOrg:
         assert "name" in action_parsed
         assert "arguments" in action_parsed
         action = action_parsed["name"]
-        return message.model_dump(), action, res._hidden_params["response_cost"]
+        # issues with getting response_cost using langchain, set to 0.0 for now
+        return message, action, 0.0
 
 
     def get_response(self, inputs: dict, stream_type: StreamType = None, message_queue: janus.SyncQueue = None) -> Dict[str, Any]:

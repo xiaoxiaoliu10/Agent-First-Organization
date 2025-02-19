@@ -5,11 +5,15 @@ from typing import Any, Dict, List
 from pydantic import BaseModel
 import traceback
 
+from langchain.schema import AIMessage
+from langchain_openai import ChatOpenAI
+
 from litellm import completion
 import litellm
 
 from arklex.utils.graph_state import MessageState
 from arklex.utils.model_config import MODEL
+from arklex.utils.model_provider_config import PROVIDER_MAP
 from arklex.orchestrator.prompts import RESPOND_ACTION_NAME
 
 
@@ -65,12 +69,12 @@ class FunctionCallingPlanner:
             logger.info(f"tools_info in function calling: {self.tools_info}")
             litellm.modify_params = True
             if not self.tools_info:
-                res = completion(
-                    messages=messages,
-                    model=MODEL['model_type_or_path'],
-                    custom_llm_provider=MODEL["llm_provider"],
-                    temperature=0.0
+                llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+                    model=MODEL["model_type_or_path"],
+                    temperature = 0.0
                 )
+                res = llm.invoke(messages)
+                next_message = aimessage_to_dict(res)             
             else:
                 res = completion(
                     messages=messages,
@@ -79,7 +83,7 @@ class FunctionCallingPlanner:
                     tools= convert_to_gemini_tools(self.tools_info) if MODEL['llm_provider'] == 'gemini' else self.tools_info,
                     temperature=0.0
                 )
-            next_message = res.choices[0].message.model_dump()
+                next_message = res.choices[0].message.model_dump()
             actions = self.message_to_actions(next_message)
             messages.append(next_message)
             msg_history.append(next_message)
@@ -160,3 +164,12 @@ def convert_to_gemini_tools(tools):
             converted_tools["tools"].append(tool)
 
     return converted_tools
+
+def aimessage_to_dict(ai_message):
+    message_dict = {
+        "content": ai_message.content,
+        "role": "assistant" if isinstance(ai_message, AIMessage) else "user", 
+        "function_call": None, 
+        "tool_calls": None, 
+    }
+    return message_dict
