@@ -108,15 +108,16 @@ class Tool:
                 logger.info("all slots filled")
                 for slot in slots:
                     if slot.type in ["list", "dict", "array"]:
-                        try:
-                            # Try to parse as JSON first
-                            slot.value = json.loads(slot.value)
-                        except json.JSONDecodeError:
-                            # If JSON decoding fails, fallback to evaluating Python-like literals
+                        if not isinstance(slot.value, list):
                             try:
-                                slot.value = ast.literal_eval(slot.value)
-                            except (ValueError, SyntaxError):
-                                raise ValueError(f"Unable to parse slot value: {slot.value}")
+                                # Try to parse as JSON first
+                                slot.value = json.loads(slot.value)
+                            except json.JSONDecodeError:
+                                # If JSON decoding fails, fallback to evaluating Python-like literals
+                                try:
+                                    slot.value = ast.literal_eval(slot.value)
+                                except (ValueError, SyntaxError):
+                                    raise ValueError(f"Unable to parse slot value: {slot.value}")
                 kwargs = {slot.name: slot.value for slot in slots}
                 combined_kwargs = {**kwargs, **fixed_args}
                 response = self.func(**combined_kwargs)

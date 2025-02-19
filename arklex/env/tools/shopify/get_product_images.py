@@ -1,5 +1,4 @@
 import json
-from typing import Any, Dict
 import logging
 
 import shopify
@@ -14,7 +13,7 @@ from arklex.env.tools.tools import register_tool
 
 logger = logging.getLogger(__name__)
 
-description = "Get the inventory information and description details of a product."
+description = "Get the product image url of a product."
 slots = [
     ShopifySlots.PRODUCT_IDS,
     *PAGEINFO_SLOTS
@@ -27,7 +26,7 @@ PRODUCTS_NOT_FOUND = "error: product not found"
 errors = [PRODUCTS_NOT_FOUND]
 
 @register_tool(description, slots, outputs, lambda x: x not in errors)
-def get_products(product_ids: list, **kwargs) -> str:
+def get_product_images(product_ids: list, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
         return nav[0]
@@ -42,28 +41,13 @@ def get_products(product_ids: list, **kwargs) -> str:
                 {{
                     products ({nav[0]}, query:"{ids}") {{
                         nodes {{
-                            id
                             title
-                            description
-                            totalInventory
-                            onlineStoreUrl
-                            category {{
-                                name
-                            }}
-                            images(first: 1) {{
+                            images(first: 3) {{
                                 edges {{
                                     node {{
                                         src
                                         altText
                                     }}
-                                }}
-                            }}
-                            variants (first: 2) {{
-                                nodes {{
-                                    displayName
-                                    id
-                                    price
-                                    inventoryQuantity
                                 }}
                             }}
                         }}
@@ -82,13 +66,11 @@ def get_products(product_ids: list, **kwargs) -> str:
             for i, product in enumerate(response):
                 response_text += f"Product {i+1}:\n"
                 response_text += f"Product Title: {product.get('title')}\n"
-                response_text += f"Product Description: {product.get('description')}\n"
-                response_text += f"Total Inventory: {product.get('totalInventory')}\n"
                 response_text += f"Online Store URL: {product.get('onlineStoreUrl')}\n"
                 images = product.get('images', {}).get('edges', [])
-                if images:
-                    default_image = images[0]['node']
-                    response_text += f"Product Image URL: {default_image['src']}\n\n"
+                for img in images:
+                    response_text += f"Product Image URL: {img['node']['src']}\n"
+                response_text += "\n"
             return response_text
     except Exception as e:
         return PRODUCTS_NOT_FOUND

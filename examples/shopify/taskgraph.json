@@ -129,6 +129,19 @@
                     "sample_utterances": []
                 }
             }
+        ],
+        [
+            "0",
+            "11",
+            {
+                "intent": "Ask for product image",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
         ]
     ],
     "nodes": [
@@ -297,6 +310,21 @@
                 },
                 "limit": 10
             }
+        ],
+        [
+            "11",
+            {
+                "resource": {
+                    "id": "1b3850ls-025d-1025-1082-a4df13da0e32",
+                    "name": "get_product_images"
+                },
+                "attribute": {
+                    "value": "",
+                    "task": "Present product image",
+                    "directed": false
+                },
+                "limit": 10
+            }
         ]
     ],
     "tools": [
@@ -359,6 +387,16 @@
                 "shop_url": "<your-shopify-shop-url>",
                 "api_version": "2024-10"
             }                
+        },
+        {
+            "id": "1b3850ls-025d-1025-1082-a4df13da0e32",
+            "name": "get_product_images",
+            "path": "shopify/get_product_images.py",
+            "fixed_args": {
+                "token": "<your-shopify-access-token>",
+                "shop_url": "<your-shopify-shop-url>",
+                "api_version": "2024-10"
+            }
         }
     ],
     "workers": [
