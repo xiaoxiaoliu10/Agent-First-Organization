@@ -1,10 +1,10 @@
 # Hubspot
-## 1. Introduction
+## Introduction
 HubSpot is a platform that connects your marketing, sales, and services tools to a unified **CRM** database. 
 In this framework, the feature of the Hubspot is integrated for users to better manage the relationship between customers.
 
-## 2. Setup
-(1) Setting up the private app
+## Setup
+Setting up the private app
 * Login to [Hubspot](https://app.hubspot.com/login) and then go to ⚙ (Settings icon) on the top right
 * On the left navbar, go to **Integrations** > **Private Apps**
 * Create a new private app 
@@ -19,25 +19,88 @@ In this framework, the feature of the Hubspot is integrated for users to better 
 * The process of creating new private app is finished. The access token could be obtained.
 * Adding relevant data for your company using several ways, such as **Import from files**, **Sync from files** and **Migrate from your data.**
 
-## 3. Implementation
-(1) `find_contact_by_email(email, chat, **kwargs)`: This function aims to find the existing customer by their emails and update the last activity date.
+## Implementation
+(1) <mark>find_contact_by_email(email, chat, **kwargs)</mark>: This function aims to find the existing customer by their emails and update the last activity date. 
 
 Inputs:
 * `email`: the email address of the customer (It should be noted that email address is also a unique identifier for each customer)
 * `chat`: the chat content that customer communicates with the chatbot
 * `**kwargs`: contains the **access token** for the hubspot private app
+
 Output:
-* `contact_info_properties`: `id`, `email`, `first_name` and `last_name` of the contact of the existing customer
+* `contact_info_properties`: id, email, first_name and last_name of the contact of the existing customer
 
 There are several steps for the implementation of this function:
 * Detect whether the customer is the existing one using `email`:
-  ![find_contact_step_1.png](find_contact_step_1.png)
-* If the user is the existing customer, a communication object will be created, whose content is `chat`. Otherwise, return the `USER_NOT_FOUND_ERROR`:
-  ![find_contact_step_2.png](find_contact_step_2.png)
-* Associate the created communication with the contact:
-  ![find_contact_step_3.png](find_contact_step_3.png)
 
-(2)`create_ticket(contact_information, issue, **kwargs)`: When users need technical support/repair service/exchange service, the function will be called.
+  ![find_contact_step_1.png](find_contact_step_1.png)
+* If the user is not a existing customer, `USER_NOT_FOUND_ERROR` will be returned. If the user is the existing customer, the response of search_api is shown below. 
+The structure of a contact is demonstrated inside the `results` field.
+  ```
+  {'paging': None,
+   'results': [{'archived': False,
+                'archived_at': None,
+                'created_at': datetime.datetime(2025, 2, 7, 1, 42, 24, 914000, tzinfo=tzutc()),
+                'id': '97530152525',
+                'properties': {'createdate': '2025-02-07T01:42:24.914Z',
+                               'email': 'sarah@gmail.com',
+                               'firstname': 'Sarah',
+                               'hs_object_id': '97530152525',
+                               'lastmodifieddate': '2025-02-19T18:04:27.874Z',
+                               'lastname': 'Mark'},
+                'properties_with_history': None,
+                'updated_at': datetime.datetime(2025, 2, 19, 18, 4, 27, 874000, tzinfo=tzutc())}],
+   'total': 1}
+  ```
+  
+* Then a **communication** object will be created, whose content is `chat`. Otherwise, return the `USER_NOT_FOUND_ERROR`:
+  
+  ![find_contact_step_2.png](find_contact_step_2.png)
+  
+  The structure of the communication object is shown below:
+  ```
+  {'archived': False,
+   'archived_at': None,
+   'created_at': datetime.datetime(2025, 2, 20, 0, 23, 9, 273000, tzinfo=tzutc()),
+   'id': '71973632854',
+   'properties': {'hs_body_preview': 'I want to know more about your product: '
+                                     'Adam',
+                  'hs_body_preview_html': '<html>\n'
+                                          ' <head></head>\n'
+                                          ' <body>\n'
+                                          ' I want to know more about your '
+                                          'product: Adam\n'
+                                          ' </body>\n'
+                                          '</html>',
+                  'hs_body_preview_is_truncated': 'false',
+                  'hs_communication_body': 'I want to know more about your '
+                                           'product: Adam',
+                  'hs_communication_channel_type': 'CUSTOM_CHANNEL_CONVERSATION',
+                  'hs_communication_logged_from': 'CRM',
+                  'hs_createdate': '2025-02-20T00:23:09.273Z',
+                  'hs_lastmodifieddate': '2025-02-20T00:23:09.273Z',
+                  'hs_object_id': '71973632854',
+                  'hs_object_source': 'INTEGRATION',
+                  'hs_object_source_id': '7693410',
+                  'hs_object_source_label': 'INTEGRATION',
+                  'hs_timestamp': '2025-02-20T00:23:10.168Z'},
+   'properties_with_history': None,
+   'updated_at': datetime.datetime(2025, 2, 20, 0, 23, 9, 273000, tzinfo=tzutc())}
+  ```
+* Associate the **created communication** with the **contact**. 
+After associating, the `'lastmodifieddate'` and `'updated_at'` of contact will be updated accordingly.:
+  
+  ![find_contact_step_3.png](find_contact_step_3.png)
+  
+  The structure of the association object is shown below:
+  ```
+  {'from_object_id': '97530152525',
+  'from_object_type_id': '0-1',
+  'labels': [],
+  'to_object_id': '71973632854',
+  'to_object_type_id': '0-18'}
+  ```
+(2)<mark>create_ticket(contact_information, issue, **kwargs)</mark>: When users need technical support/repair service/exchange service, the function will be called.
 This function is used to create the ticket only for existing customers after calling `find_contact_by_email` function.
 
 Inputs:
@@ -49,12 +112,46 @@ Output:
 * `ticket_information`: The basic ticket information for the existing customer and the specific issue (ticket_id)
 
 There are several steps for the implementation of this function:
-* Create the ticket for the existing customer:
+* Create a **ticket** for the existing customer:
+
   ![create_ticket_step_1.png](create_ticket_step_1.png)
-* Associate the created ticket with the contact:
+  
+  The structure of the created ticket is like:
+  ```
+  {'archived': False,
+   'archived_at': None,
+   'created_at': datetime.datetime(2025, 2, 20, 0, 44, 53, 336000, tzinfo=tzutc()),
+   'id': '71974995385',
+   'properties': {'hs_body_preview': 'I have a issue in installing the DUST-E '
+                                     'robot',
+                  'hs_body_preview_html': '<html>\n'
+                                          ' <head></head>\n'
+                                          ' <body>\n'
+                                          ' I have a issue in installing the '
+                                          'DUST-E robot\n'
+                                          ' </body>\n'
+                                          '</html>',
+                  'hs_body_preview_is_truncated': 'false',
+                  'hs_communication_body': 'I have a issue in installing the '
+                                           'DUST-E robot',
+                  'hs_communication_channel_type': 'CUSTOM_CHANNEL_CONVERSATION',
+                  'hs_communication_logged_from': 'CRM',
+                  'hs_createdate': '2025-02-20T00:44:53.336Z',
+                  'hs_lastmodifieddate': '2025-02-20T00:44:53.336Z',
+                  'hs_object_id': '71974995385',
+                  'hs_object_source': 'INTEGRATION',
+                  'hs_object_source_id': '7693410',
+                  'hs_object_source_label': 'INTEGRATION',
+                  'hs_timestamp': '2025-02-20T00:44:54.078Z'},
+   'properties_with_history': None,
+   'updated_at': datetime.datetime(2025, 2, 20, 0, 44, 53, 336000, tzinfo=tzutc())}
+  ```
+* Associate the created **ticket** with the **contact**. It should be noted that `'lastmodifieddate'` and `'updated_at'` of contact will be updated after logging a ticket:
+
   ![create_ticket_step_2.png](create_ticket_step_2.png)
 
-## 4. Taskgraph
+
+## Taskgraph
 **Fields**:
 * `nodes`: The nodes in the TaskGraph, each node contains the worker/tool name, task, and the directed attribute.
 * `edges`: The edges in the TaskGraph, each edge contains the intent, weight, pred, definition, and sample_utterances.
@@ -248,17 +345,17 @@ So the taskgraph to handle these two cases is shown below:
 }
 ```
 
-## 5. Running the chatbot
+## Running the chatbot
 When the taskgraph is generated, you could use the following command to run the chatbot (suppose the `./examples/hubspot` contains the taskgraph):
 `python run.py --input-dir ./examples/hubspot`
 
-## 6. Sample conversation
+## Sample conversation
 (1) 1st case (When user has questions about the product)
 ```
 Bot: Hello! Welcome to Richtech. How can I assist you today?
 Customer: I want to know more about your product: Adam
 Bot: "Thanks for your interest in the ADAM robot! Could you please provide your email or phone number so we can send you more detailed information?"
-Customer: "sarah@gamil.com"
+Customer: "sarah@gmail.com"
 Bot: The ADAM robot is a versatile worker robot available for both purchase and rental. It can serve multiple purposes, including making tea, coffee, and cocktails. It's perfect for businesses looking to enhance their service offerings with a robotic bartender. If you have any specific questions or need further details, feel free to ask!"
 Customer: How much is the Adam?
 Bot: The pricing for the ADAM robot can vary based on the specific configuration and requirements for your business. To provide you with the most accurate pricing, could you please share more details about your intended use or any specific features you are interested in? Alternatively, I can have a sales representative contact you with detailed pricing information.
@@ -268,7 +365,7 @@ Bot: The pricing for the ADAM robot can vary based on the specific configuration
 Bot: Hello! Welcome to Richtech. How can I assist you today?
 Customer: I have a issue in installing the DUST-E robot
 Bot: Thank you for reaching out about the issue with installing the DUST-E robot. To assist you further, could you please provide your email or phone number? This will help us get in touch with you and offer more detailed support.
-Customer: "sarah@gamil.com"
+Customer: "sarah@gmail.com"
 Bot: Thank you, Sarah. I've created a support ticket for your issue with installing the DUST-E robot. Our team will reach out to you shortly to assist you further. Your ticket ID is 20616280431. If you have any more questions or need further assistance, feel free to ask!
 ```
 
