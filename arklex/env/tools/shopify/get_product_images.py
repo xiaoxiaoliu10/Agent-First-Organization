@@ -42,7 +42,9 @@ def get_product_images(product_ids: list, **kwargs) -> str:
                     products ({nav[0]}, query:"{ids}") {{
                         nodes {{
                             title
-                            images(first: 3) {{
+                            description
+                            onlineStoreUrl
+                            images(first: 1) {{
                                 edges {{
                                     node {{
                                         src
@@ -63,14 +65,20 @@ def get_product_images(product_ids: list, **kwargs) -> str:
             result = json.loads(response)['data']['products']
             response = result["nodes"]
             response_text = ""
+            product_list = []
             for i, product in enumerate(response):
                 response_text += f"Product {i+1}:\n"
                 response_text += f"Product Title: {product.get('title')}\n"
-                response_text += f"Online Store URL: {product.get('onlineStoreUrl')}\n"
-                images = product.get('images', {}).get('edges', [])
-                for img in images:
-                    response_text += f"Product Image URL: {img['node']['src']}\n"
-                response_text += "\n"
-            return response_text
+                response_text += f"Product Description: {product.get('description')}\n"
+                product_dict = {"title": product.get('title'), 
+                                "description": product.get('description'), 
+                                "product_url": product.get('onlineStoreUrl'),
+                                "image_url": product.get('images', {}).get('edges', {}).get('node', {}).get('src', "")
+                            }
+                product_list.append(product_dict)
+            return {
+                "content": response_text,
+                "product_list": product_list
+            }
     except Exception as e:
         return PRODUCTS_NOT_FOUND

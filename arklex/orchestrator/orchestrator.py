@@ -271,6 +271,9 @@ class AgentOrg:
             params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
         params["metadata"]["worker"] = {}
         params["tool_response"] = tool_response
+        if response_state.get("metadata", {}).get("product_list"):
+            params["product_list"] = response_state["metadata"]["product_list"]
+            params["metadata"]["product_list"] = []
         output = {
             "answer": response,
             "parameters": params

@@ -79,16 +79,21 @@ def get_products(product_ids: list, **kwargs) -> str:
             result = json.loads(response)['data']['products']
             response = result["nodes"]
             response_text = ""
+            product_list = []
             for i, product in enumerate(response):
                 response_text += f"Product {i+1}:\n"
                 response_text += f"Product Title: {product.get('title')}\n"
                 response_text += f"Product Description: {product.get('description')}\n"
                 response_text += f"Total Inventory: {product.get('totalInventory')}\n"
-                response_text += f"Online Store URL: {product.get('onlineStoreUrl')}\n"
-                images = product.get('images', {}).get('edges', [])
-                if images:
-                    default_image = images[0]['node']
-                    response_text += f"Product Image URL: {default_image['src']}\n\n"
-            return response_text
+                product_dict = {"title": product.get('title'), 
+                                "description": product.get('description'), 
+                                "product_url": product.get('onlineStoreUrl'),
+                                "image_url": product.get('images', {}).get('edges', {}).get('node', {}).get('src', "")
+                            }
+                product_list.append(product_dict)
+            return {
+                "content": response_text,
+                "product_list": product_list
+            }
     except Exception as e:
         return PRODUCTS_NOT_FOUND

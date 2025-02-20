@@ -75,20 +75,18 @@ def search_collections(query: str, **kwargs) -> str:
                     }}
                 }}
             """)
+            response_text = ""
             data = json.loads(response)['data']['collections']
             nodes = data['nodes']
-            pageInfo = data['pageInfo']
-            result = {
-                    "response": "",
-                    "pageInfo": ""
-                }
+            for node in nodes:
+                response_text += f"Title: {node.get('title')}\nDescription: {node.get('description')}\nProducts Count: {node.get('productsCount').get('count')}\n"
+                products = node.get('products').get('nodes')
+                for product in products:
+                    response_text += f"Product Title: {product.get('title')}\nProduct Description: {product.get('description')}\nProduct ID: {product.get('id')}\n"
             if len(nodes):
-                result["response"] = nodes
-                result["pageInfo"] = pageInfo 
+                return {"content": response_text}
             else:
-                result["response"] = NO_COLLECTIONS_FOUND_ERROR
-            return json.dumps(result) # otherwise function calling message type doesn't support array
+                return NO_COLLECTIONS_FOUND_ERROR
     
     except Exception as e:
-        result["response"] = COLLECTION_SEARCH_ERROR
-        return json.dumps(result)
+        return COLLECTION_SEARCH_ERROR

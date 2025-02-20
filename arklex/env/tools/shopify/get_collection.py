@@ -56,8 +56,6 @@ def get_collection(collection_id: list, **kwargs) -> str:
             }}
             """)
             results = json.loads(response)["data"]["collection"]
-            pageInfo = results['products']['pageInfo']
-            
-            return results, pageInfo
+            return {"content": results}
     except Exception as e:
         return COLLECTION_NOT_FOUND

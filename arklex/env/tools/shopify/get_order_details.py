@@ -49,7 +49,7 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
     
     try:
         with shopify.Session.temp(shop_url, api_version, token):
-            results = []
+            response_text = ""
             for order_id in order_ids:
                 response = shopify.GraphQL().execute(f"""
                 {{
@@ -79,8 +79,15 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                     }}
                 }}
                 """)
-            parsed_response = json.loads(response)["data"]["order"]
-            results.append(json.dumps(parsed_response))
-        return json.dumps(results)
+                parsed_response = json.loads(response)["data"]["order"]
+                response_text += f"Order Name: {parsed_response.get('name')}\n"
+                response_text += f"Total Price: {parsed_response.get('totalPriceSet').get('presentmentMoney').get('amount')}\n"
+                response_text += "Line Items:\n"
+                for i, line_item in enumerate(parsed_response.get('lineItems').get('edges')):
+                    response_text += f"Line Item {i+1}:\n"
+                    response_text += f"Title: {line_item.get('node').get('title')}\n"
+                    response_text += f"Quantity: {line_item.get('node').get('quantity')}\n"
+                    response_text += f"Product ID: {line_item.get('node').get('variant').get('product').get('id')}\n"
+        return {"content": response_text}
     except Exception as e:
         return ORDERS_NOT_FOUND

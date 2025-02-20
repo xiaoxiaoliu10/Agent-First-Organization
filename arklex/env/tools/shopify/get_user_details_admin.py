@@ -76,8 +76,14 @@ def get_user_details_admin(user_id: str, **kwargs) -> str:
                 }}
             """)
             data = json.loads(response)['data']['customer']
-            pageInfo = data['orders']['pageInfo']
-            return data, pageInfo
+            response_text = f"User: {data.get('firstName')} {data.get('lastName')}\n"
+            response_text += f"Email: {data.get('email')}\n"
+            response_text += f"Phone: {data.get('phone')}\n"
+            response_text += f"Number of Orders: {data.get('numberOfOrders')}\n"
+            response_text += f"Amount Spent: {data['amountSpent']['amount']} {data['amountSpent']['currencyCode']}\n"
+            response_text += f"Created At: {data.get('createdAt')}\n"
+            response_text += f"Updated At: {data.get('updatedAt')}\n"
+            return {"content": response_text}
 
     except Exception:
         return USER_NOT_FOUND_ERROR

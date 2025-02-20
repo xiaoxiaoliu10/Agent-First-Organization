@@ -62,14 +62,15 @@ def search_products(query: str, **kwargs) -> str:
                     }}
                 }}
             """)
-        
+            response_text = ""
             data = json.loads(response)['data']['products']
             nodes = data['nodes']
-            pageInfo = data['pageInfo']
+            for node in nodes:
+                response_text += f"{"Product ID": node['id']}\n"
             if len(nodes):
-                return nodes, pageInfo
+                return {"content": response_text}
             else:
-                return NO_PRODUCTS_FOUND_ERROR, ''
+                return NO_PRODUCTS_FOUND_ERROR
     
     except Exception as e:
-        return PRODUCT_SEARCH_ERROR, ''
+        return PRODUCT_SEARCH_ERROR
