@@ -79,7 +79,6 @@ class Tool:
             self.slots = state["slots"][self.name]
         else:
             state["slots"][self.name] = self.slots
-        # add frontend slot
         response = "error"
         max_tries = 3
         while max_tries > 0 and "error" in response:
@@ -143,9 +142,8 @@ class Tool:
                     "role": "tool",
                     "tool_call_id": call_id,
                     "name": self.name,
-                    "content": response.get("content", response)
+                    "content": response
                 })
-                state["metadata"]["product_list"] = response.get("product_list", [])
                 if "error" in response:
                     max_tries -= 1
                     continue

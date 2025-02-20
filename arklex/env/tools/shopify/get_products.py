@@ -84,16 +84,16 @@ def get_products(product_ids: list, **kwargs) -> str:
                 response_text += f"Product {i+1}:\n"
                 response_text += f"Product Title: {product.get('title')}\n"
                 response_text += f"Product Description: {product.get('description')}\n"
-                response_text += f"Total Inventory: {product.get('totalInventory')}\n"
+                response_text += f"Total Inventory: {product.get('totalInventory')}\n\n"
                 product_dict = {"title": product.get('title'), 
                                 "description": product.get('description'), 
                                 "product_url": product.get('onlineStoreUrl'),
-                                "image_url": product.get('images', {}).get('edges', {}).get('node', {}).get('src', "")
+                                "image_url" : product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""),
                             }
                 product_list.append(product_dict)
-            return {
+            return json.dumps({
                 "content": response_text,
                 "product_list": product_list
-            }
+            })
     except Exception as e:
         return PRODUCTS_NOT_FOUND

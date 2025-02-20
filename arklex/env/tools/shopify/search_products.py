@@ -66,9 +66,9 @@ def search_products(query: str, **kwargs) -> str:
             data = json.loads(response)['data']['products']
             nodes = data['nodes']
             for node in nodes:
-                response_text += f"{"Product ID": node['id']}\n"
-            if len(nodes):
-                return {"content": response_text}
+                response_text += f"Product ID: {node['id']}\n"
+            if response_text:
+                return response_text
             else:
                 return NO_PRODUCTS_FOUND_ERROR
     

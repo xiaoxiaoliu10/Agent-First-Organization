@@ -75,6 +75,6 @@ def get_order_admin(order_id: str, **kwargs) -> str:
         }}
         """)
         results = json.loads(response)['data']['order']
-        return {"content": results}
+        return results
     except Exception as e:
         return ORDERS_NOT_FOUND

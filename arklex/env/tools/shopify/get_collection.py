@@ -56,6 +56,6 @@ def get_collection(collection_id: list, **kwargs) -> str:
             }}
             """)
             results = json.loads(response)["data"]["collection"]
-            return {"content": results}
+            return results
     except Exception as e:
-        return COLLECTION_NOT_FOUND
+        return {"content": COLLECTION_NOT_FOUND}

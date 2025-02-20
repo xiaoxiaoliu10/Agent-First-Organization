@@ -59,7 +59,7 @@ def find_user_id_by_email(email: str, **kwargs) -> str:
         nodes = json.loads(response)["data"]["customers"]["edges"]
         if len(nodes) == 1:
             user_id = nodes[0]["node"]["id"]
-            return {"content": user_id}
+            return user_id
         else:
             return MULTIPLE_USERS_SAME_EMAIL_ERROR
     except Exception as e:

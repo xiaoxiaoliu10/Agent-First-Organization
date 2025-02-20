@@ -80,6 +80,7 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                 }}
                 """)
                 parsed_response = json.loads(response)["data"]["order"]
+                response_text += f"Order ID: {parsed_response.get('id')}\n"
                 response_text += f"Order Name: {parsed_response.get('name')}\n"
                 response_text += f"Total Price: {parsed_response.get('totalPriceSet').get('presentmentMoney').get('amount')}\n"
                 response_text += "Line Items:\n"
@@ -88,6 +89,7 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                     response_text += f"Title: {line_item.get('node').get('title')}\n"
                     response_text += f"Quantity: {line_item.get('node').get('quantity')}\n"
                     response_text += f"Product ID: {line_item.get('node').get('variant').get('product').get('id')}\n"
-        return {"content": response_text}
+        return response_text
     except Exception as e:
+        print(e)
         return ORDERS_NOT_FOUND

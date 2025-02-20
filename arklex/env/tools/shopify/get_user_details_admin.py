@@ -83,7 +83,9 @@ def get_user_details_admin(user_id: str, **kwargs) -> str:
             response_text += f"Amount Spent: {data['amountSpent']['amount']} {data['amountSpent']['currencyCode']}\n"
             response_text += f"Created At: {data.get('createdAt')}\n"
             response_text += f"Updated At: {data.get('updatedAt')}\n"
-            return {"content": response_text}
+            for order in data.get('orders').get('nodes'):
+                response_text += f"Order ID: {order.get('id')}\n"
+            return response_text
 
     except Exception:
         return USER_NOT_FOUND_ERROR

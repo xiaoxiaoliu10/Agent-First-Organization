@@ -83,8 +83,8 @@ def search_collections(query: str, **kwargs) -> str:
                 products = node.get('products').get('nodes')
                 for product in products:
                     response_text += f"Product Title: {product.get('title')}\nProduct Description: {product.get('description')}\nProduct ID: {product.get('id')}\n"
-            if len(nodes):
-                return {"content": response_text}
+            if response_text:
+                return response_text
             else:
                 return NO_COLLECTIONS_FOUND_ERROR
     
