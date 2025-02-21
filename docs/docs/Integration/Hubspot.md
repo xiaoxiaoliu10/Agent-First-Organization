@@ -34,7 +34,7 @@ There are several steps for the implementation of this function:
 * Detect whether the customer is the existing one using `email`:
 
   ![find_contact_step_1.png](find_contact_step_1.png)
-* If the user is not a existing customer, `USER_NOT_FOUND_ERROR` will be returned. If the user is the existing customer, the response of search_api is shown below. 
+* If the user is not an existing customer, `USER_NOT_FOUND_ERROR` will be returned. If the user is the existing customer, the response of search_api is shown below. 
 The structure of a contact is demonstrated inside the `results` field.
   ```
   {'paging': None,
@@ -53,7 +53,7 @@ The structure of a contact is demonstrated inside the `results` field.
    'total': 1}
   ```
   
-* Then a **communication** object will be created, whose content is `chat`. Otherwise, return the `USER_NOT_FOUND_ERROR`:
+* Then a **communication** object will be created, whose content is `chat`:
   
   ![find_contact_step_2.png](find_contact_step_2.png)
   
@@ -162,10 +162,10 @@ The edge defines the connection between two nodes
 
 In the **Hubspot Integration**, there are two intents for users communicating the chatbot:
 * When users have **questions** about the product, the chatbot will firstly ask for users' email to detect 
-whether they are existing customers. At the same time, it will update the contact's last activity date if ths user is existing customer.
+whether they are existing customers. At the same time, it will update the contact's last activity date if the user is an existing customer.
 Then it will use `FaissRAGWorker` to generate answer for user's question. So the basic flow for this case is: `start_node -> search_customer -> FaissRAGWorker`
 * When users need **technical support/repair service/exchange service** about the product, the chatbot will firstly ask for users' email to detect 
-whether they are existing customers. At the same time, it will update the contact's last activity date if ths user is existing customer.
+whether they are existing customers. At the same time, it will update the contact's last activity date if the user is an existing customer.
 Then it will move to create a ticket for the corresponding issue and head it to the technician support team. 
 So the basic flow for this case is: `start_node -> search_customer -> create_ticket`
 
