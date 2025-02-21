@@ -13,7 +13,7 @@ from arklex.utils.utils import format_chat_history
 logger = logging.getLogger(__name__)
 
     
-def register_tool(desc, slots=[], outputs=[], isComplete=lambda x: True):
+def register_tool(desc, slots=[], outputs=[], isComplete=lambda x: True, isResponse=False):
     current_file_dir = os.path.dirname(__file__)
     def inner(func):
         file_path = inspect.getfile(func)
@@ -22,12 +22,12 @@ def register_tool(desc, slots=[], outputs=[], isComplete=lambda x: True):
         # different file paths format in Windows and linux systems
         relative_path = relative_path.replace("/", "-").replace("\\", "-").replace(".py", "")
         key = f"{relative_path}-{func.__name__}"
-        tool = lambda : Tool(func, key, desc, slots, outputs, isComplete)
+        tool = lambda : Tool(func, key, desc, slots, outputs, isComplete, isResponse)
         return tool
     return inner
 
 class Tool:
-    def __init__(self, func, name, description, slots, outputs, isComplete):
+    def __init__(self, func, name, description, slots, outputs, isComplete, isResponse):
         self.func = func
         self.name = name
         self.description = description
@@ -36,6 +36,7 @@ class Tool:
         self.info = self.get_info(slots)
         self.slots = self._format_slots(slots)
         self.isComplete = isComplete
+        self.isResponse = isResponse
 
     def _format_slots(self, slots):
         format_slots = []
@@ -72,6 +73,18 @@ class Tool:
         
     def init_slotfilling(self, slotfillapi: SlotFilling):
         self.slotfillapi = slotfillapi
+
+    def _init_slots(self, state: MessageState):
+        default_slots = state["slots"].get("default_slots", [])
+        logger.info(f'Default slots are: {default_slots}')
+        if not default_slots:
+            return
+        for default_slot in default_slots:
+            for slot in self.slots:
+                if slot.name == default_slot.name:
+                    slot.value = default_slot.value
+                    slot.verified = True
+        logger.info(f'Slots after initialization are: {self.slots}')
         
     def _execute(self, state: MessageState, **fixed_args):
         # if this tool has been called before, then load the previous slots status
@@ -79,6 +92,7 @@ class Tool:
             self.slots = state["slots"][self.name]
         else:
             state["slots"][self.name] = self.slots
+        self._init_slots(state)
         response = "error"
         max_tries = 3
         while max_tries > 0 and "error" in response:
@@ -148,8 +162,12 @@ class Tool:
                     max_tries -= 1
                     continue
                 state["status"] = StatusEnum.COMPLETE.value if self.isComplete(response) else StatusEnum.INCOMPLETE.value
-                
-        state["message_flow"] = response
+        
+        if self.isResponse:
+            logger.info("Tool output is stored in response instead of message flow")
+            state["response"] = response
+        else:
+            state["message_flow"] = response
         state["slots"][self.name] = slots
         return state
 

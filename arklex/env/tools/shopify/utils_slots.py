@@ -7,6 +7,14 @@ class ShopifySlots:
         slot["description"] = f"List of {slot['name']}. {slot['description']}"
         return slot
     
+    USER_EMAIL = {
+        "name": "user_email",
+        "type": "string",
+        "description": "The email of the user, such as 'something@example.com'.",
+        "prompt": "In order to proceed, please provide the email for identity verification.",
+        "required": True,
+    }
+
     USER_ID = {
         "name": "user_id",
         "type": "string",
@@ -83,6 +91,30 @@ class ShopifySlots:
         "description": "list of (line_id, item_id, quantity) tuples of lineItem to add to the cart such as [('gid://shopify/CartLine/db5cb3dd-c830-482e-88cd-99afe8eafa3f?cart=Z2NwLXVzLWVhc3QxOjAxSkpEM0JLNU1KMUI2UFRYRTNFS0NNTllW', None, 69)]",
         "prompt": "",
         "required": True,
+    }
+
+    SEARCH_COLLECTION_QUERY = {
+        "name": "collection_query",
+        "type": "string",
+        "description": "The string query to search collections, such as 'Hats'. If query is empty string, it returns all collections.",
+        "prompt": "In order to proceed, please provide a query for the collections search.",
+        "required": False,
+    }
+
+    SEARCH_PRODUCT_QUERY = {
+        "name": "product_query",
+        "type": "string",
+        "description": "The string query to search products, such as 'Hats'. If query is empty string, it returns all products.",
+        "prompt": "In order to proceed, please provide a query for the products search.",
+        "required": False,
+    }
+
+    QUERY_LIMIT = {
+        "name": "limit",
+        "type": "string",
+        "description": "Maximum number of products to show.",
+        "prompt": "",
+        "required": False
     }
     
         

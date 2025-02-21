@@ -255,12 +255,6 @@ class AgentOrg:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     response_state, params = self.env.step(self.env.name2id[action], message_state, params)
                     tool_response = params.get("metadata", {}).get("tool_response", {})
-        product_list = []
-        try:
-            context_dict = json.loads(response_state.get("message_flow"))
-            product_list = context_dict.get("product_list", [])
-        except Exception as e:
-            pass
         if not response_state.get("response", ""):
             logger.info("No response from the ReAct framework, do context generation")
             tool_response = {}
@@ -276,7 +270,6 @@ class AgentOrg:
             params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
         params["metadata"]["worker"] = {}
         params["tool_response"] = tool_response
-        params["product_list"] = product_list
         output = {
             "answer": response,
             "parameters": params

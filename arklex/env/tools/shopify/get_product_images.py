@@ -25,7 +25,7 @@ outputs = [
 PRODUCTS_NOT_FOUND = "error: product not found"
 errors = [PRODUCTS_NOT_FOUND]
 
-@register_tool(description, slots, outputs, lambda x: x not in errors)
+@register_tool(description, slots, outputs, lambda x: x not in errors, True)
 def get_product_images(product_ids: list, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
@@ -64,12 +64,9 @@ def get_product_images(product_ids: list, **kwargs) -> str:
             """)
             result = json.loads(response)['data']['products']
             response = result["nodes"]
-            response_text = ""
+            response_text = "Here are images of products:\n"
             product_list = []
-            for i, product in enumerate(response):
-                response_text += f"Product {i+1}:\n"
-                response_text += f"Product Title: {product.get('title')}\n"
-                response_text += f"Product Description: {product.get('description')}\n\n"
+            for product in response:
                 product_dict = {"title": product.get('title'), 
                                 "description": product.get('description'), 
                                 "product_url": product.get('onlineStoreUrl'),
@@ -77,8 +74,11 @@ def get_product_images(product_ids: list, **kwargs) -> str:
                             }
                 product_list.append(product_dict)
             return json.dumps({
-                "content": response_text,
+                "answer": response_text,
                 "product_list": product_list
             })
     except Exception as e:
-        return PRODUCTS_NOT_FOUND
+        return json.dumps({
+                "answer": PRODUCTS_NOT_FOUND,
+                "product_list": []
+            })

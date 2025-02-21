@@ -5,26 +5,17 @@ import shopify
 # general GraphQL navigation utilities
 from arklex.env.tools.shopify.utils_nav import *
 from arklex.env.tools.shopify.utils import authorify
+from arklex.env.tools.shopify.utils_slots import ShopifySlots, ShopifyOutputs
 
 from arklex.env.tools.tools import register_tool
 
 description = "Search collections by string query. If no collections are found, the function will return an error message."
 slots = [
-    {
-        "name": "query",
-        "type": "string",
-        "description": "The string query to search collections, such as 'Hats'. If query is empty string, it returns all collections.",
-        "prompt": "In order to proceed, please provide a query for the collections search.",
-        "required": False,
-    },
+    ShopifySlots.SEARCH_COLLECTION_QUERY,
     *PAGEINFO_SLOTS
 ]
 outputs = [
-    {
-        "name": "collections_list",
-        "type": "dict",
-        "description": "A list of up to limit number of collections that satisfies the query. Such as \"[{'id': 'gid://shopify/Collection/7296580845681'}, {'id': 'gid://shopify/Collection/7296580878449'}, {'id': 'gid://shopify/Collection/7296581042289'}]\"",
-    },
+    ShopifyOutputs.COLLECTIONS_DETAILS,
     *PAGEINFO_OUTPUTS
 ]
 COLLECTION_SEARCH_ERROR = "error: collection search failed"
@@ -38,8 +29,8 @@ errors = [
     NO_PREV_PAGE
 ]
 
-@register_tool(description, slots, outputs, lambda x: x[0] not in errors)
-def search_collections(query: str, **kwargs) -> str:
+@register_tool(description, slots, outputs, lambda x: x[0] not in errors, True)
+def search_collections(collection_query: str, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
         return nav[0]
@@ -51,7 +42,7 @@ def search_collections(query: str, **kwargs) -> str:
         with shopify.Session.temp(**auth["value"]):
             response = shopify.GraphQL().execute(f"""
                 {{
-                    collections ({nav[0]}, query: "{query}") {{
+                    collections ({nav[0]}, query: "{collection_query}") {{
                         nodes {{
                             title
                             description
@@ -62,7 +53,15 @@ def search_collections(query: str, **kwargs) -> str:
                                 nodes {{
                                     title
                                     description
-                                    id
+                                    onlineStoreUrl
+                                    images(first: 1) {{
+                                        edges {{
+                                            node {{
+                                                src
+                                                altText
+                                            }}
+                                        }}
+                                    }}
                                 }}
                             }}
                         }}
@@ -75,18 +74,33 @@ def search_collections(query: str, **kwargs) -> str:
                     }}
                 }}
             """)
-            response_text = ""
+            answer = "Here are some recommended products:\n"
             data = json.loads(response)['data']['collections']
             nodes = data['nodes']
+            product_list = []
             for node in nodes:
-                response_text += f"Title: {node.get('title')}\nDescription: {node.get('description')}\nProducts Count: {node.get('productsCount').get('count')}\n"
                 products = node.get('products').get('nodes')
                 for product in products:
-                    response_text += f"Product Title: {product.get('title')}\nProduct Description: {product.get('description')}\nProduct ID: {product.get('id')}\n"
-            if response_text:
-                return response_text
+                    product_dict = {
+                        "title": product.get('title'),
+                        "description": product.get('description'),
+                        "product_url": product.get('onlineStoreUrl'),
+                        "image_url": product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""),
+                    }
+                    product_list.append(product_dict)
+            if product_list:
+                return json.dumps({
+                    "answer": answer,
+                    "product_list": product_list
+                }) 
             else:
-                return NO_COLLECTIONS_FOUND_ERROR
+                return json.dumps({
+                    "answer": NO_COLLECTIONS_FOUND_ERROR,
+                    "product_list": []
+                })
     
     except Exception as e:
-        return COLLECTION_SEARCH_ERROR
+        return json.dumps({
+            "answer": COLLECTION_SEARCH_ERROR,
+            "product_list": []
+        })

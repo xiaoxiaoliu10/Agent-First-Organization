@@ -12,13 +12,7 @@ from arklex.env.tools.tools import register_tool
 
 description = "Search products by string query. If no products are found, the function will return an error message."
 slots = [
-    {
-        "name": "query",
-        "type": "string",
-        "description": "The string query to search products, such as 'Hats'. If query is empty string, it returns all products.",
-        "prompt": "In order to proceed, please provide a query for the products search.",
-        "required": False,
-    },
+    ShopifySlots.SEARCH_PRODUCT_QUERY,
     *PAGEINFO_SLOTS
 ] 
 outputs = [
@@ -37,7 +31,7 @@ errors = [
 ]
 
 @register_tool(description, slots, outputs, lambda x: x[0] not in errors)
-def search_products(query: str, **kwargs) -> str:
+def search_products(product_query: str, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
         return nav[0]
@@ -49,7 +43,7 @@ def search_products(query: str, **kwargs) -> str:
         with shopify.Session.temp(**auth["value"]):
             response = shopify.GraphQL().execute(f"""
                 {{
-                    products ({nav[0]}, query: "{query}") {{
+                    products ({nav[0]}, query: "{product_query}") {{
                         nodes {{
                             id
                         }}

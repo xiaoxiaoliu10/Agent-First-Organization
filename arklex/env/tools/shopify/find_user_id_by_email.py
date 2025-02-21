@@ -5,23 +5,14 @@ import shopify
 
 from arklex.env.tools.tools import register_tool
 from arklex.env.tools.shopify.utils import SHOPIFY_AUTH_ERROR
+from arklex.env.tools.shopify.utils_slots import ShopifySlots
 
 description = "Find user id by email. If the user is not found, the function will return an error message."
 slots = [
-    {
-        "name": "email",
-        "type": "string",
-        "description": "The email of the user, such as 'something@example.com'.",
-        "prompt": "In order to proceed, please provide the email for identity verification.",
-        "required": True,
-    }
+    ShopifySlots.USER_EMAIL
 ]
 outputs = [
-    {
-        "name": "user_id",
-        "type": "string",
-        "description": "The user id of the user. such as 'gid://shopify/Customer/13573257450893'.",
-    }
+    ShopifySlots.USER_ID
 ]
 
 USER_NOT_FOUND_ERROR = "error: user not found"
@@ -33,7 +24,7 @@ errors = [
 ]
 
 @register_tool(description, slots, outputs, lambda x: x not in errors)
-def find_user_id_by_email(email: str, **kwargs) -> str:
+def find_user_id_by_email(user_email: str, **kwargs) -> str:
     shop_url = kwargs.get("shop_url")
     api_version = kwargs.get("api_version")
     token = kwargs.get("token")
@@ -47,7 +38,7 @@ def find_user_id_by_email(email: str, **kwargs) -> str:
         with shopify.Session.temp(shop_url, api_version, token):
             response = shopify.GraphQL().execute(f"""
                 {{
-                    customers (first: 10, query: "email:{email}") {{
+                    customers (first: 10, query: "email:{user_email}") {{
                         edges {{
                             node {{
                                 id
