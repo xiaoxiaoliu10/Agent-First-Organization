@@ -4,7 +4,7 @@
 
 ## Intro
 
-In this tutorial, we'll walk through building a basic customer service agent using **Arklex Agent First Organization**'s framework. This agent will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and requesting customer's contact information. The tutorial aims to build on top of a [simple conversational AI](./roleplay-agent.md) to include RAG in order to equip you with the foundational skills needed to create and deploy a functional customer service agent.
+In this tutorial, we'll walk through building a basic customer service agent using **Arklex Agent First Organization**'s framework. This agent will be able to handle common customer inquiries, such as answering FAQs, identifying customer preferences, and requesting customer's contact information.
 
 By the end of this tutorial, you'll know how to set up the AI framework, prepare documents for RAG, build a basic conversation flow, and power an agent with it. Whether you're building your first agent or refining your skills, this tutorial will guide you in creating a responsive and helpful customer service agent. 
 

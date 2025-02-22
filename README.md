@@ -46,7 +46,7 @@ pip install arklex
             * `path (Required, Str)`: The file path of the worker start from the arklex/env/tools folder. Such as `shopify/find_user_id_by_email.py`.
             * `fixed_args (Optional, Dict)`: All the must and deterministic arguments for the tool function, such as credentials or already known argument during development. It should be a dictionary. Such as `{"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}`
 
-# Build A Dmo Customer Service Agent
+# Build A Demo Customer Service Agent
 > **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
 
 **1. Create Taskgraph and Initialize Worker**
