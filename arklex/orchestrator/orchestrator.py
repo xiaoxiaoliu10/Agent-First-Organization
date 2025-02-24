@@ -14,18 +14,21 @@ from dotenv import load_dotenv
 from langchain_core.runnables import RunnableLambda
 import langsmith as ls
 from openai import OpenAI
-from litellm import completion
+from langchain_openai import ChatOpenAI
+
 
 from arklex.orchestrator.task_graph import TaskGraph
 from arklex.env.tools.utils import ToolGenerator
 from arklex.orchestrator.NLU.nlu import SlotFilling
 from arklex.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
 from arklex.types import EventType, StreamType
-from arklex.utils.graph_state import ConvoMessage, OrchestratorMessage, MessageState, StatusEnum, BotConfig
+from arklex.utils.graph_state import ConvoMessage, OrchestratorMessage, MessageState, StatusEnum, BotConfig, Slot
 from arklex.utils.utils import init_logger, format_chat_history
 from arklex.orchestrator.NLU.nlu import NLU
 from arklex.utils.trace import TraceRunName
 from arklex.utils.model_config import MODEL
+from arklex.utils.model_provider_config import PROVIDER_MAP
+from arklex.env.planner.function_calling import aimessage_to_dict
 
 
 load_dotenv()
@@ -46,16 +49,20 @@ class AgentOrg:
         self.env = env
 
     def generate_next_step(
-        self, messages: List[Dict[str, Any]]
+        self, messages: List[Dict[str, Any]], text:str
     ) -> Tuple[Dict[str, Any], str, float]:
-        res = completion(
-                messages=messages,
-                model=MODEL["model_type_or_path"],
-                custom_llm_provider="openai",
-                temperature=0.0
-            )
-        message = res.choices[0].message
-        action_str = message.content.split("Action:")[-1].strip()
+        llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
+                    model=MODEL["model_type_or_path"],
+                    temperature = 0.0,
+                )
+        if MODEL['llm_provider'] == 'gemini':
+            messages = [
+                ("system",str(messages[0]['content']),),
+                ("human", ""),
+            ]
+        res = llm.invoke(messages)        
+        message = aimessage_to_dict(res)
+        action_str = message['content'].split("Action:")[-1].strip()
         try:
             action_parsed = json.loads(action_str)
         except json.JSONDecodeError:
@@ -67,7 +74,8 @@ class AgentOrg:
         assert "name" in action_parsed
         assert "arguments" in action_parsed
         action = action_parsed["name"]
-        return message.model_dump(), action, res._hidden_params["response_cost"]
+        # issues with getting response_cost using langchain, set to 0.0 for now
+        return message, action, 0.0
 
 
     def get_response(self, inputs: dict, stream_type: StreamType = None, message_queue: janus.SyncQueue = None) -> Dict[str, Any]:
@@ -78,7 +86,11 @@ class AgentOrg:
         chat_history_copy = copy.deepcopy(chat_history)
         chat_history_copy.append({"role": self.user_prefix, "content": text})
         chat_history_str = format_chat_history(chat_history_copy)
-        params["dialog_states"] = params.get("dialog_states", {})
+        dialog_states = params.get("dialog_states", {})
+        if dialog_states:
+            params["dialog_states"] = {tool: [Slot(**slot_data) for slot_data in slots] for tool, slots in dialog_states.items()}
+        else:
+            params["dialog_states"] = {}
         metadata = params.get("metadata", {})
         metadata["chat_id"] = metadata.get("chat_id", str(uuid.uuid4()))
         metadata["turn_id"] = metadata.get("turn_id", 0) + 1
@@ -91,19 +103,6 @@ class AgentOrg:
             params["history"].append(chat_history_copy[-2])
             params["history"].append(chat_history_copy[-1])
 
-        ##### Model safety checking
-        # check the response, decide whether to give template response or not
-        client = OpenAI()
-        text = inputs["text"]
-        moderation_response = client.moderations.create(input=text).model_dump()
-        is_flagged = moderation_response["results"][0]["flagged"]
-        if is_flagged:
-            return_response = {
-                "answer": self.product_kwargs["safety_response"],
-                "parameters": params,
-                "has_follow_up": True
-            }
-            return return_response
 
         ##### TaskGraph Chain
         taskgraph_inputs = {
@@ -243,7 +242,7 @@ class AgentOrg:
                 messages: List[Dict[str, Any]] = [
                     {"role": "system", "content": prompt}
                 ]
-                _, action, _ = self.generate_next_step(messages)
+                _, action, _ = self.generate_next_step(messages, text)
                 logger.info("Predicted action: " + action)
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True
@@ -263,6 +262,8 @@ class AgentOrg:
         response = response_state.get("response", "")
         params["metadata"]["tool_response"] = {}
         # TODO: params["metadata"]["worker"] is not serialization, make it empty for now
+        if params.get("dialog_states"):
+            params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
         params["metadata"]["worker"] = {}
         params["tool_response"] = tool_response
         output = {

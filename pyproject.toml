@@ -21,6 +21,9 @@ dependencies = [
   "httptools==0.6.4",
   "langchain-community==0.3.3",
   "langchain-openai==0.2.3",
+  "langchain-anthropic==0.3.5",
+  "langchain-google-genai==2.0.9",
+  "langchain-huggingface==0.1.2",
   "langgraph==0.2.39",
   "linkify-it-py==2.0.3",
   "mdit-py-plugins==0.4.2",
@@ -52,7 +55,7 @@ milvus = [
   "PyMySQL==1.1.0",
 ]
 shopify = ["ShopifyAPI==12.7.0"]
-
+hubspot = ["hubspot-api-client==11.1.0"]
 [project.urls]
 Homepage = "https://github.com/arklexai/Agent-First-Organization"
 Issues = "https://github.com/arklexai/Agent-First-Organization/issues"

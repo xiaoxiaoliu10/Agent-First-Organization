@@ -1,0 +1,116 @@
+[
+    {
+        "test_id": 0,
+        "user_utterance": [
+            "What is my account setup?",
+            "luyunan0404@gmail.com"
+        ],
+        "description": "Question about account setup",
+        "criteria": "Ask user for email and provide account setup",
+        "final_state": "Answer user query",
+        "trajectory": ["2", "3"],
+        "expected_conversation": [
+            {
+                "role": "assistant",
+                "content": "Hello! Welcome to our store. How can I assist you today?"
+            },
+            {
+                "role": "user",
+                "content": "What is my account setup?"
+            },
+            {
+                "role": "assistant",
+                "content": "Could you please provide your email address for identity verification? This will help me access your account information and assist you further."
+            },
+            {
+                "role": "user",
+                "content": "yl4021@columbia.edu"
+            },
+            {
+                "role": "assistant",
+                "content": "Hello, <user_name>! I see that you have an account with us. You've placed a total of two orders, and you've spent $40.88 so far. Your account was created on December 13, 2024, and your default shipping address is <address>. If there's anything specific you need help with, feel free to ask!"
+            }
+        ]
+    },
+    {
+        "test_id": 1,
+        "user_utterance": [
+            "Do you have recommendation for hats?"
+        ],
+        "description": "Question about product recommendation", 
+        "criteria": "Provide product recommendation",
+        "final_state": "Answer user query",
+        "trajectory": ["10"],
+        "expected_conversation": [
+            {
+                "role": "assistant",
+                "content": "Hello! Welcome to our store. How can I assist you today?"
+            },
+            {
+                "role": "user",
+                "content": "Do you have recommendation for hats?"
+            },
+            {
+                "role": "assistant",
+                "content": "We have a selection of hats that might interest you. Here are a few recommendations:\n1. **Camel Brown Boys & Girls Rib Knit Beanie Hat** - A soft, lightweight beanie perfect for keeping warm during winter with enough breathability for warmer days. Ideal for outdoor activities.\n2. **Green Boys & Girls Baseball Hat with Adjustable Buckle** - This baseball hat provides sun protection and is made from premium cotton. It's perfect for outdoor activities and has an adjustable buckle to fit children aged 4-12.\n3. **Metallic Light Pink Boys & Girls Baseball Hat** - Offers sun protection with a sleek reflective strip across the brim. Made from breathable cotton, this hat comes in two sizes to fit children aged 2-12.\n4. **Metallic Navy Blue Boys & Girls Baseball Hat** - Similar to the metallic pink version but in navy blue. It also features a reflective strip and adjustable buckle, making it a great choice for growing kids.\n5. **Pink Unicorn Boys & Girls Baseball Hat with Adjustable Buckle** - This hat features a fun 3D unicorn design in vibrant pink. It's made for children aged 2-12 and is perfect for adding a bit of magic to any outfit.\nIf you need more details or have any specific preferences, feel free to let me know!"
+            }
+        ]
+    },
+    {
+        "test_id": 2,
+        "user_utterance": [
+            "What hats do you sell?"
+        ],
+        "description": "Question about products",
+        "criteria": "Provide product information",
+        "final_state": "Answer user query",
+        "trajectory": ["5"],
+        "expected_conversation": [
+            {
+                "role": "assistant",
+                "content": "Hello! Welcome to our store. How can I assist you today?"
+            },
+            {
+                "role": "user",
+                "content": "What hats do you sell?"
+            },
+            {
+                "role": "assistant",
+                "content": "We have a selection of fun and stylish hats for kids! Here are a few options available:\n1. **Pink Unicorn Boys & Girls Baseball Hat**: This hat features a vibrant pink color with a 3D unicorn design. It's made of premium cotton and is adjustable to fit children ages 2-12. You can check it out [here](https://xu1e3z-yi.myshopify.com/products/awhale-boys-and-girls-baseball-hat-toddler-cap-with-ponytail-messy-bun-opening-for-ages-2-12-adjustable-buckle-unicorn-pink).\n2. **Green Boys & Girls Baseball Hat**: This hat is functional and stylish with a sleek reflective strip across the brim. It's perfect for sun protection and fits children ages 4-12. More details are available [here](https://xu1e3z-yi.myshopify.com/products/awhale-boys-and-girls-baseball-hat-toddler-cap-with-ponytail-messy-bun-opening-for-ages-2-12-adjustable-buckle-green).\n3. **Metallic Navy Blue Boys & Girls Baseball Hat**: This hat is available in two sizes for ages 2-6 and 7-12. It's made from breathable cotton and features a reflective strip for sun protection. Take a look [here](https://xu1e3z-yi.myshopify.com/products/awhale-boys-and-girls-baseball-hat-toddler-cap-with-ponytail-messy-bun-opening-for-ages-2-12-adjustable-bucklemetallic-navy-blue).\n4. **Metallic Light Pink Boys & Girls Baseball Hat**: Like the navy version, this hat is also available for children ages 2-6 and 7-12. It's stylish with a reflective strip and adjustable buckle. You can find more information [here](https://xu1e3z-yi.myshopify.com/products/awhale-boys-and-girls-baseball-hat-toddler-cap-with-ponytail-messy-bun-opening-for-ages-2-12-adjustable-bucklemetallic-light-pink).\nFeel free to let me know if you have any questions or if you need further assistance!"
+            }
+        ]
+    },
+    {
+        "test_id": 3,
+        "user_utterance": [
+            "What did I order?",
+            "luyunan0404@gmail.com"
+        ],
+        "description": "Question about past orders",
+        "criteria": "Provide product information of past orders",
+        "final_state": "Answer user query",
+        "trajectory": ["6", "9"],
+        "expected_conversation": [
+            {
+                "role": "assistant",
+                "content": "Hello! Welcome to our store. How can I assist you today?"
+            },
+            {
+                "role": "user",
+                "content": "What did I order?"
+            },
+            {
+                "role": "assistant",
+                "content": "Could you please provide your email address for identity verification? This will help me access your order details and assist you further."
+            },
+            {
+                "role": "user",
+                "content": "luyunan0404@gmail.com"
+            },
+            {
+                "role": "assistant",
+                "content": "Thank you for providing your email address. It looks like you ordered the Denim Apron with 5 Pockets, which is a multipurpose canvas apron suitable for BBQ, gardening, painting, and carpentry. If you need more details or have other questions, feel free to ask!"
+            }
+        ]
+    }
+]

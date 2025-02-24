@@ -5,7 +5,7 @@
 
 :pencil2: <a href="https://www.arklex.ai/qa/open-source">Documentations</a>
 
-Agent First Organization provides a framework for developing **task-oriented dialogue agents** to complete complex tasks powered by LLMs. The framework is designed to be modular and extensible, allowing developers to customize workers/tools that can interact with each other in a variety of ways under the supervision of the orchestrator managed by *Taskgraph*. 
+Arklex Agent First Organization provides a framework for developing **AI Agents** to complete complex tasks powered by LLMs. The framework is designed to be modular and extensible, allowing developers to customize workers/tools that can interact with each other in a variety of ways under the supervision of the orchestrator managed by *Taskgraph*. 
 
 # Installation
 ```
@@ -14,7 +14,15 @@ pip install arklex
 
 # Preparation
 0. Set up environment
-    * Add `OPENAI_API_KEY` to `.env`
+     * Add the API key for the provider(s) you wish to use to your `.env` file:
+       - **OpenAI**: 
+        `OPENAI_API_KEY`
+       - **Gemini/Google**: 
+        `GEMINI_API_KEY,GOOGLE_API_KEY
+        `
+       - **Anthropic**:
+        `ANTHROPIC_API_KEY
+        `
     * Set `LANGCHAIN_TRACING_V2` to `true` use `LangSmith` Trace [Optional] (In order to use Trace function, you need to create a LangChain account from [here](https://langchain.com/) and create a API key in the settings.)
     * Set `LANGCHAIN_API_KEY` to `.env` if enable Trace.
     * If you are going to use the `SearchWorker`, you need to set up the `TAVILY_API_KEY` to `.env` as well. (In order to use Tavily, you need to create a Tavily account from [here](https://docs.tavily.com/) and create a API key by click [Get API Key](https://app.tavily.com/home).)
@@ -46,7 +54,7 @@ pip install arklex
             * `path (Required, Str)`: The file path of the worker start from the arklex/env/tools folder. Such as `shopify/find_user_id_by_email.py`.
             * `fixed_args (Optional, Dict)`: All the must and deterministic arguments for the tool function, such as credentials or already known argument during development. It should be a dictionary. Such as `{"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}`
 
-# Build Chatbot
+# Build A Demo Customer Service Agent
 > **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
 
 **1. Create Taskgraph and Initialize Worker**
@@ -57,7 +65,7 @@ python create.py --config ./examples/customer_service_config.json --output-dir .
 * Fields:
   * `--config`: The path to the config file
   * `--output-dir`: The directory to save the generated files
-  * `--model`: The openai model type used to generate the taskgraph. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+  * `--model`: The openai model type used to generate the taskgraph. The default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
 
 * It will first generate a task plan based on the config file and you could modify it in an interactive way from the command line. Made the necessary changes and press `s` to save the task plan under `output-dir` folder and continue the task graph generation process.
 * Then it will generate the task graph based on the task plan and save it under `output-dir` folder as well.
@@ -71,15 +79,23 @@ python run.py --input-dir ./examples/customer_service
 
 * Fields:
   * `--input-dir`: The directory that contains the generated files
-  * `--model`: The openai model type used to generate bot response. Default is `gpt-4o`. You could change it to other models like `gpt-4o-mini`.
+  * `--llm_provider`: The LLM provider you wish to use. 
+    - Options: `openai` (default), `gemini`, `anthropic`
+  * `--model`: The model type used to generate bot response. Default is `gpt-4o`. 
+    - You can change this to other models like:
+      - `gpt-4o-mini`
+      - `gemini-2.0-flash-exp`
+      - `claude-3-haiku-20240307`
   
-* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUOpenAIAPI` and `SlotFillOpenAIAPI` services defined under `./arklex/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
-* Then it will start the chatbot and you could chat with the chatbot
+
+* It will first automatically start the nluapi and slotapi services through `start_apis()` function. By default, this will start the `NLUModelAPI ` and `SlotFillModelAPI` services defined under `./arklex/orchestrator/NLU/api.py` file. You could customize the function based on the nlu and slot models you trained.
+* Then it will start the agent and you could chat with the agent
+
 
 
 **3. Evaluation**
 
-  * First, create api for the previous chatbot you built. It will start a api on the default port 8000.
+  * First, create api for the previous chatbot you built. It will start an api on the default port 8000.
     ```
     python model_api.py  --input-dir ./examples/customer_service
     ```
