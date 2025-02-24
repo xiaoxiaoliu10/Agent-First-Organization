@@ -84,7 +84,7 @@ class SlotFilling:
         if not slots: return []
         
         data = {
-            "slots": [slot.dict() for slot in slots],
+            "slots": [slot.model_dump() for slot in slots],
             "chat_history_str": chat_history_str,
             "model":MODEL
         }
