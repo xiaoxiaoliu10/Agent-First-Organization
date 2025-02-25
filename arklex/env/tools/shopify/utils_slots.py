@@ -13,6 +13,7 @@ class ShopifySlots:
         "description": "The email of the user, such as 'something@example.com'.",
         "prompt": "In order to proceed, please provide the email for identity verification.",
         "required": True,
+        "verified": True
     }
 
     USER_ID = {
@@ -21,6 +22,7 @@ class ShopifySlots:
         "description": "The user id, such as 'gid://shopify/Customer/13573257450893'.",
         "prompt": "In order to proceed, Could you please provide the user id?",
         "required": True,
+        "verified": True
     }
     
     REFRESH_TOKEN = {
@@ -29,6 +31,7 @@ class ShopifySlots:
         "description": "customer's shopify refresh_token retrieved from authenticating",
         "prompt": "",
         "required": True,
+        "verified": True
     }
     
     PRODUCT_ID = {
@@ -37,6 +40,7 @@ class ShopifySlots:
         "description": "The product id, such as 'gid://shopify/Product/2938501948327'.", # If there is only 1 product, return in list with single item. If there are multiple product ids, please return all of them in a list.",
         "prompt": "In order to proceed, please provide the product id.",
         "required": True,
+        "verified": True
     }
     PRODUCT_IDS = to_list(PRODUCT_ID)
     
@@ -46,6 +50,7 @@ class ShopifySlots:
         "description": "The order id, such as gid://shopify/Order/1289503851427.",
         "prompt": "Please provide the order id to get the details of the order.",
         "required": True,
+        "verified": True
     }
     ORDERS_ID = to_list(ORDER_ID)
 
@@ -55,6 +60,7 @@ class ShopifySlots:
         "description": "The order id to return products, such as gid://shopify/Order/1289503851427.",
         "prompt": "Please provide the order id that you would like to return products.",
         "required": True,
+        "verified": True
     }
 
     CANCEL_ORDER_ID = {
@@ -63,6 +69,7 @@ class ShopifySlots:
         "description": "The order id to cancel, such as gid://shopify/Order/1289503851427.",
         "prompt": "Please provide the order id that you would like to cancel.",
         "required": True,
+        "verified": True
     }
     
     COLLECTION_ID = {
@@ -71,6 +78,7 @@ class ShopifySlots:
         "description": "The collection id, such as 'gid://shopify/Collection/2938501948327'.",
         "prompt": "",
         "required": True,
+        "verified": True
     }
     COLLECTION_IDS = to_list(COLLECTION_ID)
     
@@ -80,6 +88,7 @@ class ShopifySlots:
         "description": "The cart id, such as 'gid://shopify/Cart/2938501948327'.",
         "prompt": "",
         "required": True,
+        "verified": True
     }
     
     LINE_ID = {
@@ -88,6 +97,7 @@ class ShopifySlots:
         "description": "The line id for a line entry in the cart such as 'gid://shopify/CartLine/b3dbff2e-4e9a-4ce0-9f15-5fa8f61882e1?cart=Z2NwLXVzLWVhc3QxOjAxSkpDTjBQSDVLR1JaRkZHMkE3UlZSVjhX'",
         "prompt": "",
         "required": True,
+        "verified": True
     }
     LINE_IDS = to_list(LINE_ID)
     
@@ -98,6 +108,7 @@ class ShopifySlots:
         "description": "list of (item_id, quantity) tuples of lineItem to add to the cart such as [('gid://shopify/ProductVariant/41552094527601', 5), ('gid://shopify/ProductVariant/41552094494833', 10)].",
         "prompt": "",
         "required": True,
+        "verified": True
     }
     
     UPDATE_LINE_ITEM = {
@@ -107,6 +118,7 @@ class ShopifySlots:
         "description": "list of (line_id, item_id, quantity) tuples of lineItem to add to the cart such as [('gid://shopify/CartLine/db5cb3dd-c830-482e-88cd-99afe8eafa3f?cart=Z2NwLXVzLWVhc3QxOjAxSkpEM0JLNU1KMUI2UFRYRTNFS0NNTllW', None, 69)]",
         "prompt": "",
         "required": True,
+        "verified": True
     }
 
     SEARCH_COLLECTION_QUERY = {
@@ -115,6 +127,7 @@ class ShopifySlots:
         "description": "The string query to search collections, such as 'Hats'. If query is empty string, it returns all collections.",
         "prompt": "In order to proceed, please provide a query for the collections search.",
         "required": False,
+        "verified": True
     }
 
     SEARCH_PRODUCT_QUERY = {
@@ -123,6 +136,7 @@ class ShopifySlots:
         "description": "The string query to search products, such as 'Hats'. If query is empty string, it returns all products.",
         "prompt": "In order to proceed, please provide a query for the products search.",
         "required": False,
+        "verified": True
     }
 
     QUERY_LIMIT = {
@@ -130,7 +144,8 @@ class ShopifySlots:
         "type": "string",
         "description": "Maximum number of products to show.",
         "prompt": "",
-        "required": False
+        "required": False,
+        "verified": True
     }
     
         

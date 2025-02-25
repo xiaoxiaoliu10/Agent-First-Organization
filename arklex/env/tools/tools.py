@@ -49,7 +49,23 @@ class Tool:
                 description=slot["description"], 
                 prompt=slot["prompt"], 
                 required=slot.get("required", False),
-                verified=False
+                verified=slot.get("verified", False)
+            ))
+        return format_slots
+    
+    @staticmethod
+    def format_slots(slots):
+        format_slots = []
+        for slot in slots:
+            format_slots.append(Slot(
+                name=slot["name"], 
+                value=slot["value"], 
+                type=slot.get("type", "string"), 
+                enum=slot.get("enum", []),
+                description=slot.get("description", ""), 
+                prompt=slot.get("prompt", ""), 
+                required=slot.get("required", False),
+                verified=slot.get("verified", False)
             ))
         return format_slots
 
