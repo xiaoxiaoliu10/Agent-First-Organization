@@ -40,29 +40,33 @@ The structure of a contact is demonstrated inside the `results` field.
   {'paging': None,
    'results': [{'archived': False,
                 'archived_at': None,
-                'created_at': datetime.datetime(2025, 2, 7, 1, 42, 24, 914000, tzinfo=tzutc()),
-                'id': '97530152525',
-                'properties': {'createdate': '2025-02-07T01:42:24.914Z',
+                'created_at': datetime.datetime(2025, 2, 15, 21, 23, 10, 453000, tzinfo=tzutc()),
+                'id': '84246479604',
+                'properties': {'createdate': '2025-02-15T21:23:10.453Z',
                                'email': 'sarah@gmail.com',
                                'firstname': 'Sarah',
-                               'hs_object_id': '97530152525',
-                               'lastmodifieddate': '2025-02-19T18:04:27.874Z',
+                               'hs_object_id': '84246479604',
+                               'lastmodifieddate': '2025-02-23T22:15:05.802Z',
                                'lastname': 'Mark'},
                 'properties_with_history': None,
-                'updated_at': datetime.datetime(2025, 2, 19, 18, 4, 27, 874000, tzinfo=tzutc())}],
+                'updated_at': datetime.datetime(2025, 2, 23, 22, 15, 5, 802000, tzinfo=tzutc())}],
    'total': 1}
   ```
   
+  In Hubspot the detailed information of the **contact** is looked like below:
+  
+  ![hubspot_contact.png](hubspot_contact.png)
+
 * Then a **communication** object will be created, whose content is `chat`:
   
   ![find_contact_step_2.png](find_contact_step_2.png)
   
-  The structure of the communication object is shown below:
+  The structure of the **communication** object is shown below:
   ```
-  {'archived': False,
+   {'archived': False,
    'archived_at': None,
-   'created_at': datetime.datetime(2025, 2, 20, 0, 23, 9, 273000, tzinfo=tzutc()),
-   'id': '71973632854',
+   'created_at': datetime.datetime(2025, 2, 25, 0, 26, 48, 751000, tzinfo=tzutc()),
+   'id': '81116227304',
    'properties': {'hs_body_preview': 'I want to know more about your product: '
                                      'Adam',
                   'hs_body_preview_html': '<html>\n'
@@ -77,29 +81,39 @@ The structure of a contact is demonstrated inside the `results` field.
                                            'product: Adam',
                   'hs_communication_channel_type': 'CUSTOM_CHANNEL_CONVERSATION',
                   'hs_communication_logged_from': 'CRM',
-                  'hs_createdate': '2025-02-20T00:23:09.273Z',
-                  'hs_lastmodifieddate': '2025-02-20T00:23:09.273Z',
-                  'hs_object_id': '71973632854',
+                  'hs_createdate': '2025-02-25T00:26:48.751Z',
+                  'hs_lastmodifieddate': '2025-02-25T00:26:48.751Z',
+                  'hs_object_id': '81116227304',
                   'hs_object_source': 'INTEGRATION',
-                  'hs_object_source_id': '7693410',
+                  'hs_object_source_id': '8190657',
                   'hs_object_source_label': 'INTEGRATION',
-                  'hs_timestamp': '2025-02-20T00:23:10.168Z'},
+                  'hs_timestamp': '2025-02-25T00:26:48.370Z'},
    'properties_with_history': None,
-   'updated_at': datetime.datetime(2025, 2, 20, 0, 23, 9, 273000, tzinfo=tzutc())}
+   'updated_at': datetime.datetime(2025, 2, 25, 0, 26, 48, 751000, tzinfo=tzutc())}
   ```
+  
+  On Hubspot you could see a **communication** object is correspondingly created:
+  
+  ![hubspot_communication.png](hubspot_communication.png)
+
 * Associate the **created communication** with the **contact**. 
 After associating, the `'lastmodifieddate'` and `'updated_at'` of contact will be updated accordingly.:
   
   ![find_contact_step_3.png](find_contact_step_3.png)
-  
+
   The structure of the association object is shown below:
   ```
-  {'from_object_id': '97530152525',
-  'from_object_type_id': '0-1',
-  'labels': [],
-  'to_object_id': '71973632854',
-  'to_object_type_id': '0-18'}
+  {'from_object_id': '84246479604',
+   'from_object_type_id': '0-1',
+   'labels': [],
+   'to_object_id': '81116227304',
+   'to_object_type_id': '0-18'}
   ```
+  At the same time, `Last Activity Date` on the **contact** information page is also updated as well:
+  
+  ![hubspot_updated_date.png](hubspot_updated_date.png)
+  
+  
 (2)<mark>create_ticket(contact_information, issue, **kwargs)</mark>: When users need technical support/repair service/exchange service, the function will be called.
 This function is used to create the ticket only for existing customers after calling `find_contact_by_email` function.
 
@@ -116,37 +130,40 @@ There are several steps for the implementation of this function:
 
   ![create_ticket_step_1.png](create_ticket_step_1.png)
   
-  The structure of the created ticket is like:
+  The structure of the created **ticket** is like:
   ```
   {'archived': False,
    'archived_at': None,
-   'created_at': datetime.datetime(2025, 2, 20, 0, 44, 53, 336000, tzinfo=tzutc()),
-   'id': '71974995385',
-   'properties': {'hs_body_preview': 'I have a issue in installing the DUST-E '
-                                     'robot',
-                  'hs_body_preview_html': '<html>\n'
-                                          ' <head></head>\n'
-                                          ' <body>\n'
-                                          ' I have a issue in installing the '
-                                          'DUST-E robot\n'
-                                          ' </body>\n'
-                                          '</html>',
-                  'hs_body_preview_is_truncated': 'false',
-                  'hs_communication_body': 'I have a issue in installing the '
-                                           'DUST-E robot',
-                  'hs_communication_channel_type': 'CUSTOM_CHANNEL_CONVERSATION',
-                  'hs_communication_logged_from': 'CRM',
-                  'hs_createdate': '2025-02-20T00:44:53.336Z',
-                  'hs_lastmodifieddate': '2025-02-20T00:44:53.336Z',
-                  'hs_object_id': '71974995385',
+   'created_at': datetime.datetime(2025, 2, 25, 0, 35, 5, 747000, tzinfo=tzutc()),
+   'id': '33397362407',
+   'properties': {'content': 'Issue in installing the DUST-E robot',
+                  'createdate': '2025-02-25T00:35:05.747Z',
+                  'hs_helpdesk_sort_timestamp': '2025-02-25T00:35:05.747Z',
+                  'hs_is_visible_in_help_desk': 'true',
+                  'hs_last_message_from_visitor': 'false',
+                  'hs_lastmodifieddate': '2025-02-25T00:35:05.747Z',
+                  'hs_num_associated_companies': '0',
+                  'hs_num_associated_conversations': '0',
+                  'hs_num_times_contacted': '0',
+                  'hs_object_id': '33397362407',
                   'hs_object_source': 'INTEGRATION',
-                  'hs_object_source_id': '7693410',
+                  'hs_object_source_id': '8190657',
                   'hs_object_source_label': 'INTEGRATION',
-                  'hs_timestamp': '2025-02-20T00:44:54.078Z'},
+                  'hs_pipeline': '0',
+                  'hs_pipeline_stage': '1',
+                  'hs_ticket_id': '33397362407',
+                  'num_notes': '0',
+                  'subject': 'Issue of 84246479604 at 2025-02-24T19:35:05.4180Z'},
    'properties_with_history': None,
-   'updated_at': datetime.datetime(2025, 2, 20, 0, 44, 53, 336000, tzinfo=tzutc())}
+   'updated_at': datetime.datetime(2025, 2, 25, 0, 35, 5, 747000, tzinfo=tzutc())}
   ```
-* Associate the created **ticket** with the **contact**. It should be noted that `'lastmodifieddate'` and `'updated_at'` of contact will be updated after logging a ticket:
+  
+  On Hubspot, you could see the detailed information of a **ticket**:
+
+  ![hubspot_ticket.png](hubspot_ticket.png)\
+
+* Associate the created **ticket** with the **contact**. It should be noted that `'lastmodifieddate'` and `'updated_at'` of contact will be updated after logging a ticket
+  (On Hubspot, `Last Activity Date` of the **contact** is also updated:
 
   ![create_ticket_step_2.png](create_ticket_step_2.png)
 
