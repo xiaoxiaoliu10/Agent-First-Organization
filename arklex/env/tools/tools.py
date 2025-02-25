@@ -81,10 +81,32 @@ class Tool:
             return
         for default_slot in default_slots:
             for slot in self.slots:
-                if slot.name == default_slot.name:
+                if slot.name == default_slot.name and default_slot.value:
                     slot.value = default_slot.value
                     slot.verified = True
         logger.info(f'Slots after initialization are: {self.slots}')
+
+    def _skip_tool(self, state: MessageState):
+        default_slots = state["slots"].get("default_slots", [])
+        assigned_slot = False
+        for default_slot in default_slots:
+            for output in self.output:
+                if output["name"] == default_slot.name and default_slot.value:
+                    output["value"] = default_slot.value
+                    assigned_slot = True
+        if not assigned_slot:
+            return False
+        if all([output.get("value") for output in self.output if output.get("required", False)]):
+            state["status"] = StatusEnum.COMPLETE.value
+            call_id = str(uuid.uuid4())
+            state["trajectory"].append({
+                "role": "tool",
+                "tool_call_id": call_id,
+                "name": self.name,
+                "content": json.dumps(self.output)
+            })
+            return True
+        return False
         
     def _execute(self, state: MessageState, **fixed_args):
         # if this tool has been called before, then load the previous slots status
@@ -92,8 +114,26 @@ class Tool:
             self.slots = state["slots"][self.name]
         else:
             state["slots"][self.name] = self.slots
+        # init slot values saved in default slots
         self._init_slots(state)
         response = "error"
+        # skip the tool if output slot is filled
+        if self._skip_tool(state):
+            logger.info("Tool is skipped because output slot is already filled")
+            response = json.dumps(self.output)
+            call_id = str(uuid.uuid4())
+            state["trajectory"].append({
+                "role": "tool",
+                "tool_call_id": call_id,
+                "name": self.name,
+                "content": response
+            })
+            if self.isResponse:
+                logger.info("Tool output is stored in response instead of message flow")
+                state["response"] = response
+            else:
+                state["message_flow"] = response
+            return state
         max_tries = 3
         while max_tries > 0 and "error" in response:
             chat_history_str = format_chat_history(state["trajectory"])
@@ -162,7 +202,7 @@ class Tool:
                     max_tries -= 1
                     continue
                 state["status"] = StatusEnum.COMPLETE.value if self.isComplete(response) else StatusEnum.INCOMPLETE.value
-        
+
         if self.isResponse:
             logger.info("Tool output is stored in response instead of message flow")
             state["response"] = response

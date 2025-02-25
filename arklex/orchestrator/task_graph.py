@@ -119,7 +119,10 @@ class TaskGraph(TaskGraphBase):
     def _check_skip(self, node_info):
         task_desp = node_info["attribute"]["task"]
         skip = False
-        sys_prompt = """Given the conversation history and the proposed worker, you job is to decide whether the user has already provided the answer for the following task or assistant already did that task before. Reply with 'yes' if user already answered or assistant already did, otherwise 'no'.
+        sys_prompt = """Given the conversation history and the proposed worker, you job is to decide 
+        1. Whether the user has already provided the answer for the following task
+        2. Whether the assistant already did that task. 
+        Reply with 'yes' only if user already answered and assistant already did, otherwise 'no'.
         
         Conversation history:
         {chat_history_str}
