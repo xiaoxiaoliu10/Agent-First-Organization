@@ -20,7 +20,8 @@ Setting up the private app
 * Adding relevant data for your company using several ways, such as **Import from files**, **Sync from files** and **Migrate from your data.**
 
 ## Implementation
-(1) <mark>find_contact_by_email(email, chat, **kwargs)</mark>: This function aims to find the existing customer by their emails and update the last activity date. 
+### find_contact_by_email(email, chat, **kwargs): 
+This function aims to find the existing customer by their emails and update the last activity date. 
 
 Inputs:
 * `email`: the email address of the customer (It should be noted that email address is also a unique identifier for each customer)
@@ -32,8 +33,28 @@ Output:
 
 There are several steps for the implementation of this function:
 * Detect whether the customer is the existing one using `email`:
+  
+  ```python
+  public_object_search_request = PublicObjectSearchRequest(
+        filter_groups=[
+            {
+                "filters": [
+                    {
+                        "propertyName": "email",
+                        "operator": "EQ",
+                        "value": email
+                    }
+                ]
+            }
+        ]
+    )
 
-  ![find_contact_step_1.png](find_contact_step_1.png)
+  try:
+    contact_search_response = api_client.crm.contacts.search_api.do_search(public_object_search_request=public_object_search_request)
+    logger.info("Found contact by email: {}".format(email))
+    contact_search_response = contact_search_response.to_dict()
+  ```
+
 * If the user is not an existing customer, `USER_NOT_FOUND_ERROR` will be returned. If the user is the existing customer, the response of search_api is shown below. 
 The structure of a contact is demonstrated inside the `results` field.
   ```
@@ -55,11 +76,31 @@ The structure of a contact is demonstrated inside the `results` field.
   
   In Hubspot the detailed information of the **contact** is looked like below:
   
-  ![hubspot_contact.png](hubspot_contact.png)
+  ![hubspot_contact.png](../../static/img/hubspot/hubspot_contact.png)
 
 * Then a **communication** object will be created, whose content is `chat`:
   
-  ![find_contact_step_2.png](find_contact_step_2.png)
+  ```python
+  if contact_search_response['total'] == 1:
+    contact_id = contact_search_response['results'][0]['id']
+    communication_data = SimplePublicObjectInputForCreate(
+        properties = {
+            "hs_communication_channel_type": "CUSTOM_CHANNEL_CONVERSATION",
+            "hs_communication_body": chat,
+            "hs_communication_logged_from": "CRM",
+            "hs_timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+    )
+    contact_info_properties = {
+        'id': contact_id,
+        'email': email,
+        'first_name': contact_search_response['results'][0]['properties'].get('firstname'),
+        'last_name': contact_search_response['results'][0]['properties'].get('lastname')
+    }
+    try:
+        communication_creation_response = api_client.crm.objects.communications.basic_api.create(communication_data)
+        communication_creation_response = communication_creation_response.to_dict()
+  ```
   
   The structure of the **communication** object is shown below:
   ```
@@ -94,13 +135,29 @@ The structure of a contact is demonstrated inside the `results` field.
   
   On Hubspot you could see a **communication** object is correspondingly created:
   
-  ![hubspot_communication.png](hubspot_communication.png)
+  ![hubspot_communication.png](../../static/img/hubspot/hubspot_communication.png)
 
 * Associate the **created communication** with the **contact**. 
 After associating, the `'lastmodifieddate'` and `'updated_at'` of contact will be updated accordingly.:
   
-  ![find_contact_step_3.png](find_contact_step_3.png)
-
+  ```python
+  communication_id = communication_creation_response['id']
+  association_spec = [
+    AssociationSpec(
+        association_category="HUBSPOT_DEFINED",
+        association_type_id=82
+    )
+  ]
+  try:
+    association_creation_response = api_client.crm.associations.v4.basic_api.create(
+        object_type="contact",
+        object_id=contact_id,
+        to_object_type="communication",
+        to_object_id=communication_id,
+        association_spec=association_spec
+    )
+  ```
+  
   The structure of the association object is shown below:
   ```
   {'from_object_id': '84246479604',
@@ -111,11 +168,11 @@ After associating, the `'lastmodifieddate'` and `'updated_at'` of contact will b
   ```
   At the same time, `Last Activity Date` on the **contact** information page is also updated as well:
   
-  ![hubspot_updated_date.png](hubspot_updated_date.png)
+  ![hubspot_updated_date.png](../../static/img/hubspot/hubspot_updated_date.png)
   
   
-(2)<mark>create_ticket(contact_information, issue, **kwargs)</mark>: When users need technical support/repair service/exchange service, the function will be called.
-This function is used to create the ticket only for existing customers after calling `find_contact_by_email` function.
+### create_ticket(contact_information, issue, **kwargs): 
+When users need technical support/repair service/exchange service, the function will be called. This function is used to create the ticket only for existing customers after calling `find_contact_by_email` function.
 
 Inputs:
 * `contact_information`: `id`, `email`, `first_name` and `last_name` of the contact of the existing customer returned from `find_contact_by_email`
@@ -127,9 +184,21 @@ Output:
 
 There are several steps for the implementation of this function:
 * Create a **ticket** for the existing customer:
-
-  ![create_ticket_step_1.png](create_ticket_step_1.png)
   
+  ```python
+  timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")[:-3] + "Z"
+  subject_name = "Issue of " + contact_id + " at " + timestamp
+  ticket_properties = {
+        'hs_pipeline_stage': 1,
+        'content': issue,
+        'subject': subject_name
+    }
+  ticket_for_create = SimplePublicObjectInputForCreate(properties=ticket_properties)
+  try:
+    ticket_creation_response = api_client.crm.tickets.basic_api.create(simple_public_object_input_for_create=ticket_for_create)
+    ticket_creation_response = ticket_creation_response.to_dict()
+  ```
+
   The structure of the created **ticket** is like:
   ```
   {'archived': False,
@@ -160,13 +229,32 @@ There are several steps for the implementation of this function:
   
   On Hubspot, you could see the detailed information of a **ticket**:
 
-  ![hubspot_ticket.png](hubspot_ticket.png)\
+  ![hubspot_ticket.png](../../static/img/hubspot/hubspot_ticket.png)
+
 
 * Associate the created **ticket** with the **contact**. It should be noted that `'lastmodifieddate'` and `'updated_at'` of contact will be updated after logging a ticket
   (On Hubspot, `Last Activity Date` of the **contact** is also updated:
-
-  ![create_ticket_step_2.png](create_ticket_step_2.png)
-
+  
+  ```python
+  ticket_id = ticket_creation_response['id']
+  association_spec = [
+    AssociationSpec(
+        association_category="HUBSPOT_DEFINED",
+        association_type_id=15
+        )
+  ]
+  ticket_information = {
+    'id': ticket_id
+  }
+  try:
+    association_creation_response = api_client.crm.associations.v4.basic_api.create(
+        object_type="contact",
+        object_id=contact_id,
+        to_object_type="ticket",
+        to_object_id=ticket_id,
+        association_spec=association_spec
+    )
+  ```
 
 ## Taskgraph
 **Fields**:
