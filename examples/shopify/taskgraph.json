@@ -69,7 +69,7 @@
             "0",
             "5",
             {
-                "intent": "Ask for product information on the current page",
+                "intent": "Search for product information",
                 "attribute": {
                     "weight": 1,
                     "pred": true,
@@ -242,6 +242,19 @@
                 "attribute": {
                     "weight": 1,
                     "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "0",
+            "19",
+            {
+                "intent": "Ask product info on a specific web page",
+                "attribute": {
+                    "weight": 1,
+                    "pred": true,
                     "definition": "",
                     "sample_utterances": []
                 }
@@ -534,6 +547,21 @@
                 },
                 "limit": 10
             }
+        ],
+        [
+            "19",
+            {
+                "resource": {
+                    "id": "xl34e76f-025c-4xl2-0s2j-l4e1eal2naak",
+                    "name": "get_web_product"
+                },
+                "attribute": {
+                    "value": "",
+                    "task": "Get product info of based on product id",
+                    "direct": false
+                },
+                "limit": 10
+            }
         ]
     ],
     "tools": [
@@ -581,6 +609,16 @@
             "id": "22fae76f-085c-4098-9011-2ae1e1eb8dc3",
             "name": "get_products",
             "path": "shopify/get_products.py",
+            "fixed_args": {
+                "admin_token": "<shopify_admin_token>",
+                "shop_url": "<your-shopify-shop-url>",
+                "api_version": "2024-10"
+            }
+        },
+        {
+            "id": "xl34e76f-025c-4xl2-0s2j-l4e1eal2naak",
+            "name": "get_web_product",
+            "path": "shopify/get_web_product.py",
             "fixed_args": {
                 "admin_token": "<shopify_admin_token>",
                 "shop_url": "<your-shopify-shop-url>",
