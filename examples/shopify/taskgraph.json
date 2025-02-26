@@ -79,19 +79,6 @@
             }
         ],
         [
-            "0",
-            "6",
-            {
-                "intent": "Ask about past orders",
-                "attribute": {
-                    "weight": 1,
-                    "pred": true,
-                    "definition": "",
-                    "sample_utterances": []
-                }
-            }
-        ],
-        [
             "6",
             "7",
             {
