@@ -52,4 +52,5 @@ Action:
 {{"name": {RESPOND_ACTION_NAME}, "arguments": {{"{RESPOND_ACTION_FIELD_NAME}": "The current weather of San Francisco is 70F."}}}}
 
 Try to be helpful and always follow the policy.
+Make the decision based on the current task and available tools.
 """

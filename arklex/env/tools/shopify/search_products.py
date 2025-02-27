@@ -30,7 +30,7 @@ errors = [
     NO_PREV_PAGE
 ]
 
-@register_tool(description, slots, outputs, lambda x: x[0] not in errors)
+@register_tool(description, slots, outputs, lambda x: x[0] not in errors, True)
 def search_products(product_query: str, **kwargs) -> str:
     nav = cursorify(kwargs)
     if not nav[1]:
@@ -46,6 +46,25 @@ def search_products(product_query: str, **kwargs) -> str:
                     products ({nav[0]}, query: "{product_query}") {{
                         nodes {{
                             id
+                            title
+                            description
+                            onlineStoreUrl
+                            images(first: 1) {{
+                                edges {{
+                                    node {{
+                                        src
+                                        altText
+                                    }}
+                                }}
+                            }}
+                            variants (first: 3) {{
+                                nodes {{
+                                    displayName
+                                    id
+                                    price
+                                    inventoryQuantity
+                                }}
+                            }}
                         }}
                         pageInfo {{
                             endCursor
@@ -56,15 +75,32 @@ def search_products(product_query: str, **kwargs) -> str:
                     }}
                 }}
             """)
-            response_text = ""
-            data = json.loads(response)['data']['products']
-            nodes = data['nodes']
-            for node in nodes:
-                response_text += f"Product ID: {node['id']}\n"
-            if response_text:
-                return response_text
+            answer = "Here are some products I found:\n"
+            products = json.loads(response)['data']['products']['nodes']
+            product_list = []
+            for product in products:
+                product_dict = {
+                    "id": product.get('id'),
+                    "title": product.get('title'),
+                    "description": product.get('description'),
+                    "product_url": product.get('onlineStoreUrl'),
+                    "image_url": product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""), 
+                    "variants": product.get('variants', {}).get('nodes', [])
+                }
+                product_list.append(product_dict)
+            if product_list:
+                return json.dumps({
+                    "answer": answer,
+                    "products": product_list
+                })
             else:
-                return NO_PRODUCTS_FOUND_ERROR
+                return json.dumps({
+                    "answer": NO_PRODUCTS_FOUND_ERROR,
+                    "products": []
+                })
     
     except Exception as e:
-        return PRODUCT_SEARCH_ERROR
+        return json.dumps({
+            "answer": NO_PRODUCTS_FOUND_ERROR,
+            "products": []
+        })

@@ -111,11 +111,10 @@ class ShopifySlots:
     LINE_IDS = to_list(LINE_ID)
     
     ADD_LINE_ITEM = {
-        "name": "items",
+        "name": "add_line_items",
         "type": "list",
-        "items": "tuple",
-        "description": "list of (item_id, quantity) tuples of lineItem to add to the cart such as [('gid://shopify/ProductVariant/41552094527601', 5), ('gid://shopify/ProductVariant/41552094494833', 10)].",
-        "prompt": "",
+        "description": "list of ProductVariant ids to be added to the shopping cart, such as ['gid://shopify/ProductVariant/41552094527601', 'gid://shopify/ProductVariant/41552094494833'].",
+        "prompt": "Please confirm the items to add to the cart.",
         "required": True,
         "verified": True
     }
@@ -222,4 +221,18 @@ class ShopifyOutputs:
         "type": "dict",
         "required": True,
         "description": "The cancel request details of the cancel request."
+    }
+
+    GET_CART_DETAILS = {
+        "name": "get_cart",
+        "type": "dict",
+        "required": True,
+        "description": "The cart details of the cart."
+    }
+
+    CART_ADD_ITEMS_DETAILS = {
+        "name": "cart_add_items",
+        "type": "dict",
+        "required": True,
+        "description": "The cart details of the cart after adding items."
     }

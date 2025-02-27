@@ -56,7 +56,7 @@ def cancel_order(cancel_order_id: str, **kwargs) -> str:
                 if not response.get("orderCancel", {}).get("userErrors"):
                     return "The order is successfully cancelled. " + json.dumps(response)
                 else:
-                    return "The order cancel request is successfuly because: " + json.dumps(response["orderCancel"]["userErrors"])
+                    return "There is an error when submitting the cancel request: " + json.dumps(response["orderCancel"]["userErrors"])
             except Exception as e:
                 logger.error(f"Error parsing response: {e}")
                 print(e)

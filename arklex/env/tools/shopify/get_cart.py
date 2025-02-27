@@ -13,7 +13,7 @@ slots = [
     *PAGEINFO_SLOTS
 ]
 outputs = [
-    ShopifyOutputs.ORDERS_DETAILS,
+    ShopifyOutputs.GET_CART_DETAILS,
     *PAGEINFO_OUTPUTS
 ]
 CART_NOT_FOUND_ERROR = "error: cart not found"

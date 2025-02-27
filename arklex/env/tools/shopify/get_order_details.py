@@ -29,7 +29,7 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
     
     try:
         with shopify.Session.temp(**auth["value"]):
-            results = []
+            response_text = ""
             for order_id in order_ids:
                 response = shopify.GraphQL().execute(f"""
                 {{
@@ -39,6 +39,13 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                         totalPriceSet {{
                             presentmentMoney {{
                                 amount
+                            }}
+                        }}
+                        fulfillments {{
+                            displayStatus
+                            trackingInfo {{
+                                number
+                                url
                             }}
                         }}
                         lineItems(first: 10) {{
@@ -60,7 +67,16 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                 }}
                 """)
                 parsed_response = json.loads(response)["data"]["order"]
-                results.append(json.dumps(parsed_response))
-        return json.dumps(results)
+                response_text += f"Order ID: {parsed_response.get('id', 'None')}\n"
+                response_text += f"Order Name: {parsed_response.get('name', 'None')}\n"
+                response_text += f"Total Price: {parsed_response.get('totalPriceSet', {}).get('presentmentMoney', {}).get('amount', 'None')}\n"
+                response_text += f"Fulfillment Status: {parsed_response.get('fulfillments', 'None')}\n"
+                response_text += "Line Items:\n"
+                for item in parsed_response.get('lineItems', {}).get('edges', []):
+                    response_text += f"    Title: {item.get('node', {}).get('title', 'None')}\n"
+                    response_text += f"    Quantity: {item.get('node', {}).get('quantity', 'None')}\n"
+                    response_text += f"    Variant ID: {item.get('node', {}).get('variant', {}).get('id', 'None')}\n"
+                response_text += "\n"
+        return response_text
     except Exception as e:
         return ORDERS_NOT_FOUND

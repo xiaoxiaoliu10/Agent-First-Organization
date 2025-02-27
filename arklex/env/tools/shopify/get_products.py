@@ -50,7 +50,7 @@ def get_products(product_ids: list, **kwargs) -> str:
                             category {{
                                 name
                             }}
-                            variants (first: 2) {{
+                            variants (first: 3) {{
                                 nodes {{
                                     displayName
                                     id
@@ -76,7 +76,6 @@ def get_products(product_ids: list, **kwargs) -> str:
                 response_text += f"Title: {product.get('title', 'None')}\n"
                 response_text += f"Description: {product.get('description', 'None')}\n"
                 response_text += f"Total Inventory: {product.get('totalInventory', 'None')}\n"
-                response_text += f"Category: {product.get('category', {}.get('name', 'None'))}\n"
                 response_text += "The following are several variants of the product:\n"
                 for variant in product.get('variants', {}).get('nodes', []):
                     response_text += f"Variant name: {variant.get('displayName', 'None')}, Variant ID: {variant.get('id', 'None')}, Price: {variant.get('price', 'None')}, Inventory Quantity: {variant.get('inventoryQuantity', 'None')}\n"
