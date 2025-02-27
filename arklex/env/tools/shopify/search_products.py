@@ -91,16 +91,16 @@ def search_products(product_query: str, **kwargs) -> str:
             if product_list:
                 return json.dumps({
                     "answer": answer,
-                    "products": product_list
+                    "product_list": product_list
                 })
             else:
                 return json.dumps({
                     "answer": NO_PRODUCTS_FOUND_ERROR,
-                    "products": []
+                    "product_list": []
                 })
     
     except Exception as e:
         return json.dumps({
             "answer": NO_PRODUCTS_FOUND_ERROR,
-            "products": []
+            "product_list": []
         })
