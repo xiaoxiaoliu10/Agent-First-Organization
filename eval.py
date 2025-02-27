@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument('--testset', type=str, default=None)
     parser.add_argument('--task', type=str, default='first_pass', choices=['first_pass', 'all'])
     parser.add_argument('--user_attributes', type=str, default='arklex/evaluation/user_attributes.json')
+    parser.add_argument('--data_file', type=str, default=None)
     args = parser.parse_args()
 
     MODEL["model_type_or_path"] = args.model
@@ -69,7 +70,7 @@ if __name__ == "__main__":
     config['documents_dir'] = args.documents_dir
     config['model_params'] = args.model_params
     config['synthetic_data_params'] = {'num_convos': args.num_convos, 'num_goals': args.num_goals, 
-                                       'max_turns': args.max_turns, 'goals': testset}
+                                       'max_turns': args.max_turns, 'goals': testset, 'data_file': args.data_file}
     config['task'] = args.task
     config['user_attributes'] = user_attributes
 

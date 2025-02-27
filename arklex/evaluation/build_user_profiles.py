@@ -15,8 +15,9 @@ def build_profile(synthetic_data_params, config):
     documents = load_docs(config['documents_dir'], config, synthetic_data_params['num_goals'] * 2)
     attributes_list = augment_attributes(config['user_attributes'], config, documents)
     attributes_list = select_attributes(attributes_list, synthetic_data_params)
-    profiles, goals = convert_attributes_to_profiles(attributes_list, config)
-    return profiles, goals
+    attributes_list_with_goals = adapt_goals(attributes_list, config, documents)
+    profiles, goals = convert_attributes_to_profiles(attributes_list_with_goals, config)
+    return profiles, goals, attributes_list
 
 def select_attributes(user_attributes, synthetic_data_params):
     user_list = []
@@ -29,11 +30,24 @@ def select_attributes(user_attributes, synthetic_data_params):
 
 def augment_attributes(attributes_list, config, documents):
     # adapt goals using docs and add new attributes from ADDITIONAL_ATTRIBUTES
-    goals = [adapt_goal(goal, config, documents) for goal in attributes_list['goal']]
+    # goals = [adapt_goal(goal, config, documents) for goal in attributes_list['goal']]
     new_attrs = generate_attributes(attributes_list, config, documents)
-    attributes_list['goal'] = goals
+    # attributes_list['goal'] = goals
     attributes_list.update(new_attrs)
     return attributes_list
+
+def adapt_goals(attributes_list, config, documents):
+    attributes_list_with_goals = []
+    for item in attributes_list:
+        new_goal = adapt_goal(item['goal'], config, documents)
+        new_item = {}
+        for key in item.keys():
+            if key == 'goal':
+                new_item['goal'] = new_goal
+            else:
+                new_item[key] = item[key]
+        attributes_list_with_goals.append(new_item)
+    return attributes_list_with_goals
 
 def adapt_goal(goal, config, documents):
     new_goal = chatgpt_chatbot([{'role': 'user', 'content': ADAPT_GOAL.format(goal=goal, company_summary=config['intro'], company_doc=random.choice(documents))}])
