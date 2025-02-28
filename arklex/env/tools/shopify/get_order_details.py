@@ -36,6 +36,10 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                     order (id: "{order_id}") {{
                         id
                         name
+                        createdAt
+                        cancelledAt
+                        returnStatus
+                        statusPageUrl
                         totalPriceSet {{
                             presentmentMoney {{
                                 amount
@@ -69,6 +73,10 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                 parsed_response = json.loads(response)["data"]["order"]
                 response_text += f"Order ID: {parsed_response.get('id', 'None')}\n"
                 response_text += f"Order Name: {parsed_response.get('name', 'None')}\n"
+                response_text += f"Created At: {parsed_response.get('createdAt', 'None')}\n"
+                response_text += f"Cancelled At: {parsed_response.get('cancelledAt', 'None')}\n"
+                response_text += f"Return Status: {parsed_response.get('returnStatus', 'None')}\n"
+                response_text += f"Status Page URL: {parsed_response.get('statusPageUrl', 'None')}\n"
                 response_text += f"Total Price: {parsed_response.get('totalPriceSet', {}).get('presentmentMoney', {}).get('amount', 'None')}\n"
                 response_text += f"Fulfillment Status: {parsed_response.get('fulfillments', 'None')}\n"
                 response_text += "Line Items:\n"

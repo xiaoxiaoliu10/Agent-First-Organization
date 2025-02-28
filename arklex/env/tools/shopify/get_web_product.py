@@ -39,7 +39,7 @@ def get_web_product(web_product_id: str, **kwargs) -> str:
         with shopify.Session.temp(**auth["value"]):
             response = shopify.GraphQL().execute(f"""
                 {{
-                    products ({nav[0]}, query:"{web_product_id}") {{
+                    products ({nav[0]}, query:"id:{web_product_id.split("/")[-1]}") {{
                         nodes {{
                             id
                             title
@@ -72,7 +72,6 @@ def get_web_product(web_product_id: str, **kwargs) -> str:
             if len(response) == 0:
                 return PRODUCT_NOT_FOUND
             product = response[0]
-            logger.info(f"product: {product}")
             response_text = ""
             response_text += f"Product ID: {product.get('id', 'None')}\n"
             response_text += f"Title: {product.get('title', 'None')}\n"

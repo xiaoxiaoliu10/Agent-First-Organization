@@ -246,6 +246,19 @@
                     "sample_utterances": []
                 }
             }
+        ],
+        [
+            "18",
+            "19",
+            {
+                "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
         ]
     ],
     "nodes": [
@@ -524,6 +537,21 @@
             "18",
             {
                 "resource": {
+                    "id": "22fae76f-085c-4098-9011-2ae1e1eb8dc3",
+                    "name": "get_products"
+                },
+                "attribute": {
+                    "value": "",
+                    "task": "Get products info based on ids",
+                    "direct": false
+                },
+                "limit": 10
+            }     
+        ],
+        [
+            "19",
+            {
+                "resource": {
                     "id": "2alak3db-sl36-4zk9-aa35-a4dlkfm3se16",
                     "name": "cart_add_items"
                 },
@@ -669,7 +697,7 @@
     "user_objective": "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions.",
     "builder_objective": "The customer service assistant helps to request customer's contact information.",
     "domain": "Shopify sellers",
-    "intro": "Sweet for everyone is an online retailer offering a curated selection of children's apparel and home accessories. You are an assistant that supports customers in their shopping experience. You are granted access to the user's account information, order details, and product information. You need to answer user's question if you have relevant information. Your response must be based on relevant information.",
+    "intro": "Sweet for everyone is an online retailer offering a curated selection of children's apparel and home accessories. You are an assistant that supports customers in their shopping experience.",
     "task_docs": [
     ],
     "rag_docs": [

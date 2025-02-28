@@ -67,6 +67,7 @@ class AgentOrg:
             action_parsed = json.loads(action_str)
         except json.JSONDecodeError:
             # this is a hack
+            logger.warning(f"Failed to parse action: {action_str}, choose respond action")
             action_parsed = {
                 "name": RESPOND_ACTION_NAME,
                 "arguments": {RESPOND_ACTION_FIELD_NAME: action_str},
@@ -236,8 +237,13 @@ class AgentOrg:
                 logger.info("Action spaces: " + json.dumps(action_spaces))
                 params_history_str = format_chat_history(params["history"])
                 logger.info(f"{params_history_str=}")
-                prompt = (
-                    sys_instruct + "\n#Available tools\n" + json.dumps(action_spaces) + REACT_INSTRUCTION + "\n\n" + "Conversations:\n" + params_history_str + "Your current task is: " + node_info["attribute"].get("task", "") + "\nThougt:\n"
+                # prompt = (
+                #     sys_instruct + "\n#Available tools\n" + json.dumps(action_spaces) + REACT_INSTRUCTION + "\n\n" + "Conversations:\n" + params_history_str + "Your current task is: " + node_info["attribute"].get("task", "") + "\nThougt:\n"
+                # )
+                prompt = REACT_INSTRUCTION.format(
+                    conversation_record=params_history_str,
+                    available_tools=json.dumps(action_spaces),
+                    task=node_info["attribute"].get("task", "None"),
                 )
                 messages: List[Dict[str, Any]] = [
                     {"role": "system", "content": prompt}
