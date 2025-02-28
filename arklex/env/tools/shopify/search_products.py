@@ -77,7 +77,7 @@ def search_products(product_query: str, **kwargs) -> str:
             """)
             answer = "Here are some products I found:\n"
             products = json.loads(response)['data']['products']['nodes']
-            product_list = []
+            card_list = []
             for product in products:
                 product_dict = {
                     "id": product.get('id'),
@@ -87,20 +87,20 @@ def search_products(product_query: str, **kwargs) -> str:
                     "image_url": product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""), 
                     "variants": product.get('variants', {}).get('nodes', [])
                 }
-                product_list.append(product_dict)
-            if product_list:
+                card_list.append(product_dict)
+            if card_list:
                 return json.dumps({
                     "answer": answer,
-                    "product_list": product_list
+                    "card_list": card_list
                 })
             else:
                 return json.dumps({
                     "answer": NO_PRODUCTS_FOUND_ERROR,
-                    "product_list": []
+                    "card_list": []
                 })
     
     except Exception as e:
         return json.dumps({
             "answer": NO_PRODUCTS_FOUND_ERROR,
-            "product_list": []
+            "card_list": []
         })

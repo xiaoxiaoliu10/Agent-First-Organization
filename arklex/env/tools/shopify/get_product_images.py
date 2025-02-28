@@ -65,20 +65,26 @@ def get_product_images(product_ids: list, **kwargs) -> str:
             result = json.loads(response)['data']['products']
             response = result["nodes"]
             response_text = "Here are images of products:\n"
-            product_list = []
+            card_list = []
             for product in response:
                 product_dict = {"title": product.get('title'), 
                                 "description": product.get('description'), 
                                 "product_url": product.get('onlineStoreUrl'),
                                 "image_url" : product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""),
                             }
-                product_list.append(product_dict)
-            return json.dumps({
-                "answer": response_text,
-                "product_list": product_list
-            })
+                card_list.append(product_dict)
+            if card_list:
+                return json.dumps({
+                    "answer": response_text,
+                    "card_list": card_list
+                })
+            else:
+                return json.dumps({
+                    "answer": PRODUCTS_NOT_FOUND,
+                    "card_list": []
+                })
     except Exception as e:
         return json.dumps({
                 "answer": PRODUCTS_NOT_FOUND,
-                "product_list": []
+                "card_list": []
             })
