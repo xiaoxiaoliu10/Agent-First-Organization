@@ -10,6 +10,7 @@ import copy
 from arklex.env.env import Env
 import janus
 from dotenv import load_dotenv
+from difflib import SequenceMatcher
 
 from langchain_core.runnables import RunnableLambda
 import langsmith as ls
@@ -72,9 +73,11 @@ class AgentOrg:
                 "name": RESPOND_ACTION_NAME,
                 "arguments": {RESPOND_ACTION_FIELD_NAME: action_str},
             }
-        assert "name" in action_parsed
-        assert "arguments" in action_parsed
-        action = action_parsed["name"]
+        if action_parsed.get("name"):
+            action = action_parsed["name"]
+        else:
+            logger.warning(f"Failed to parse action: {action_str}, choose respond action")
+            action = RESPOND_ACTION_NAME
         # issues with getting response_cost using langchain, set to 0.0 for now
         return message, action, 0.0
 
@@ -237,9 +240,6 @@ class AgentOrg:
                 logger.info("Action spaces: " + json.dumps(action_spaces))
                 params_history_str = format_chat_history(params["history"])
                 logger.info(f"{params_history_str=}")
-                # prompt = (
-                #     sys_instruct + "\n#Available tools\n" + json.dumps(action_spaces) + REACT_INSTRUCTION + "\n\n" + "Conversations:\n" + params_history_str + "Your current task is: " + node_info["attribute"].get("task", "") + "\nThougt:\n"
-                # )
                 prompt = REACT_INSTRUCTION.format(
                     conversation_record=params_history_str,
                     available_tools=json.dumps(action_spaces),
@@ -249,6 +249,9 @@ class AgentOrg:
                     {"role": "system", "content": prompt}
                 ]
                 _, action, _ = self.generate_next_step(messages, text)
+                action_name_list = [action_space["name"] for action_space in action_spaces]
+                action_simi_score = [SequenceMatcher(None, action, action_name).ratio() for action_name in action_name_list]
+                action = action_name_list[action_simi_score.index(max(action_simi_score))]
                 logger.info("Predicted action: " + action)
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True

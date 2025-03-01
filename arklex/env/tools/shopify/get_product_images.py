@@ -72,11 +72,13 @@ def get_product_images(product_ids: list, **kwargs) -> str:
             answer = "Here are images of products:\n"
             card_list = []
             for product in response:
-                product_dict = {"title": product.get('title'), 
-                                "description": product.get('description'), 
-                                "product_url": product.get('onlineStoreUrl'),
-                                "image_url" : product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""),
-                            }
+                product_dict = {
+                    "id": product.get('id'),
+                    "title": product.get('title'), 
+                    "description": product.get('description', "None")[:120] + "...", 
+                    "product_url": product.get('onlineStoreUrl'),
+                    "image_url" : product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""),
+                }
                 card_list.append(product_dict)
             if card_list:
                 try:

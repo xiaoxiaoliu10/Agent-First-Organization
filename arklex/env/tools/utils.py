@@ -22,7 +22,7 @@ class ToolGenerator():
         
         prompts = load_prompts(state["bot_config"])
         llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
-            model=MODEL["model_type_or_path"], timeout=30000
+            model=MODEL["model_type_or_path"], timeout=30000, temperature=0.1
         )
         prompt = PromptTemplate.from_template(prompts["generator_prompt"])
         input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "formatted_chat": user_message.history})
@@ -36,7 +36,7 @@ class ToolGenerator():
     @staticmethod
     def context_generate(state: MessageState):
         llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
-            model=MODEL["model_type_or_path"], timeout=30000
+            model=MODEL["model_type_or_path"], timeout=30000, temperature=0.1
         )
         # get the input message
         user_message = state['user_message']
@@ -59,7 +59,7 @@ class ToolGenerator():
     @staticmethod
     def stream_context_generate(state: MessageState):
         llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
-            model=MODEL["model_type_or_path"], timeout=30000
+            model=MODEL["model_type_or_path"], timeout=30000, temperature=0.1
         )
         # get the input message
         user_message = state['user_message']
@@ -89,7 +89,7 @@ class ToolGenerator():
         
         prompts = load_prompts(state["bot_config"])
         llm = PROVIDER_MAP.get(MODEL['llm_provider'], ChatOpenAI)(
-            model=MODEL["model_type_or_path"], timeout=30000
+            model=MODEL["model_type_or_path"], timeout=30000, temperature=0.1
         )
         prompt = PromptTemplate.from_template(prompts["generator_prompt"])
         input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "formatted_chat": user_message.history})
