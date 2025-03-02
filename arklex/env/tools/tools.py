@@ -105,7 +105,7 @@ class Tool:
         state["trajectory"].append({
             "role": "tool",
             "tool_call_id": str(uuid.uuid4()),
-            "name": self.name,
+            "name": "default_slots",
             "content": json.dumps(response)
         })
         logger.info(f'Slots after initialization are: {self.slots}')
