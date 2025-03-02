@@ -118,7 +118,6 @@ unstructured==0.16.4
 unstructured-client==0.27.0
 urllib3==2.2.3
 uvicorn==0.32.0
-uvloop==0.21.0
 watchfiles==0.24.0
 webdriver-manager==4.0.2
 webencodings==0.5.1
