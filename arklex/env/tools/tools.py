@@ -97,18 +97,17 @@ class Tool:
             return
         response = {}
         for default_slot in default_slots:
+            response[default_slot.name] = default_slot.value
             for slot in self.slots:
                 if slot.name == default_slot.name and default_slot.value:
                     slot.value = default_slot.value
                     slot.verified = True
-                    response[slot.name] = slot.value
-        if response:
-            state["trajectory"].append({
-                "role": "tool",
-                "tool_call_id": str(uuid.uuid4()),
-                "name": self.name,
-                "content": json.dumps(response)
-            })
+        state["trajectory"].append({
+            "role": "tool",
+            "tool_call_id": str(uuid.uuid4()),
+            "name": self.name,
+            "content": json.dumps(response)
+        })
         logger.info(f'Slots after initialization are: {self.slots}')
 
     def _skip_tool(self, state: MessageState):

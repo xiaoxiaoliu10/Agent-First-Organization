@@ -28,12 +28,12 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
         return auth["error"]
     
     try:
+        ids = ' OR '.join(f'id:{oid.split("/")[-1]}' for oid in order_ids)
         with shopify.Session.temp(**auth["value"]):
-            response_text = ""
-            for order_id in order_ids:
-                response = shopify.GraphQL().execute(f"""
-                {{
-                    order (id: "{order_id}") {{
+            response = shopify.GraphQL().execute(f"""
+            {{
+                orders (first: {limit}, query:"{ids}") {{
+                    nodes {{
                         id
                         name
                         createdAt
@@ -69,18 +69,21 @@ def get_order_details(order_ids: list, limit=10, **kwargs) -> str:
                         }}
                     }}
                 }}
-                """)
-                parsed_response = json.loads(response)["data"]["order"]
-                response_text += f"Order ID: {parsed_response.get('id', 'None')}\n"
-                response_text += f"Order Name: {parsed_response.get('name', 'None')}\n"
-                response_text += f"Created At: {parsed_response.get('createdAt', 'None')}\n"
-                response_text += f"Cancelled At: {parsed_response.get('cancelledAt', 'None')}\n"
-                response_text += f"Return Status: {parsed_response.get('returnStatus', 'None')}\n"
-                response_text += f"Status Page URL: {parsed_response.get('statusPageUrl', 'None')}\n"
-                response_text += f"Total Price: {parsed_response.get('totalPriceSet', {}).get('presentmentMoney', {}).get('amount', 'None')}\n"
-                response_text += f"Fulfillment Status: {parsed_response.get('fulfillments', 'None')}\n"
+            }}
+            """)
+            result = json.loads(response)["data"]["orders"]["nodes"]
+            response_text = ""
+            for order in result:
+                response_text += f"Order ID: {order.get('id', 'None')}\n"
+                response_text += f"Order Name: {order.get('name', 'None')}\n"
+                response_text += f"Created At: {order.get('createdAt', 'None')}\n"
+                response_text += f"Cancelled At: {order.get('cancelledAt', 'None')}\n"
+                response_text += f"Return Status: {order.get('returnStatus', 'None')}\n"
+                response_text += f"Status Page URL: {order.get('statusPageUrl', 'None')}\n"
+                response_text += f"Total Price: {order.get('totalPriceSet', {}).get('presentmentMoney', {}).get('amount', 'None')}\n"
+                response_text += f"Fulfillment Status: {order.get('fulfillments', 'None')}\n"
                 response_text += "Line Items:\n"
-                for item in parsed_response.get('lineItems', {}).get('edges', []):
+                for item in order.get('lineItems', {}).get('edges', []):
                     response_text += f"    Title: {item.get('node', {}).get('title', 'None')}\n"
                     response_text += f"    Quantity: {item.get('node', {}).get('quantity', 'None')}\n"
                     response_text += f"    Variant ID: {item.get('node', {}).get('variant', {}).get('id', 'None')}\n"
