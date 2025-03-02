@@ -58,7 +58,7 @@ class NLUModelAPI ():
             if model['llm_provider'] == 'anthropic':
                     response_data = json.loads(response)
                     response = response_data.get('intent', '')
-        
+
         logger.info(f"response for {debug_text} is \n{response}")
         return response
 
@@ -156,7 +156,7 @@ class SlotFillModelAPI():
             n=1,
             temperature = 0.7,
         )
-        res.choices[0].message.refusal = None 
+        res.choices[0].message.refusal = None       
         parsed = parse_chat_completion(response_format=format,
                                     input_tools = NOT_GIVEN,
                                  chat_completion=res)
