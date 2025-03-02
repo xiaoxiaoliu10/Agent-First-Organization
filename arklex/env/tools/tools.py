@@ -95,11 +95,20 @@ class Tool:
         logger.info(f'Default slots are: {default_slots}')
         if not default_slots:
             return
+        response = {}
         for default_slot in default_slots:
             for slot in self.slots:
                 if slot.name == default_slot.name and default_slot.value:
                     slot.value = default_slot.value
                     slot.verified = True
+                    response[slot.name] = slot.value
+        if response:
+            state["trajectory"].append({
+                "role": "tool",
+                "tool_call_id": str(uuid.uuid4()),
+                "name": self.name,
+                "content": json.dumps(response)
+            })
         logger.info(f'Slots after initialization are: {self.slots}')
 
     def _skip_tool(self, state: MessageState):
@@ -137,13 +146,6 @@ class Tool:
         if self._skip_tool(state):
             logger.info("Tool is skipped because output slot is already filled")
             response = json.dumps(self.output)
-            call_id = str(uuid.uuid4())
-            state["trajectory"].append({
-                "role": "tool",
-                "tool_call_id": call_id,
-                "name": self.name,
-                "content": response
-            })
             if self.isResponse:
                 logger.info("Tool output is stored in response instead of message flow")
                 state["response"] = response

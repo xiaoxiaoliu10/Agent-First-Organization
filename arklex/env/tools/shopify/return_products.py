@@ -105,7 +105,7 @@ def return_products(return_order_id: str, **kwargs) -> str:
                 if response.get("returnRequest"):
                     return "The product return request is successfully submitted. " + json.dumps(response)
                 else:
-                    return "The status of the return request is: " + json.dumps(response)
+                    return PRODUCT_RETURN_ERROR + json.dumps(response)
             except Exception as e:
                 logger.error(f"Error parsing response: {e}")
                 return PRODUCT_RETURN_ERROR

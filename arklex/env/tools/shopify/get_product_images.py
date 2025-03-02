@@ -75,7 +75,7 @@ def get_product_images(product_ids: list, **kwargs) -> str:
                 product_dict = {
                     "id": product.get('id'),
                     "title": product.get('title'), 
-                    "description": product.get('description', "None")[:120] + "...", 
+                    "description": product.get('description', "None")[:180] + "...", 
                     "product_url": product.get('onlineStoreUrl'),
                     "image_url" : product.get('images', {}).get('edges', [{}])[0].get('node', {}).get('src', ""),
                 }
