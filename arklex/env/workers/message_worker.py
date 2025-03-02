@@ -37,7 +37,7 @@ class MessageWorker(BaseWorker):
         message_flow = state.get('response', "") + "\n" + state.get("message_flow", "")
 
         # get the orchestrator message content
-        orch_msg_content = orchestrator_message.message
+        orch_msg_content = "None" if not orchestrator_message.message else orchestrator_message.message
         orch_msg_attr = orchestrator_message.attribute
         direct_response = orch_msg_attr.get('direct_response', False)
         if direct_response:
@@ -73,7 +73,7 @@ class MessageWorker(BaseWorker):
         message_flow = state.get('response', "") + "\n" + state.get("message_flow", "")
 
         # get the orchestrator message content
-        orch_msg_content = orchestrator_message.message
+        orch_msg_content = "None" if not orchestrator_message.message else orchestrator_message.message
         orch_msg_attr = orchestrator_message.attribute
         direct_response = orch_msg_attr.get('direct_response', False)
         if direct_response:
