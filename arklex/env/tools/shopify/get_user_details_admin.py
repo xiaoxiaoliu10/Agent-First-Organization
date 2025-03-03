@@ -54,22 +54,12 @@ def get_user_details_admin(user_id: str, **kwargs) -> str:
                         validEmailAddress
                         tags
                         lifetimeDuration
-                        defaultAddress {{
-                            formattedArea
-                            address1
-                        }}
                         addresses {{
                             address1
                         }}
                         orders ({nav[0]}) {{
                             nodes {{
                                 id
-                            }}
-                            pageInfo {{
-                                endCursor
-                                hasNextPage
-                                hasPreviousPage
-                                startCursor
                             }}
                         }}
                     }}

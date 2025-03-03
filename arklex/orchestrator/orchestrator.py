@@ -24,7 +24,7 @@ from arklex.orchestrator.NLU.nlu import SlotFilling
 from arklex.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
 from arklex.types import EventType, StreamType
 from arklex.utils.graph_state import ConvoMessage, OrchestratorMessage, MessageState, StatusEnum, BotConfig, Slot
-from arklex.utils.utils import init_logger, format_chat_history
+from arklex.utils.utils import init_logger, truncate_string, format_chat_history, format_truncated_chat_history
 from arklex.orchestrator.NLU.nlu import NLU
 from arklex.utils.trace import TraceRunName
 from arklex.utils.model_config import MODEL
@@ -236,15 +236,15 @@ class AgentOrg:
                 elif node_info["id"] in self.env.workers:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "description": self.env.workers[node_info["id"]]["execute"]().description}]
                 action_spaces = node_actions
-                action_spaces.append({"name": RESPOND_ACTION_NAME, "arguments": {RESPOND_ACTION_FIELD_NAME: response_state.get("message_flow", "") or response_state.get("response", "")}})
-                logger.info("Action spaces: " + json.dumps(action_spaces))
-                params_history_str = format_chat_history(params["history"])
-                logger.info(f"{params_history_str=}")
+                response_msg = truncate_string(response_state.get("message_flow", "") or response_state.get("response", ""))
+                action_spaces.append({"name": RESPOND_ACTION_NAME, "arguments": {RESPOND_ACTION_FIELD_NAME: response_msg}})
+                truncated_params_history_str = format_truncated_chat_history(params["history"])
                 prompt = REACT_INSTRUCTION.format(
-                    conversation_record=params_history_str,
+                    conversation_record=truncated_params_history_str,
                     available_tools=json.dumps(action_spaces),
                     task=node_info["attribute"].get("task", "None"),
                 )
+                logger.info(f"React instruction: {prompt}")
                 messages: List[Dict[str, Any]] = [
                     {"role": "system", "content": prompt}
                 ]

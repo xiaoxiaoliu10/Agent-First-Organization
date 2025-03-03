@@ -149,7 +149,7 @@ class Tool:
                 logger.info("Tool output is stored in response instead of message flow")
                 state["response"] = response
             else:
-                state["message_flow"] = response
+                state["message_flow"] = state["message_flow"] + f"Context from {self.name}: {response}\n\n"
             return state
         max_tries = 3
         while max_tries > 0 and "error" in response:
@@ -224,7 +224,7 @@ class Tool:
             logger.info("Tool output is stored in response instead of message flow")
             state["response"] = response
         else:
-            state["message_flow"] = response
+            state["message_flow"] = state["message_flow"] + f"Context from {self.name}: {response}\n\n"
         state["slots"][self.name] = slots
         return state
 

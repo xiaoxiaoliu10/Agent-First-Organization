@@ -161,6 +161,7 @@ class TaskGraph(TaskGraphBase):
         params["available_intents"] = available_intents
         # This will be used to check whether we skip the worker or not, which is handled by the task graph framework
         skip = self._check_skip(node_info)
+        logger.info(f"skip current node {sample_node}: {skip}")
         if skip: # continue check the candidate intents under this node
             node_info = {"id": None, "name": None, "attribute": None}
             for u, v, data in self.graph.out_edges(sample_node, data=True):
