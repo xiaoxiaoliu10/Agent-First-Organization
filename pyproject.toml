@@ -1,6 +1,6 @@
 [project]
 name = "arklex"
-version = "<version_number>"
+version = "0.0.1"
 description = "The official Python library for the arklex API"
 authors = [
   { name="Arklex.AI", email="support@arklex.ai" },
