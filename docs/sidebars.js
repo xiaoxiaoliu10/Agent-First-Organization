@@ -57,6 +57,14 @@ const sidebars = {
     'Tools',
     {
       type: 'category',
+      label: 'Integration',
+      link: {type: 'doc', id: 'Integration/intro'},
+      items: [
+        'Integration/Hubspot'
+      ],
+    },
+    {
+      type: 'category',
       label: 'Evaluation',
       link: {type: 'doc', id: 'Evaluation/intro'},
       items: [

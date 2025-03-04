@@ -29,7 +29,7 @@ A string representing the name of the parameter, this should be the parameter na
 **`type`**: A string representing the type of data. 
 > **Examples**: 'int', 'str', 'list'
 
-*`items`*: An optional string representing the type of data if the type is a container (such as lists)
+**`enum`**: The candidate values for the slot. This is used to aid the slotfilling verifier to check if the extracted value is valid.
 > **Examples**: 'int', 'str'
 
 **`description`**: A string describing the parameter. This will be used to aid the extraction component of slotfilling. Adding examples often help the slotfilling.
@@ -43,6 +43,8 @@ A string representing the name of the parameter, this should be the parameter na
 
 **`required`**: A boolean representing if the parameter is required. If required and a value could not be extracted, the prompt would be returned for the value
 
+**`verified`**: A boolean representing whether the extracted parameter need verification from user. If need verification from user, then set as False, means haven't been verified. If not, set as True, means it has been verified. 
+
 #### Example Slots
 ```py
 [
@@ -51,7 +53,8 @@ A string representing the name of the parameter, this should be the parameter na
         "type": "str",
         "description": "Cart ID to add items to, such as '2938501948327'",
         "prompt": "",
-        "required": True
+        "required": True,
+        "verified": True
     },
     {
         "name": "item_ids",
@@ -59,7 +62,8 @@ A string representing the name of the parameter, this should be the parameter na
         "items": "tuples"
         "description": "list of (item_id, quantity) tuples of Items to add to the cart such as [('41552094527601', 5), ('41552094494833', 10)].",
         "prompt": "",
-        "required": True
+        "required": True,
+        "verified": True
     }
 ]
 ```
@@ -72,7 +76,7 @@ Outputs describes the expected return value of the method and aids the framework
 > [{
 >    "name": "user_id",
 >    "type": "string",
->     "description": "The user id of the user. such as '13573257450893'.",
+>    "description": "The user id of the user. such as '13573257450893'.",
 > }]
 > ```
 
@@ -105,7 +109,8 @@ lambda x: return x is not None
             "type": "str",
             "description": "Cart ID to add items to, such as '2938501948327'",
             "prompt": "",
-            "required": True
+            "required": True,
+            "verified": True
         },
         {
             "name": "item_ids",
@@ -113,7 +118,8 @@ lambda x: return x is not None
             "items": "tuples"
             "description": "list of (item_id, quantity) tuples of Items to add to the cart such as [('41552094527601', 5), ('41552094494833', 10)].",
             "prompt": "",
-            "required": True
+            "required": True,
+            "verified": True
         }
     ],
     [{
