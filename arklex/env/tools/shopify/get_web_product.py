@@ -46,6 +46,10 @@ def get_web_product(web_product_id: str, **kwargs) -> str:
                             description
                             totalInventory
                             onlineStoreUrl
+                            options {{
+                                name
+                                values
+                            }}
                             category {{
                                 name
                             }}
@@ -77,6 +81,7 @@ def get_web_product(web_product_id: str, **kwargs) -> str:
             response_text += f"Title: {product.get('title', 'None')}\n"
             response_text += f"Description: {product.get('description', 'None')}\n"
             response_text += f"Total Inventory: {product.get('totalInventory', 'None')}\n"
+            response_text += f"Options: {product.get('options', 'None')}\n"
             response_text += f"Category: {product.get('category', {}.get('name', 'None'))}\n"
             response_text += "The following are several variants of the product:\n"
             for variant in product.get('variants', {}).get('nodes', []):
