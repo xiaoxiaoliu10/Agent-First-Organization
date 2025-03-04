@@ -48,7 +48,7 @@ class MessageWorker(BaseWorker):
         prompts = load_prompts(state["bot_config"])
         if message_flow and message_flow != "\n":
             prompt = PromptTemplate.from_template(prompts["message_flow_generator_prompt"])
-            input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
+            input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history, "context": message_flow})
         else:
             prompt = PromptTemplate.from_template(prompts["message_generator_prompt"])
             input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history})
@@ -84,7 +84,7 @@ class MessageWorker(BaseWorker):
         prompts = load_prompts(state["bot_config"])
         if message_flow and message_flow != "\n":
             prompt = PromptTemplate.from_template(prompts["message_flow_generator_prompt"])
-            input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history, "initial_response": message_flow})
+            input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history, "context": message_flow})
         else:
             prompt = PromptTemplate.from_template(prompts["message_generator_prompt"])
             input_prompt = prompt.invoke({"sys_instruct": state["sys_instruct"], "message": orch_msg_content, "formatted_chat": user_message.history})

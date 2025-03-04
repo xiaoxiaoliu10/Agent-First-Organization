@@ -211,6 +211,7 @@ class AgentOrg:
             node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
             logger.info("=============node_info=============")
             logger.info(f"The while node info is : {node_info}")
+            message_state["orchestrator_message"] = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
             if node_info["id"] not in self.env.workers and node_info["id"] not in self.env.tools:
                 message_state = MessageState(
                     sys_instruct=sys_instruct, 
@@ -235,6 +236,19 @@ class AgentOrg:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "arguments": self.env.tools[node_info["id"]]["execute"]().info}]
                 elif node_info["id"] in self.env.workers:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "description": self.env.workers[node_info["id"]]["execute"]().description}]
+                
+                # If it is Default Worker, add Respond action; if it is Message Worker, do the message worker
+                if node_info["id"] == self.env.name2id["DefaultWorker"]:
+                    logger.info("Skip ReAct framework because of DefaultWorker")
+                    action = RESPOND_ACTION_NAME
+                    FINISH = True
+                    break
+                elif node_info["id"] == self.env.name2id["MessageWorker"]:
+                    logger.info("Skip ReAct framework because of MessageWorker")
+                    message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
+                    response_state, params = self.env.step(self.env.name2id["MessageWorker"], message_state, params)
+                    FINISH = True
+                    break
                 action_spaces = node_actions
                 response_msg = truncate_string(response_state.get("message_flow", "") or response_state.get("response", ""))
                 action_spaces.append({"name": RESPOND_ACTION_NAME, "arguments": {RESPOND_ACTION_FIELD_NAME: response_msg}})

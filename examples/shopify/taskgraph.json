@@ -186,7 +186,7 @@
             "13",
             "15",
             {
-                "intent": "Ask to cancel the order",
+                "intent": "choose the order to be canceled",
                 "attribute": {
                     "weight": 1,
                     "pred": false,
@@ -252,6 +252,19 @@
             "19",
             {
                 "intent": "None",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "19",
+            "20",
+            {
+                "intent": "choose the product to be added to the shopping cart",
                 "attribute": {
                     "weight": 1,
                     "pred": false,
@@ -462,12 +475,12 @@
             "13",
             {
                 "resource": {
-                    "id": "DefaultWorker",
-                    "name": "DefaultWorker"
+                    "id": "MessageWorker",
+                    "name": "MessageWorker"
                 },
                 "attribute": {
-                    "value": "",
-                    "task": "",
+                    "value": "Please confirm that you want to return or cancel the order with the order information",
+                    "task": "Ask user to confirm the order to be returned or canceled",
                     "direct": false
                 },
                 "limit": 10
@@ -550,6 +563,21 @@
         ],
         [
             "19",
+            {
+                "resource": {
+                    "id": "MessageWorker",
+                    "name": "MessageWorker"
+                },
+                "attribute": {
+                    "value": "Please confirm the information of the product variant which you would like to add to your shopping cart.",
+                    "task": "Confirm the product variant that the user wants to add to the shopping cart",
+                    "direct": false
+                },
+                "limit": 10
+            }
+        ],
+        [
+            "20",
             {
                 "resource": {
                     "id": "2alak3db-sl36-4zk9-aa35-a4dlkfm3se16",
