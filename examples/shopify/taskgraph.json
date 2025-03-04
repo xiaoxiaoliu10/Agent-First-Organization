@@ -495,7 +495,7 @@
                 },
                 "attribute": {
                     "value": "",
-                    "task": "Submit the return request after confirming the product to be returned",
+                    "task": "Submit the return request after user confirms the product to be returned",
                     "direct": false
                 },
                 "limit": 10
@@ -510,7 +510,7 @@
                 },
                 "attribute": {
                     "value": "",
-                    "task": "Cancel the order after confirming the order to be canceled",
+                    "task": "Cancel the order after user confirms the order to be canceled",
                     "direct": false
                 },
                 "limit": 10
@@ -585,7 +585,7 @@
                 },
                 "attribute": {
                     "value": "",
-                    "task": "Add items to the user's shopping cart.",
+                    "task": "Add items to the user's shopping cart after user confirms the item to be added.",
                     "direct": false
                 },
                 "limit": 10
