@@ -5,10 +5,10 @@ Alongside [Workers](./Workers), **Tools** are a fundamental building block of th
 
 # Implementation
 :::tip  Technical Details
-Tools can be seen as a wrapped Worker that converts parameters and return values to MessageStates.
+Tools could be thought of as a Worker-wrapped method that has the framework translate values to and from MessageStates.
 :::
 
-Unlike Workers, there are no BaseWorker equivalent for Tools as it is designed to be unstructured. Instead, Tools could be easily created from any method through `@register-tool` decorator. To turn a method into a tool, just add a `@register-tool` decorator on the method itself with 4 parameters: **description**, **slots**, **outputs**, **isComplete**.
+Unlike Workers, there are no BaseWorker equivalent for Tools as it is designed to be unstructured. Instead, Tools could be easily created from any method through `@register-tool` decorator. To turn a method into a tool, just add a `@register-tool` decorator on the method declaration with 4 parameters: **description**, **slots**, **outputs**, **isComplete**.
 
 ## Parameters
 ### Description
@@ -125,7 +125,7 @@ lambda x: return x is not None
 )
 ```
 
-### Full Tool
+### Custom Tool
 ```py
 import ast
 
@@ -149,4 +149,29 @@ import ast
 def calculator(expression):
     py_expression = expression.replace("^", "**")
     return ast.eval(py_expression)
+```
+
+### Convert Existing Method into a Tool
+```py
+from ast import eval as calculate
+
+register_tool(
+    "Calculates and return the function output of mathematical query.",
+    [{
+        "name": "expression",
+        "type": "string",
+        "description": "valid math expression extracted from the user message expressed with only numerical digits and these special characters ['(', ')', '+', '-', '*', '/', '%', '^'], like '21 * 2'",
+        "prompt": "Could you please provide the mathematical expression?",
+        "required": True
+    }],
+    [{
+        "name": "result",
+        "type": "float",
+        "value": "",
+        "description": "result of evaluated mathematical expression like 42",
+    }],
+    lambda x: isinstance(x, (int, float, complex)) and not isinstance(x, bool)
+)(
+    calculate
+)
 ```
