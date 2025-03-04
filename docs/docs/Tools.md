@@ -69,7 +69,7 @@ Outputs describes the expected return value of the method and aids the framework
 
 > **Example**
 > ```py 
->  [{
+> [{
 >    "name": "user_id",
 >    "type": "string",
 >     "description": "The user id of the user. such as '13573257450893'.",
