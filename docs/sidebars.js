@@ -54,14 +54,7 @@ const sidebars = {
         'Workers/DefaultWorker'
       ],
     },
-    {
-      type: 'category',
-      label: 'Integration',
-      link: {type: 'doc', id: 'Integration/intro'},
-      items: [
-        'Integration/Hubspot'
-      ],
-    },
+    'Tools',
     {
       type: 'category',
       label: 'Evaluation',
