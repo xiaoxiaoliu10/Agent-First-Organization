@@ -61,6 +61,7 @@ const sidebars = {
         'Workers/DefaultWorker'
       ],
     },
+    'Tools',
     {
       type: 'category',
       label: 'Integration',
