@@ -147,6 +147,9 @@ class AgentOrg:
                     "answer": node_attribute["value"],
                     "parameters": params
                 }
+                # Change the dialog_states from Class object to dict
+                if params.get("dialog_states"):
+                    params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
                 if node_attribute["type"] == "multiple-choice":
                     return_response["choice_list"] = node_attribute["choice_list"]
                 return return_response
@@ -245,14 +248,15 @@ class AgentOrg:
                 elif node_info["id"] in self.env.workers:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "description": self.env.workers[node_info["id"]]["execute"]().description}]
                 
-                # If it is Default Worker, add Respond action; if it is Message Worker, do the message worker
+                # If the Default Worker enters the loop, it is the default node. It may call the RAG worker and no information in the context (tool response) can be used.
                 if node_info["id"] == self.env.name2id["DefaultWorker"]:
-                    logger.info("Skip ReAct framework because of DefaultWorker")
+                    logger.info("Skip the DefaultWorker in ReAct framework because it is the default node and may call the RAG worker (context cannot be used)")
                     action = RESPOND_ACTION_NAME
                     FINISH = True
                     break
+                # If the Message Worker enters the loop, ReAct framework cannot make a good decision between the MessageWorker and the RESPOND action.
                 elif node_info["id"] == self.env.name2id["MessageWorker"]:
-                    logger.info("Skip ReAct framework because of MessageWorker")
+                    logger.info("Skip ReAct framework because it is hard to distinguish between the MessageWorker and the RESPOND action")
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     response_state, params = self.env.step(self.env.name2id["MessageWorker"], message_state, params)
                     FINISH = True
