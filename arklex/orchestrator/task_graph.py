@@ -119,7 +119,10 @@ class TaskGraph(TaskGraphBase):
     def _check_skip(self, node_info):
         task_desp = node_info["attribute"]["task"]
         skip = False
-        sys_prompt = """Given the conversation history and the proposed worker, you job is to decide whether the user has already provided the answer for the following task or assistant already did that task before. Reply with 'yes' if user already answered or assistant already did, otherwise 'no'.
+        sys_prompt = """Given the conversation history and the proposed worker, you job is to decide 
+        1. Whether the user has already provided the answer for the following task
+        2. Whether the assistant already did that task. 
+        Reply with 'yes' only if user already answered and assistant already did, otherwise 'no'.
         
         Conversation history:
         {chat_history_str}
@@ -158,6 +161,7 @@ class TaskGraph(TaskGraphBase):
         params["available_intents"] = available_intents
         # This will be used to check whether we skip the worker or not, which is handled by the task graph framework
         skip = self._check_skip(node_info)
+        logger.info(f"skip current node {sample_node}: {skip}")
         if skip: # continue check the candidate intents under this node
             node_info = {"id": None, "name": None, "attribute": None}
             for u, v, data in self.graph.out_edges(sample_node, data=True):

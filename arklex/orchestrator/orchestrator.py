@@ -10,6 +10,7 @@ import copy
 from arklex.env.env import Env
 import janus
 from dotenv import load_dotenv
+from difflib import SequenceMatcher
 
 from langchain_core.runnables import RunnableLambda
 import langsmith as ls
@@ -23,7 +24,7 @@ from arklex.orchestrator.NLU.nlu import SlotFilling
 from arklex.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
 from arklex.types import EventType, StreamType
 from arklex.utils.graph_state import ConvoMessage, OrchestratorMessage, MessageState, StatusEnum, BotConfig, Slot
-from arklex.utils.utils import init_logger, format_chat_history
+from arklex.utils.utils import init_logger, truncate_string, format_chat_history, format_truncated_chat_history
 from arklex.orchestrator.NLU.nlu import NLU
 from arklex.utils.trace import TraceRunName
 from arklex.utils.model_config import MODEL
@@ -67,13 +68,16 @@ class AgentOrg:
             action_parsed = json.loads(action_str)
         except json.JSONDecodeError:
             # this is a hack
+            logger.warning(f"Failed to parse action: {action_str}, choose respond action")
             action_parsed = {
                 "name": RESPOND_ACTION_NAME,
                 "arguments": {RESPOND_ACTION_FIELD_NAME: action_str},
             }
-        assert "name" in action_parsed
-        assert "arguments" in action_parsed
-        action = action_parsed["name"]
+        if action_parsed.get("name"):
+            action = action_parsed["name"]
+        else:
+            logger.warning(f"Failed to parse action: {action_str}, choose respond action")
+            action = RESPOND_ACTION_NAME
         # issues with getting response_cost using langchain, set to 0.0 for now
         return message, action, 0.0
 
@@ -143,6 +147,9 @@ class AgentOrg:
                     "answer": node_attribute["value"],
                     "parameters": params
                 }
+                # Change the dialog_states from Class object to dict
+                if params.get("dialog_states"):
+                    params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
                 if node_attribute["type"] == "multiple-choice":
                     return_response["choice_list"] = node_attribute["choice_list"]
                 return return_response
@@ -188,6 +195,8 @@ class AgentOrg:
 
         # ReAct framework to decide whether return to user or continue
         FINISH = False
+        count = 0
+        max_count = 5
         while not FINISH:
             # if the last response is from the assistant with content(which means not from tool or worker but from function calling response), 
             # then directly return the response otherwise it will continue to the next node but treat the previous response has been return to user.
@@ -196,6 +205,12 @@ class AgentOrg:
                 and response_state["trajectory"][-1]["content"]: 
                 response_state["response"] = response_state["trajectory"][-1]["content"]
                 break
+            
+            # If the max_count is reached, then break the loop
+            if count >= max_count:
+                logger.info("Max count reached, break the ReAct loop")
+                break
+            count += 1
             
             # If the current node is not complete, then no need to continue to the next node
             node_status = params.get("node_status", {})
@@ -207,6 +222,7 @@ class AgentOrg:
             node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
             logger.info("=============node_info=============")
             logger.info(f"The while node info is : {node_info}")
+            message_state["orchestrator_message"] = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
             if node_info["id"] not in self.env.workers and node_info["id"] not in self.env.tools:
                 message_state = MessageState(
                     sys_instruct=sys_instruct, 
@@ -231,18 +247,37 @@ class AgentOrg:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "arguments": self.env.tools[node_info["id"]]["execute"]().info}]
                 elif node_info["id"] in self.env.workers:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "description": self.env.workers[node_info["id"]]["execute"]().description}]
+                
+                # If the Default Worker enters the loop, it is the default node. It may call the RAG worker and no information in the context (tool response) can be used.
+                if node_info["id"] == self.env.name2id["DefaultWorker"]:
+                    logger.info("Skip the DefaultWorker in ReAct framework because it is the default node and may call the RAG worker (context cannot be used)")
+                    action = RESPOND_ACTION_NAME
+                    FINISH = True
+                    break
+                # If the Message Worker enters the loop, ReAct framework cannot make a good decision between the MessageWorker and the RESPOND action.
+                elif node_info["id"] == self.env.name2id["MessageWorker"]:
+                    logger.info("Skip ReAct framework because it is hard to distinguish between the MessageWorker and the RESPOND action")
+                    message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
+                    response_state, params = self.env.step(self.env.name2id["MessageWorker"], message_state, params)
+                    FINISH = True
+                    break
                 action_spaces = node_actions
-                action_spaces.append({"name": RESPOND_ACTION_NAME, "arguments": {RESPOND_ACTION_FIELD_NAME: response_state.get("message_flow", "") or response_state.get("response", "")}})
-                logger.info("Action spaces: " + json.dumps(action_spaces))
-                params_history_str = format_chat_history(params["history"])
-                logger.info(f"{params_history_str=}")
-                prompt = (
-                    sys_instruct + "\n#Available tools\n" + json.dumps(action_spaces) + REACT_INSTRUCTION + "\n\n" + "Conversations:\n" + params_history_str + "Your current task is: " + node_info["attribute"].get("task", "") + "\nThougt:\n"
+                response_msg = truncate_string(response_state.get("message_flow", "") or response_state.get("response", ""))
+                action_spaces.append({"name": RESPOND_ACTION_NAME, "arguments": {RESPOND_ACTION_FIELD_NAME: response_msg}})
+                truncated_params_history_str = format_truncated_chat_history(params["history"])
+                prompt = REACT_INSTRUCTION.format(
+                    conversation_record=truncated_params_history_str,
+                    available_tools=json.dumps(action_spaces),
+                    task=node_info["attribute"].get("task", "None"),
                 )
+                logger.info(f"React instruction: {prompt}")
                 messages: List[Dict[str, Any]] = [
                     {"role": "system", "content": prompt}
                 ]
                 _, action, _ = self.generate_next_step(messages, text)
+                action_name_list = [action_space["name"] for action_space in action_spaces]
+                action_simi_score = [SequenceMatcher(None, action, action_name).ratio() for action_name in action_name_list]
+                action = action_name_list[action_simi_score.index(max(action_simi_score))]
                 logger.info("Predicted action: " + action)
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True
@@ -250,7 +285,6 @@ class AgentOrg:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     response_state, params = self.env.step(self.env.name2id[action], message_state, params)
                     tool_response = params.get("metadata", {}).get("tool_response", {})
-
         if not response_state.get("response", ""):
             logger.info("No response from the ReAct framework, do context generation")
             tool_response = {}
