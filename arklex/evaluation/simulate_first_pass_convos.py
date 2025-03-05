@@ -5,7 +5,8 @@ from arklex.evaluation.build_user_profiles import build_profile, ATTR_TO_PROFILE
 from arklex.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, adjust_goal,
                                                flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
 
-USER_DATA_KEYS = ['goal', 'product_experience_level', 'deal_stage', 'customer_type', 'decision_making_authority', 'persona', 'discovery_type', 'buying_behavior']
+# USER_DATA_KEYS = ['goal', 'product_experience_level', 'deal_stage', 'customer_type', 'decision_making_authority', 'persona', 'discovery_type', 'buying_behavior']
+USER_DATA_KEYS = ['goal', 'product_experience_level', 'customer_type', 'persona', 'discovery_type', 'buying_behavior']
 
 def get_relevant_vals(attr):
     vals = []

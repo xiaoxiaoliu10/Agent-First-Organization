@@ -4,7 +4,9 @@ from arklex.evaluation.get_documents import load_docs
 from arklex.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, adjust_goal,
                                                flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
 
-ADDITIONAL_ATTRIBUTES = ['job_information', 'budget', 'purchase_history', 'location', 'business_type', 'company_size']
+ADDITIONAL_ATTRIBUTES = ['budget', 'purchase_history', 'location']
+B2B_ATTRIBUTES = ['job_information', 'business_type', 'company_size']
+B2C_ATTRIBUTES = []
 ATTR_TO_PROFILE = "Convert the following list user attributes in to a text description of a customer profile for the following company:\n{company_summary}\nThe user attributes are here:\n{user_attr}"
 
 ADAPT_GOAL = "Assume you are planning to speak to a chatbot with the following goal in mind:\n{goal}\nUsing the company information below, re-write this goal into one that is more specific to the company. The new goal should mention specific products (if relevant) or other details about the company. Here is a summary of the company:\n{company_summary}\nHere is a page from the company website:\n{company_doc}"
@@ -13,11 +15,20 @@ ADD_ATTRIBUTES = "Your job is to add attributes to a customer profile. Here is a
 
 def build_profile(synthetic_data_params, config):
     documents = load_docs(config['documents_dir'], config, synthetic_data_params['num_goals'] * 2)
-    attributes_list = augment_attributes(config['user_attributes'], config, documents)
+    attributes_list = filter_attributes(config)
+    attributes_list = augment_attributes(attributes_list, config, documents)
     attributes_list = select_attributes(attributes_list, synthetic_data_params)
     attributes_list_with_goals = adapt_goals(attributes_list, config, documents)
     profiles, goals = convert_attributes_to_profiles(attributes_list_with_goals, config)
     return profiles, goals, attributes_list
+
+def filter_attributes(config):
+    filtered_attributes = {}
+    for key in config['user_attributes'].keys():
+        if key == 'generic' or key == config['synthetic_data_params']['customer_type']:
+            for subkey in config['user_attributes'][key].keys():
+                filtered_attributes[subkey] = config['user_attributes'][key][subkey]
+    return filtered_attributes
 
 def select_attributes(user_attributes, synthetic_data_params):
     user_list = []
@@ -57,9 +68,15 @@ def generate_attributes(attributes, config, documents):
     text_attribute = ''
     for key, value in attributes.items():
         text_attribute += f"{key}: {value}\n"
+    
+    all_attributes = ADDITIONAL_ATTRIBUTES
+    if config['synthetic_data_params']['customer_type'] == 'b2b':
+        all_attributes += B2B_ATTRIBUTES
+    elif config['synthetic_data_params']['customer_type'] == 'b2c':
+        all_attributes += B2C_ATTRIBUTES
 
     new_attrs = {}
-    for category in ADDITIONAL_ATTRIBUTES:
+    for category in all_attributes:
         attrs = chatgpt_chatbot([{'role': 'user', 'content': ADD_ATTRIBUTES.format(user_profile=text_attribute, category=category, company_summary=config['intro'], company_doc=random.choice(documents))}])
         new_attrs[category] = attrs.split(', ')
         # print(attrs.split(', '))

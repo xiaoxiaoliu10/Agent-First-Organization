@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str)
     parser.add_argument('--output-dir', type=str)
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
-    parser.add_argument('--testset', type=str, default=None)
+    parser.add_argument('--customer_type', type=str, default=None, choices=['b2b', 'b2c'])
     parser.add_argument('--task', type=str, default='first_pass', choices=['first_pass', 'all'])
     parser.add_argument('--user_attributes', type=str, default='arklex/evaluation/user_attributes.json')
     parser.add_argument('--data_file', type=str, default=None)
@@ -62,15 +62,16 @@ if __name__ == "__main__":
 
     config = json.load(open(args.config))
     user_attributes = json.load(open(args.user_attributes))
-    if args.testset:
-        testset = json.load(open(args.testset))
-    else:
-        testset = {}
+    # if args.testset:
+    #     testset = json.load(open(args.testset))
+    # else:
+    #     testset = {}
     config['model_api'] = args.model_api
     config['documents_dir'] = args.documents_dir
     config['model_params'] = args.model_params
     config['synthetic_data_params'] = {'num_convos': args.num_convos, 'num_goals': args.num_goals, 
-                                       'max_turns': args.max_turns, 'goals': testset, 'data_file': args.data_file}
+                                       'max_turns': args.max_turns, 'customer_type': args.customer_type, 
+                                       'data_file': args.data_file}
     config['task'] = args.task
     config['user_attributes'] = user_attributes
 
