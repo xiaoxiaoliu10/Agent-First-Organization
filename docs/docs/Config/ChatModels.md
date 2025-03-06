@@ -11,6 +11,7 @@
 **3\. Anthropic**
 - Models: `claude-3-5-haiku-20241022`, `claude-3-haiku-20240307`
 
+**NOTE:** Tool calling is only supported with `OpenAI` and `Anthropic` models
 
 ## Taskgraph 
 - **Note:** Taskgraph construction with different models isn't supported at the time, only OpenAI can be used. Feature is planned to be implemented in the future.
