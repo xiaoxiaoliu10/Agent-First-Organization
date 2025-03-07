@@ -1,6 +1,6 @@
 # Config
 
-**Config** files are the simple and recommended way to build your [TaskGraph](./Taskgraph/intro.md). A standard JSON document, the [Generator](Taskgraph/Generation) can create and breakdown the role into a series of tasks and steps which are then matched with the appropriate [Workers](Workers/intro) and connected with the proper tasks to create a TaskGraph. 
+**Config** files are the simple and recommended way to build your [TaskGraph](../Taskgraph/intro.md). A standard JSON document, the [Generator](../Taskgraph/Generation) can create and breakdown the role into a series of tasks and steps which are then matched with the appropriate [Workers](../Workers/intro) and connected with the proper tasks to create a TaskGraph. 
 
 Here is the structure for a **Config** JSON file:
 
@@ -23,7 +23,7 @@ Here is the structure for a **Config** JSON file:
 * `workers (Required, List(WorkerClassName))`: The [Workers](Workers/Workers.md) pre-defined under `agentorg/workers` folder in the codebase that you want to use for the chatbot.
 
 ## Examples
-#### [Customer Service Bot](./tutorials/customer-service.md)
+#### [Customer Service Bot](../tutorials/customer-service.md)
 ```json title="customer_service_config.json"
 {
     "role": "customer service assistant",

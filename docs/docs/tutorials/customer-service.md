@@ -32,7 +32,7 @@ Like actual conversations, *TaskGraph* can be complicated; that is why we help y
 #### Workers
 Building on top of a primitive conversational agent, for the customer service agent, we need to let the agent be able to read from the documents we are supplying when composing a response. We can do that through the [RAGWorker](../Workers/RAGWorker.mdx) which retrieves the relevant information from our sources and then passes the information to [MessageWorker](../Workers/MessageWorker.mdx) which composes the response. 
 
-As a refresher, here is the structure for a [Config](../Config.md) JSON file:
+As a refresher, here is the structure for a [Config](../Config/intro.md) JSON file:
 
 * `role (Required)`: The general "role" of the agent you want to create. For instance, "customer service assistant", "data analyst", "shopping assistant", etc.
 * `user_objective (Required)`: The user's goal that the agent wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."

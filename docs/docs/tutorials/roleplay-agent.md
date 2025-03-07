@@ -14,7 +14,7 @@ In its core, bot is powered through a [TaskGraph](../Taskgraph/intro.md) which i
 
 While there are a lot of pre-built workers (and the ability to write custom workers too!), for this simple task, we will only be using two of the most basic workers. [MessageWorker](../Workers/MessageWorker.mdx) and [DefaultWorker](../Workers/DefaultWorker.mdx). Message Worker is the base worker in handling message responses and DefaultWorker is there in case MessageWorker is not deemed suitable. 
 
-Here is the simple structure for a [Config](../Config.md) JSON file:
+Here is the simple structure for a [Config](../Config/intro.md) JSON file:
 
 * `role (Required)`: The general "role" of the chatbot you want to create. For instance, "roleplay bot", "customer service assistant", "data analyst", "shopping assistant", etc.
 * `user_objective (Required)`: The user's goal that the chatbot wants to achieve. Related to the user experience. Description in third person. For instance, "The customer service assistant helps users with customer service inquiries. It can provide information about products, services, and policies, as well as help users resolve issues and complete transactions."
