@@ -89,34 +89,49 @@ def conversation(model_api, profile, goal, attr, summary, model_params, syntheti
     history.append({'role': 'system','content': instructional_prompt})
     history.append({'role': 'user', 'content': start_text})
     chatbot_history = []
+    model_params = {}
+    goal_completetion = False
 
     for i in range(synthetic_data_params['max_turns']):
         output = chatgpt_chatbot(history) 
         history.append({'role': 'assistant', 'content': output})
         chatbot_history.append({'role': 'assistant', 'content': output})
+        curr_node = model_params.get('curr_node', "start") 
         response_data = query_chatbot(model_api, chatbot_history, model_params, env_config)
         answer = response_data["answer"]
         answer = answer.replace('\n', ' ')
         model_params = response_data["parameters"]
+        metadata = model_params["metadata"]
         pred_intent = response_data['parameters']['nlu_records'][-1]['pred_intent']
         history[-1]['intent'] = pred_intent
+        history[-1]['curr_node'] = curr_node
+        history[-1]['metadata'] = metadata
 
         history.append({'role': 'user', 'content': answer})
         chatbot_history.append({'role': 'user', 'content': answer})
         if i > 2 and check_goal_completion(goal, history.copy()):
-            history.append({'goal_completetion': True})
+            goal_completetion = True
+            # history.append({'goal_completetion': True})
             break
     
-    if not history[-1].get('goal_completetion', False):
-        history.append({'goal_completetion': False})
-    history.append({'trajectory': model_params["history"]})
-    return history
+    # if not history[-1].get('goal_completetion', False):
+    #     history.append({'goal_completetion': False})
+    return history, goal_completetion
 
 def generate_conversations(model_api, profiles, goals, attributes_list, summary, model_params, synthetic_data_params, env_config):
     convos = []
     for profile, goal, attr in zip(profiles, goals, attributes_list):
-        convo = conversation(model_api, profile, goal, attr, summary, model_params, synthetic_data_params, env_config)
-        convos.append(flip_hist(filter_convo(convo, filter_turns=False)))
+        convo, goal_completion = conversation(model_api, profile, goal, attr, summary, model_params, synthetic_data_params, env_config)
+        syn_convo = flip_hist(filter_convo(convo, filter_turns=False))
+        convos.append(
+            {
+                "convo": syn_convo,
+                "profile": profile,
+                "goal": goal,
+                "attributes": attr,
+                "goal_completion": goal_completion
+            }
+        )
     return convos
 
 def simulate_conversations(model_api, model_params, synthetic_data_params, config):

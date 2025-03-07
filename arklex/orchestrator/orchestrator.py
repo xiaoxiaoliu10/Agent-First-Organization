@@ -26,7 +26,7 @@ from arklex.types import EventType, StreamType
 from arklex.utils.graph_state import ConvoMessage, OrchestratorMessage, MessageState, StatusEnum, BotConfig, Slot
 from arklex.utils.utils import init_logger, truncate_string, format_chat_history, format_truncated_chat_history
 from arklex.orchestrator.NLU.nlu import NLU
-from arklex.utils.trace import TraceRunName
+from arklex.utils.trace import TraceRunName, format_meta
 from arklex.utils.model_config import MODEL
 from arklex.utils.model_provider_config import PROVIDER_MAP
 from arklex.env.planner.function_calling import aimessage_to_dict
@@ -98,7 +98,7 @@ class AgentOrg:
         metadata = params.get("metadata", {})
         metadata["chat_id"] = metadata.get("chat_id", str(uuid.uuid4()))
         metadata["turn_id"] = metadata.get("turn_id", 0) + 1
-        metadata["tool_response"] = {}
+        metadata["tool_response"] = []
         params["metadata"] = metadata
         params["history"] = params.get("history", [])
         if not params["history"]:
@@ -116,7 +116,7 @@ class AgentOrg:
         }
         dt = time.time()
         taskgraph_chain = RunnableLambda(self.task_graph.get_node) | RunnableLambda(self.task_graph.postprocess_node)
-        node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
+        node_info, params = taskgraph_chain.invoke(taskgraph_inputs, same_turn=False)
         params["timing"]["taskgraph"] = time.time() - dt
         logger.info("=============node_info=============")
         logger.info(f"The first node info is : {node_info}") # {'name': 'MessageWorker', 'attribute': {'value': 'If you are interested, you can book a calendly meeting https://shorturl.at/crFLP with us. Or, you can tell me your phone number, email address, and name; our expert will reach out to you soon.', 'direct': False, 'slots': {"<name>": {<attributes>}}}}
@@ -175,7 +175,7 @@ class AgentOrg:
             trajectory=params["history"], 
             message_flow=params.get("worker_response", {}).get("message_flow", ""), 
             slots=params.get("dialog_states"),
-            metadata=params.get("metadata"),
+            metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []},
             is_stream=True if stream_type is not None else False,
             message_queue=message_queue
         )
@@ -183,9 +183,7 @@ class AgentOrg:
         response_state, params = self.env.step(node_info["id"], message_state, params)
         
         logger.info(f"{response_state=}")
-
-        tool_response = params.get("metadata", {}).get("tool_response", {})
-        params["metadata"]["tool_response"] = {}
+        params = format_meta(response_state, params, node_info)
 
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
@@ -219,7 +217,7 @@ class AgentOrg:
             if status == StatusEnum.INCOMPLETE.value:
                 break
 
-            node_info, params = taskgraph_chain.invoke(taskgraph_inputs)
+            node_info, params = taskgraph_chain.invoke(taskgraph_inputs, same_turn=True)
             logger.info("=============node_info=============")
             logger.info(f"The while node info is : {node_info}")
             message_state["orchestrator_message"] = OrchestratorMessage(message=node_info["attribute"]["value"], attribute=node_info["attribute"])
@@ -231,12 +229,13 @@ class AgentOrg:
                     trajectory=params["history"], 
                     message_flow=params.get("worker_response", {}).get("message_flow", ""), 
                     slots=params.get("dialog_states"),
-                    metadata=params.get("metadata"),
+                    metadata={"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []},
                     is_stream=True if stream_type is not None else False,
                     message_queue=message_queue
                 )
                 
                 action, response_state, msg_history = self.env.planner.execute(message_state, params["history"])
+                # TODO Add planner response to the metadata
                 params["history"] = msg_history
                 if action == RESPOND_ACTION_NAME:
                     FINISH = True
@@ -258,7 +257,9 @@ class AgentOrg:
                 elif node_info["id"] == self.env.name2id["MessageWorker"]:
                     logger.info("Skip ReAct framework because it is hard to distinguish between the MessageWorker and the RESPOND action")
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
+                    message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}
                     response_state, params = self.env.step(self.env.name2id["MessageWorker"], message_state, params)
+                    params = format_meta(response_state, params, node_info)
                     FINISH = True
                     break
                 action_spaces = node_actions
@@ -283,8 +284,9 @@ class AgentOrg:
                     FINISH = True
                 else:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
+                    message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}
                     response_state, params = self.env.step(self.env.name2id[action], message_state, params)
-                    tool_response = params.get("metadata", {}).get("tool_response", {})
+                    params = format_meta(response_state, params, node_info)
         if not response_state.get("response", ""):
             logger.info("No response from the ReAct framework, do context generation")
             tool_response = {}
@@ -292,14 +294,19 @@ class AgentOrg:
                 response_state = ToolGenerator.context_generate(response_state)
             else:
                 response_state = ToolGenerator.stream_context_generate(response_state)
-
+            params = format_meta(response_state, params, node_info=None)
+        
         response = response_state.get("response", "")
-        params["metadata"]["tool_response"] = {}
-        # TODO: params["metadata"]["worker"] is not serialization, make it empty for now
+        # params["metadata"]["tool_response"] = {}
         if params.get("dialog_states"):
             params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
+        # TODO: params["metadata"]["worker"] is not serialization, make it empty for now
         params["metadata"]["worker"] = {}
-        params["tool_response"] = tool_response
+        # TODO: refomat the tool_response in chatbot repo
+        # for item in params["metadata"]["tool_response"]:
+        #     if milvus_id in item:
+        #         params["tool_response"] = item[milvus_id]
+        # params["tool_response"] = tool_response
         output = {
             "answer": response,
             "parameters": params
