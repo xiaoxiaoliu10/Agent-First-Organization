@@ -102,12 +102,29 @@ class Tool:
                 if slot.name == default_slot.name and default_slot.value:
                     slot.value = default_slot.value
                     slot.verified = True
+        call_id = str(uuid.uuid4())
+        state["trajectory"].append({
+            'content': None, 
+            'role': 'assistant', 
+            'tool_calls': [
+                {
+                    'function': {
+                        'arguments': json.dumps({slot.name: slot.value for slot in default_slots}), 
+                        'name': "default_slots"
+                    }, 
+                    'id': call_id, 
+                    'type': 'function'
+                }
+            ], 
+            'function_call': None
+        })
         state["trajectory"].append({
             "role": "tool",
-            "tool_call_id": str(uuid.uuid4()),
+            "tool_call_id": call_id,
             "name": "default_slots",
             "content": json.dumps(response)
         })
+        
         logger.info(f'Slots after initialization are: {self.slots}')
 
     def _skip_tool(self, state: MessageState):
@@ -123,6 +140,21 @@ class Tool:
         if all([output.get("value") for output in self.output if output.get("required", False)]):
             state["status"] = StatusEnum.COMPLETE.value
             call_id = str(uuid.uuid4())
+            state["trajectory"].append({
+                'content': None, 
+                'role': 'assistant', 
+                'tool_calls': [
+                    {
+                        'function': {
+                            'arguments': json.dumps({output["name"]: output["value"] for output in self.output}), 
+                            'name': self.name
+                        }, 
+                        'id': call_id, 
+                        'type': 'function'
+                    }
+                ], 
+                'function_call': None
+            })
             state["trajectory"].append({
                 "role": "tool",
                 "tool_call_id": call_id,
