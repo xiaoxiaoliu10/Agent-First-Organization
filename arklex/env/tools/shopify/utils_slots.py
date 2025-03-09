@@ -27,7 +27,7 @@ class ShopifySlots:
     
     REFRESH_TOKEN = {
         "name": "refresh_token",
-        "type": "str",
+        "type": "string",
         "description": "customer's shopify refresh_token retrieved from authenticating",
         "prompt": "",
         "required": True,
@@ -83,7 +83,7 @@ class ShopifySlots:
     
     COLLECTION_ID = {
         "name": "collection_id",
-        "type": "str",
+        "type": "string",
         "description": "The collection id, such as 'gid://shopify/Collection/2938501948327'.",
         "prompt": "",
         "required": True,
@@ -93,7 +93,7 @@ class ShopifySlots:
     
     CART_ID = {
         "name": "cart_id",
-        "type": "str",
+        "type": "string",
         "description": "The cart id, such as 'gid://shopify/Cart/2938501948327'.",
         "prompt": "",
         "required": True,
@@ -102,7 +102,7 @@ class ShopifySlots:
     
     LINE_ID = {
         "name": "line_id",
-        "type": "str",
+        "type": "string",
         "description": "The line id for a line entry in the cart such as 'gid://shopify/CartLine/b3dbff2e-4e9a-4ce0-9f15-5fa8f61882e1?cart=Z2NwLXVzLWVhc3QxOjAxSkpDTjBQSDVLR1JaRkZHMkE3UlZSVjhX'",
         "prompt": "",
         "required": True,
@@ -111,23 +111,24 @@ class ShopifySlots:
     LINE_IDS = to_list(LINE_ID)
     
     ADD_LINE_ITEM = {
-        "name": "add_line_items",
-        "type": "list",
+        "name": "add_line_item",
+        "type": "string",
         "description": "list of ProductVariant ids to be added to the shopping cart, such as ['gid://shopify/ProductVariant/41552094527601', 'gid://shopify/ProductVariant/41552094494833'].",
         "prompt": "Please confirm the items to add to the cart.",
         "required": True,
         "verified": True
     }
+    ADD_LINE_ITEMS = to_list(ADD_LINE_ITEM)
     
     UPDATE_LINE_ITEM = {
         "name": "line_ids",
-        "type": "list",
-        "items": "str",
+        "type": "string",
         "description": "list of (line_id, item_id, quantity) tuples of lineItem to add to the cart such as [('gid://shopify/CartLine/db5cb3dd-c830-482e-88cd-99afe8eafa3f?cart=Z2NwLXVzLWVhc3QxOjAxSkpEM0JLNU1KMUI2UFRYRTNFS0NNTllW', None, 69)]",
         "prompt": "",
         "required": True,
         "verified": True
     }
+    UPDATE_LINE_ITEMS = to_list(UPDATE_LINE_ITEM)
 
     SEARCH_COLLECTION_QUERY = {
         "name": "collection_query",
