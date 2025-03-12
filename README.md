@@ -1,3 +1,6 @@
+![Alt text](assets/static/img/arklexai.png)
+
+
 # Agent First Organization
 
 ![Release](https://img.shields.io/github/release/arklexai/Agent-First-Organization?logo=github)
@@ -62,6 +65,9 @@ The config file should contain the following fields:
       * `fixed_args (Optional, Dict)`: All the must and deterministic arguments for the tool function, such as credentials or already known argument during development. It should be a dictionary. Such as `{"token": "<access_token>", "shop_url": "<url>", "api_version": "<version>"}`
 
 ## 🛠️ Build A Demo Customer Service Agent
+
+[![Build a customer service ai agent with Arklex.ai in 20 min](assets/static/img/youtube_screenshot.png)](https://youtu.be/y1P2Ethvy0I)
+
 > **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
 
 **📊 1. Create Taskgraph and Initialize Worker**
