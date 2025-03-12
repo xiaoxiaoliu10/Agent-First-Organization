@@ -65,13 +65,13 @@ The config file should contain the following fields:
 
 ## 🛠️ Build A Demo Customer Service Agent
 
+Watch the tutorial on [YouTube](https://youtu.be/y1P2Ethvy0I) to learn how to build a customer service AI agent with Arklex.AI in just 20 minutes.
+
 <a href="https://youtu.be/y1P2Ethvy0I" target="_blank">
   <img src="assets/static/img/youtube_screenshot.png" alt="Build a customer service AI agent with Arklex.AI in 20 min" width="400">
 </a>
 
-Watch the tutorial on [YouTube](https://youtu.be/y1P2Ethvy0I) to learn how to build a customer service AI agent with Arklex.AI in just 20 minutes.
-
-> **:bulb:<span style="color:orange">Tip:</span>** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
+> **:bulb:** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
 
 **📊 1. Create Taskgraph and Initialize Worker**
 ```
