@@ -1,6 +1,5 @@
 <p align="left">
-  <img src="assets/static/img/arklexai.png" width="70" alt="Image description" style="vertical-align: middle; margin-right: 10px;">
-  <span style="font-size: 40px; font-weight: bold; vertical-align: middle;"> Agent First Organization</span>
+  <img src="assets/static/img/arklexai.png" alt="Image description" style="vertical-align: middle; margin-right: 10px;">
 </p>
 
 ![Release](https://img.shields.io/github/release/arklexai/Agent-First-Organization?logo=github)
