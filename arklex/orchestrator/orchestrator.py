@@ -248,13 +248,13 @@ class AgentOrg:
                     node_actions = [{"name": self.env.id2name[node_info["id"]], "description": self.env.workers[node_info["id"]]["execute"]().description}]
                 
                 # If the Default Worker enters the loop, it is the default node. It may call the RAG worker and no information in the context (tool response) can be used.
-                if node_info["id"] == self.env.name2id["DefaultWorker"]:
+                if "DefaultWorker" in self.env.name2id.keys() and node_info["id"] == self.env.name2id["DefaultWorker"]:
                     logger.info("Skip the DefaultWorker in ReAct framework because it is the default node and may call the RAG worker (context cannot be used)")
                     action = RESPOND_ACTION_NAME
                     FINISH = True
                     break
                 # If the Message Worker enters the loop, ReAct framework cannot make a good decision between the MessageWorker and the RESPOND action.
-                elif node_info["id"] == self.env.name2id["MessageWorker"]:
+                elif "MessageWorker" in self.env.name2id.keys() and node_info["id"] == self.env.name2id["MessageWorker"]:
                     logger.info("Skip ReAct framework because it is hard to distinguish between the MessageWorker and the RESPOND action")
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}

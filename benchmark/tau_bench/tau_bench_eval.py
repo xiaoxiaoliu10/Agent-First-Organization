@@ -69,7 +69,7 @@ class TauBenchResourceInitializer(DefaulResourceInitializer):
             tool_output = []
             isComplete = lambda x: True
             
-            tool = tool_lambda(Tool(tool_func, tool_key, tool_desc, tool_slots, tool_output, isComplete))
+            tool = tool_lambda(Tool(tool_func, tool_key, tool_desc, tool_slots, tool_output, isComplete, isResponse=False))
 
             tool_registry[tool_id] = {
                 "name": tool_name,
@@ -166,7 +166,13 @@ if __name__ == "__main__":
     parser.add_argument('--output-dir', type=str, default="./examples/tau_bench")
     parser.add_argument('--num-trials', type=int, default=1)
     parser.add_argument('--env', type=str, default="retail", choices=["retail"])
-    parser.add_argument('--task-ids', type=list, default=[1,2,3,4,5,6,7,8,9,10])
+
+    import random
+    random.seed(42)
+    random_list = random.sample(range(118), 10)
+    print(f"Running Tau Bench on tasks {random_list}")
+    parser.add_argument('--task-ids', type=list, default=random_list)
+    # parser.add_argument('--task-ids', type=list, default=[1,2,3,4,5,6,7,8,9,10])
 
     parser.add_argument('--model_api', type=str, default="http://127.0.0.1:8000/eval/chat")
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
