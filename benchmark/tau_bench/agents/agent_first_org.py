@@ -63,7 +63,11 @@ class AgentFirstOrg(Agent):
             output, params = self.get_api_bot_response(deepcopy(history), user_text, params)
 
             user_message = {"role": "user", "content": user_text}
-            assistant_message = {"role": "assistant", "content": output}
+            assistant_message = {"role": "assistant", "content": output, 
+                                 'curr_node': params['curr_node'],
+                                 'intent': params['nlu_records'][-1]['pred_intent'],
+                                 'metadata': params['metadata'],
+                                 'node_status': params['node_status']}
             history.append(user_message)
             history.append(assistant_message)
 
