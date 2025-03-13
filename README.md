@@ -30,32 +30,30 @@ Watch the tutorial on [YouTube](https://youtu.be/y1P2Ethvy0I) to learn how to bu
 
 ***
 
-> **:bulb:** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
-
-***
-
 
 **⚙️ 0. Preparation**
 
-📂 Environment Setup
+* 📂 Environment Setup
 
-•	Add API keys to the `.env` file for providers like OpenAI, Gemini, Anthropic, and Tavily.
+  *	Add API keys to the `.env` file for providers like OpenAI, Gemini, Anthropic, and Tavily.
 
-•	Enable LangSmith tracing (LANGCHAIN_TRACING_V2=true) for debugging (optional).
+  *	Enable LangSmith tracing (LANGCHAIN_TRACING_V2=true) for debugging (optional).
 
-📄 Configuration File
+* 📄 Configuration File
 
-•	Create a chatbot config file similar to `customer_service_config.json`.
+  *	Create a chatbot config file similar to `customer_service_config.json`.
 
-•	Define chatbot parameters, including role, objectives, domain, introduction, and relevant documents.
+  *	Define chatbot parameters, including role, objectives, domain, introduction, and relevant documents.
 
-•	Specify tasks, workers, and tools to enhance chatbot functionality.
+  *	Specify tasks, workers, and tools to enhance chatbot functionality.
 
-•	Workers and tools should be pre-defined in arklex/env/workers and arklex/env/tools, respectively.
-
+*	Workers and tools should be pre-defined in arklex/env/workers and arklex/env/tools, respectively.
 
 
 **📊 1. Create Taskgraph and Initialize Worker**
+
+> **:bulb:** The following `--output-dir`, `--input-dir` and `--documents_dir` can be the same directory to save the generated files and the chatbot will use the generated files to run. E.g `--output-dir ./example/customer_service`. The following commands take *customer_service* chatbot as an example.
+
 ```
 python create.py --config ./examples/customer_service_config.json --output-dir ./examples/customer_service
 ```
