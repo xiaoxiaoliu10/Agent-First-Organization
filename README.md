@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="assets/static/img/arklexai.png" alt="Image description" style="vertical-align: middle; margin-right: 10px;">
+  <img src="https://raw.githubusercontent.com/arklexai/Agent-First-Organization/main/assets/static/img/arklexai.png" alt="Package Logo" style="vertical-align: middle; margin-right: 10px;">
 </p>
 
 ![Release](https://img.shields.io/github/release/arklexai/Agent-First-Organization?logo=github)
@@ -25,7 +25,7 @@ pip install arklex
 Watch the tutorial on [YouTube](https://youtu.be/y1P2Ethvy0I) to learn how to build a customer service AI agent with Arklex.AI in just 20 minutes.
 
 <a href="https://youtu.be/y1P2Ethvy0I" target="_blank">
-  <img src="assets/static/img/youtube_screenshot.png" alt="Build a customer service AI agent with Arklex.AI in 20 min" width="400">
+  <img src="https://raw.githubusercontent.com/arklexai/Agent-First-Organization/main/assets/static/img/youtube_screenshot.png" alt="Build a customer service AI agent with Arklex.AI in 20 min" width="400">
 </a>
 
 ***
