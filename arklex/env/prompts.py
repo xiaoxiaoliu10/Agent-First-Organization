@@ -75,6 +75,8 @@ assistant:
         which can be understood without the chat history. Do NOT answer the question, \
         just reformulate it if needed and otherwise return it as is. \
         {chat_history}""",
+
+### ================================== Need Retrieval Prompts ================================== ###
 "retrieval_needed_prompt": """Given the conversation history, decide whether information retrieval is needed to respond to the user:
 ----------------
 Conversation:
@@ -182,6 +184,17 @@ Your response should only be the reformulated value or None.
 
 ### ================================== RAG Prompts ================================== ###
 "retrieve_contextualize_q_prompt": """给定一段聊天记录和最新的用户问题，请构造一个可以独立理解的问题（最新的用户问题可能引用了聊天记录中的上下文）。不要回答这个问题。如果需要，重新构造问题，否则原样返回。{chat_history}""",
+
+### ================================== Need Retrieval Prompts ================================== ###
+"retrieval_needed_prompt": """Given the conversation history, decide whether information retrieval is needed to respond to the user:
+----------------
+Conversation:
+{formatted_chat}
+----------------
+Only answer yes or no.
+----------------
+Answer:
+""",
 
 ### ================================== DefaultWorker Prompts ================================== ###
 "choose_worker_prompt": """你是一个助手，可以使用以下其中一组工具。以下是每个工具的名称和描述：

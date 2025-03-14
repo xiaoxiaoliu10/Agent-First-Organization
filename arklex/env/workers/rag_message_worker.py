@@ -7,6 +7,7 @@ from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 from arklex.env.workers.worker import BaseWorker, register_worker
+from arklex.env.tools.RAG.retrievers.milvus_retriever import RetrieveEngine
 from arklex.env.prompts import load_prompts
 from arklex.env.workers.message_worker import MessageWorker
 from arklex.env.workers.milvus_rag_worker import MilvusRAGWorker
@@ -38,20 +39,19 @@ class RagMsgWorker(BaseWorker):
         answer = final_chain.invoke(chunked_prompt)
         logger.info(f"Choose retriever in RagMsgWorker: {answer}")
         if "yes" in answer.lower():
-            return "rag_worker"
+            return "retriever"
         return "message_worker"
      
     def _create_action_graph(self):
         workflow = StateGraph(MessageState)
         # Add nodes for each worker
-        rag_wkr = MilvusRAGWorker(stream_response=False)
         msg_wkr = MessageWorker()
-        workflow.add_node("rag_worker", rag_wkr.execute)
+        workflow.add_node("retriever", RetrieveEngine.milvus_retrieve)
         workflow.add_node("message_worker", msg_wkr.execute)
         # Add edges
         workflow.add_conditional_edges(
             START, self._choose_retriever)
-        workflow.add_edge("rag_worker", "message_worker")
+        workflow.add_edge("retriever", "message_worker")
         return workflow
 
     def execute(self, msg_state: MessageState):

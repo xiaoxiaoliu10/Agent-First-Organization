@@ -12,6 +12,8 @@ from arklex.orchestrator.NLU.nlu import SlotFilling
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_WORKER  = {"id": "default_worker", "name": "DefaultWorker", "path": "default_worker.py"}
+
 class BaseResourceInitializer:
     @staticmethod
     def init_tools(tools):
@@ -49,7 +51,9 @@ class DefaulResourceInitializer(BaseResourceInitializer):
     @staticmethod
     def init_workers(workers):
         worker_registry = {}
-        for worker in workers:
+        available_workers = [worker for worker in workers if worker["name"] != DEFAULT_WORKER["name"]]
+        all_workers = [DEFAULT_WORKER] + available_workers if available_workers else [DEFAULT_WORKER]
+        for worker in all_workers:
             worker_id = worker["id"]
             name = worker["name"]
             path = worker["path"]
@@ -86,6 +90,8 @@ class Env():
         return SlotFilling(slotsfillapi)
 
     def step(self, id, message_state, params):
+        print(id)
+        print(self.workers)
         if id in self.tools:
             logger.info(f"{self.tools[id]['name']} tool selected")
             tool: Tool = self.tools[id]["execute"]()
