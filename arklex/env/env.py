@@ -90,8 +90,6 @@ class Env():
         return SlotFilling(slotsfillapi)
 
     def step(self, id, message_state, params):
-        print(id)
-        print(self.workers)
         if id in self.tools:
             logger.info(f"{self.tools[id]['name']} tool selected")
             tool: Tool = self.tools[id]["execute"]()
