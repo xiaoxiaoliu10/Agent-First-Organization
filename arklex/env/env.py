@@ -111,7 +111,7 @@ class Env():
                         "role": "tool",
                         "tool_call_id": call_id,
                         "name": self.id2name[id],
-                        "content": response_state["response"]
+                        "content": response_state.get("response", "")
             })
         else:
             logger.info("planner selected")
