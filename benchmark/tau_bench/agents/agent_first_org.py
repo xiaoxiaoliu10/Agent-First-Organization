@@ -63,16 +63,21 @@ class AgentFirstOrg(Agent):
             output, params = self.get_api_bot_response(deepcopy(history), user_text, params)
 
             user_message = {"role": "user", "content": user_text}
-            assistant_message = {"role": "assistant", "content": output, 
-                                 'curr_node': params['curr_node'],
-                                 'intent': params['nlu_records'][-1]['pred_intent'],
-                                 'metadata': params['metadata'],
-                                 'node_status': params['node_status']}
+            assistant_message = {"role": "assistant", "content": output}
+            assistant_message_metadata = {"role": "assistant", "content": output, 
+                                 'curr_node': deepcopy(params['curr_node']),
+                                 'intent': deepcopy(params['nlu_records'][-1]['pred_intent']),
+                                 'metadata': deepcopy(params['metadata']),
+                                 'node_status': deepcopy(params['node_status'])}
             history.append(user_message)
             history.append(assistant_message)
 
-            while message_index < len(params["history"]):
-                msg = params["history"][message_index]
+            print("=============trajectory============")
+            trajectory = params["history"]
+            print(trajectory)
+
+            while message_index < len(trajectory):
+                msg = trajectory[message_index]
                 
                 if not is_message_worker(msg):
 
@@ -90,7 +95,7 @@ class AgentFirstOrg(Agent):
                 message_index += 1
             
             # total_cost += res._hidden_params["response_cost"]
-            new_messages.append(assistant_message)
+            new_messages.append(assistant_message_metadata)
             action = message_to_action(assistant_message)
             env_response = env.step(action)
             reward = env_response.reward
