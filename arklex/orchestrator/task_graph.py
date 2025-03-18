@@ -210,7 +210,11 @@ class TaskGraph(TaskGraphBase):
         self.text = inputs["text"]
         self.chat_history_str = inputs["chat_history_str"]
         params = inputs["parameters"]
-        nlu_records = params.get("nlu_records", [])
+        if same_turn:
+            nlu_records = params.get("nlu_records", [])
+        else:
+            params["nlu_records"] = []
+            nlu_records = []
 
         # get the current node
         curr_node = params.get("curr_node", None)
