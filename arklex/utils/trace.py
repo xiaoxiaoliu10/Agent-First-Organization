@@ -9,15 +9,18 @@ class TraceRunName(str, Enum):
     SlotFilling = "SlotFilling"
 
 
-def format_meta(response_state, params, node_info=None):
+def format_meta(response_state, params, node_info=None, env=None):
     if not node_info:
         tool_info = None
         tool_input = None
     else:
         tool_info = node_info
-        tool_input = {}
-        for tool_name, slots in tool_input.items():
-            tool_input[tool_name] = [s.model_dump() for s in slots]
+        tool_id = node_info["id"]
+        if tool_id in env.tools:
+            tool_name = env.tools[tool_id]["name"]
+            tool_input = response_state["slots"][tool_name]
+        else:
+            tool_input = None
 
         
     tool_output = response_state.get("response", "") or response_state.get("message_flow", "")

@@ -354,6 +354,10 @@ class TaskGraph(TaskGraphBase):
                         "attribute": self.graph.nodes[curr_node]["attribute"],
                         "node_id": curr_node
                     }
+                    if params.get("nlu_records", None):
+                        params["nlu_records"][-1]["no_intent"] = True
+                    else: # only others available
+                        params["nlu_records"] = [{"candidate_intents": [], "pred_intent": "", "no_intent": True, "global_intent": False}]
                     return node_info, params
                 # If completed, then move to the next connected node(s) (randomly choose one of them if there are multiple "None" intent connected)
                 logger.info(f"no local or global intent found, move to the next connected node(s)")

@@ -185,7 +185,7 @@ class AgentOrg:
         response_state, params = self.env.step(node_info["id"], message_state, params)
         
         logger.info(f"{response_state=}")
-        params = format_meta(response_state, params, node_info)
+        params = format_meta(response_state, params, node_info, env=self.env)
 
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
@@ -261,7 +261,7 @@ class AgentOrg:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}
                     response_state, params = self.env.step(self.env.name2id["MessageWorker"], message_state, params)
-                    params = format_meta(response_state, params, node_info)
+                    params = format_meta(response_state, params, node_info, env=self.env)
                     FINISH = True
                     break
                 action_spaces = node_actions
@@ -288,7 +288,7 @@ class AgentOrg:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}
                     response_state, params = self.env.step(self.env.name2id[action], message_state, params)
-                    params = format_meta(response_state, params, node_info)
+                    params = format_meta(response_state, params, node_info, env=self.env)
         if not response_state.get("response", ""):
             logger.info("No response from the ReAct framework, do context generation")
             tool_response = {}
@@ -296,7 +296,7 @@ class AgentOrg:
                 response_state = ToolGenerator.context_generate(response_state)
             else:
                 response_state = ToolGenerator.stream_context_generate(response_state)
-            params = format_meta(response_state, params, node_info=None)
+            params = format_meta(response_state, params, node_info=None, env=self.env)
         
         response = response_state.get("response", "")
         # params["metadata"]["tool_response"] = {}
