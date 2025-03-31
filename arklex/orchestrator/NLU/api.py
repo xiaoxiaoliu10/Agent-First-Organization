@@ -167,22 +167,29 @@ class SlotFillModelAPI():
         logger.info(f"response for {debug_text} is \n{response.parsed}")
         return response.parsed
 
-    def format_input(self, slots: Slots, chat_history_str) -> str:
+    def format_input(self, slots: Slots, input, type: str = "chat") -> str:
         """Format input text before feeding it to the model."""
-        system_prompt = f"Given the conversation and definition of each dialog state, update the value of following dialogue states.\nDialogue Statues:\n{slots}\nConversation:\n{chat_history_str}\n\n"
+        if type == "chat":
+            system_prompt = f"Given the conversation and definition of each dialog state, update the value of following dialogue states.\nDialogue Statues:\n{slots}\nConversation:\n{input}\n\n"
+        elif type == "user_simulator":
+            system_prompt = f"Given a user profile, extract the values for each defined slot type. Only extract values that are explicitly mentioned in the profile. If a value is not found, leave it empty.\n\nSlot definitions:\n{slots}\n\nUser profile:\n{input}\n\nFor each slot:\n1. Look for an exact match in the profile\n2. Only extract values that are clearly stated\n3. Do not make assumptions or infer values\n4. If a slot has enum values, the extracted value must match one of them exactly\n\nExtract the values:\n"
         return system_prompt
 
     def predict(
         self,
         slots,
-        chat_history_str,
-        model
+        input,
+        model,
+        type: str = "chat"
     ):
         slots = [Slot(**slot_data) for slot_data in slots]
         system_prompt = self.format_input(
-            slots, chat_history_str
+            slots, input, type
         )
-        user_input =  chat_history_str.splitlines()[-1].split('user:')[-1].strip()
+        if type == "chat":
+            user_input =  input.splitlines()[-1].split('user:')[-1].strip()
+        else:
+            user_input = ""
         response = self.get_response(
             system_prompt,model, debug_text="get slots", text=user_input
         )
