@@ -4,6 +4,7 @@ from arklex.evaluation.get_documents import load_docs
 from arklex.evaluation.build_user_profiles import build_profile, ATTR_TO_PROFILE
 from arklex.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, adjust_goal,
                                                flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
+from arklex.env.tools.tools import Tool
 
 # USER_DATA_KEYS = ['goal', 'product_experience_level', 'deal_stage', 'customer_type', 'decision_making_authority', 'persona', 'discovery_type', 'buying_behavior']
 USER_DATA_KEYS = ['goal', 'product_experience_level', 'customer_type', 'persona', 'discovery_type', 'buying_behavior']
@@ -89,7 +90,18 @@ def conversation(model_api, profile, goal, attr, summary, model_params, syntheti
     history.append({'role': 'system','content': instructional_prompt})
     history.append({'role': 'user', 'content': start_text})
     chatbot_history = []
-    model_params = {}
+    default_slots = []
+    meta_data = {
+        "shopify": {
+            "user_id": "gid://shopify/Customer/7450970259569", 
+            "web_product_id": "gid://shpify/Product/7296585662577", 
+            "cart_id": "gid://shopify/Cart/Z2NwLXVzLWVhc3QxOjAxSk1BQjQwNkFXWlZFNDlORzJTWVdTNUZG?key=afb499bd080781b14fee1fe5f595e405"}
+    }
+    for key, value in meta_data.get("shopify", {}).items():
+        if key and value:
+            default_slots.append({"name": key, "value": value})
+    default_slots = Tool.format_slots(default_slots)
+    model_params = {"dialog_states": {"default_slots": default_slots}}
     goal_completetion = False
 
     for i in range(synthetic_data_params['max_turns']):

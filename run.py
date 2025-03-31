@@ -25,7 +25,7 @@ def get_api_bot_response(args, history, user_text, parameters, env):
     orchestrator = AgentOrg(config=os.path.join(args.input_dir, "taskgraph.json"), env=env)
     result = orchestrator.get_response(data)
 
-    return result['answer'], result['parameters']
+    return result['answer'], result['parameters'], result['human-in-the-loop']
 
 
 if __name__ == "__main__":
@@ -59,13 +59,13 @@ if __name__ == "__main__":
             break
     history.append({"role": worker_prefix, "content": start_message})
     pprint_with_color(f"Bot: {start_message}")
-
+    
     while True:
         user_text = input("You: ")
         if user_text.lower() == "quit":
             break
         start_time = time.time()
-        output, params = get_api_bot_response(args, history, user_text, params, env)
+        output, params, hitl = get_api_bot_response(args, history, user_text, params, env)
         history.append({"role": user_prefix, "content": user_text})
         history.append({"role": worker_prefix, "content": output})
         print(json.dumps(params, indent=4))

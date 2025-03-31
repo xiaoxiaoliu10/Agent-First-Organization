@@ -35,7 +35,6 @@ from arklex.env.planner.function_calling import aimessage_to_dict
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-
 class AgentOrg:
     def __init__(self, config, env: Env, **kwargs):
         if isinstance(config, dict):
@@ -61,6 +60,10 @@ class AgentOrg:
                 ("system",str(messages[0]['content']),),
                 ("human", ""),
             ]
+        elif MODEL['llm_provider'] == 'anthropic':
+            messages = [
+            ("human",str(messages[0]['content']),),
+        ]
         res = llm.invoke(messages)        
         message = aimessage_to_dict(res)
         action_str = message['content'].split("Action:")[-1].strip()
@@ -150,7 +153,7 @@ class AgentOrg:
                 # Change the dialog_states from Class object to dict
                 if params.get("dialog_states"):
                     params["dialog_states"] = {tool: [s.model_dump() for s in slots] for tool, slots in params["dialog_states"].items()}
-                if node_attribute["type"] == "multiple-choice":
+                if node_attribute.get("type", "") == "multiple-choice" and node_attribute.get("choice_list", []):
                     return_response["choice_list"] = node_attribute["choice_list"]
                 return return_response
 
@@ -165,7 +168,6 @@ class AgentOrg:
             version=self.product_kwargs.get("version", "default"),
             language=self.product_kwargs.get("language", "EN"),
             bot_type=self.product_kwargs.get("bot_type", "presalebot"),
-            available_workers=self.product_kwargs.get("workers", [])
         )
         message_state = MessageState(
             sys_instruct=sys_instruct, 
@@ -183,7 +185,7 @@ class AgentOrg:
         response_state, params = self.env.step(node_info["id"], message_state, params)
         
         logger.info(f"{response_state=}")
-        params = format_meta(response_state, params, node_info)
+        params = format_meta(response_state, params, node_info, env=self.env)
 
         with ls.trace(name=TraceRunName.ExecutionResult, inputs={"message_state": message_state}) as rt:
             rt.end(
@@ -259,7 +261,7 @@ class AgentOrg:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}
                     response_state, params = self.env.step(self.env.name2id["MessageWorker"], message_state, params)
-                    params = format_meta(response_state, params, node_info)
+                    params = format_meta(response_state, params, node_info, env=self.env)
                     FINISH = True
                     break
                 action_spaces = node_actions
@@ -286,7 +288,7 @@ class AgentOrg:
                     message_state["response"] = "" # clear the response cache generated from the previous steps in the same turn
                     message_state["metadata"] = {"chat_id": metadata.get("chat_id"), "turn_id": metadata.get("turn_id"), "tool_response": []}
                     response_state, params = self.env.step(self.env.name2id[action], message_state, params)
-                    params = format_meta(response_state, params, node_info)
+                    params = format_meta(response_state, params, node_info, env=self.env)
         if not response_state.get("response", ""):
             logger.info("No response from the ReAct framework, do context generation")
             tool_response = {}
@@ -294,7 +296,7 @@ class AgentOrg:
                 response_state = ToolGenerator.context_generate(response_state)
             else:
                 response_state = ToolGenerator.stream_context_generate(response_state)
-            params = format_meta(response_state, params, node_info=None)
+            params = format_meta(response_state, params, node_info=None, env=self.env)
         
         response = response_state.get("response", "")
         # params["metadata"]["tool_response"] = {}
@@ -309,7 +311,8 @@ class AgentOrg:
         # params["tool_response"] = tool_response
         output = {
             "answer": response,
-            "parameters": params
+            "parameters": params,
+            "human-in-the-loop": params['metadata'].get('hitl', None),
         }
 
         with ls.trace(name=TraceRunName.OrchestResponse) as rt:

@@ -3,6 +3,7 @@ import logging
 import uuid
 import importlib
 from typing import Optional
+from functools import partial
 
 from arklex.env.tools.tools import Tool
 from arklex.env.workers.worker import BaseWorker
@@ -12,6 +13,8 @@ from arklex.orchestrator.NLU.nlu import SlotFilling
 
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_WORKER  = {"id": "default_worker", "name": "DefaultWorker", "path": "default_worker.py"}
 
 class BaseResourceInitializer:
     @staticmethod
@@ -50,7 +53,9 @@ class DefaulResourceInitializer(BaseResourceInitializer):
     @staticmethod
     def init_workers(workers):
         worker_registry = {}
-        for worker in workers:
+        available_workers = [worker for worker in workers if worker["name"] != DEFAULT_WORKER["name"]]
+        all_workers = [DEFAULT_WORKER] + available_workers if available_workers else [DEFAULT_WORKER]
+        for worker in all_workers:
             worker_id = worker["id"]
             name = worker["name"]
             path = worker["path"]
@@ -64,13 +69,13 @@ class DefaulResourceInitializer(BaseResourceInitializer):
                 continue
             worker_registry[worker_id] = {
                 "name": name,
-                "description": func().description,
-                "execute": func
+                "description": func.description,
+                "execute": partial(func, **worker.get("fixed_args", {}))
             }
         return worker_registry
 
 class Env():
-    def __init__(self, tools, workers, slotsfillapi, resource_inizializer: Optional[BaseResourceInitializer] = None):
+    def __init__(self, tools, workers, slotsfillapi = "", resource_inizializer: Optional[BaseResourceInitializer] = None):
         if resource_inizializer is None:
             resource_inizializer = DefaulResourceInitializer()
         self.tools = resource_inizializer.init_tools(tools)
@@ -90,6 +95,7 @@ class Env():
         if id in self.tools:
             logger.info(f"{self.tools[id]['name']} tool selected")
             tool: Tool = self.tools[id]["execute"]()
+            # slotfilling is in the basetoool class
             tool.init_slotfilling(self.slotfillapi)
             response_state = tool.execute(message_state, **self.tools[id]["fixed_args"])
             params["history"] = response_state.get("trajectory", [])
@@ -101,6 +107,9 @@ class Env():
             message_state["metadata"]["worker"] = self.workers
             logger.info(f"{self.workers[id]['name']} worker selected")
             worker: BaseWorker = self.workers[id]["execute"]()
+            # If the worker need to do the slotfilling, then it should have this method
+            if hasattr(worker, "init_slotfilling"):
+                worker.init_slotfilling(self.slotfillapi)
             response_state = worker.execute(message_state)
             response_state["metadata"]["tool_response"] = {f"{id}": response_state["metadata"]["tool_response"]}
             call_id = str(uuid.uuid4())
@@ -109,8 +118,9 @@ class Env():
                         "role": "tool",
                         "tool_call_id": call_id,
                         "name": self.id2name[id],
-                        "content": response_state["response"]
+                        "content": response_state["response"] if "response" in response_state else response_state.get("message_flow", ""),
             })
+            params["node_status"][params.get("curr_node")] = response_state.get("status", StatusEnum.COMPLETE.value)
         else:
             logger.info("planner selected")
             action, response_state, msg_history = self.planner.execute(message_state, params["history"])
