@@ -220,7 +220,7 @@ class Tool:
                                 try:
                                     slot.value = ast.literal_eval(slot.value)
                                 except (ValueError, SyntaxError):
-                                    raise ValueError(f"Unable to parse slot value: {slot.value}")
+                                    logger.error(f"Unable to parse slot value: {slot.value}")
                 kwargs = {slot.name: slot.value for slot in slots}
                 combined_kwargs = {**kwargs, **fixed_args}
                 response = self.func(**combined_kwargs)
