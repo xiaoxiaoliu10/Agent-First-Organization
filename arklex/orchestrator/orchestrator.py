@@ -55,8 +55,7 @@ class AgentOrg:
         # Update specific fields
         chat_history_copy = copy.deepcopy(chat_history)
         chat_history_copy.append({"role": self.user_prefix, "content": text})
-        chat_history_str = format_chat_history(chat_history_copy)
-        
+        chat_history_str = format_chat_history(chat_history_copy)        
         # Update turn_id and function_calling_trajectory
         params.metadata.turn_id += 1
         if not params.memory.function_calling_trajectory:

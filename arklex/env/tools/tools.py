@@ -5,7 +5,8 @@ import uuid
 import ast
 import inspect
 
-from arklex.utils.graph_state import MessageState, StatusEnum, Slot
+from arklex.utils.graph_state import MessageState, StatusEnum
+from arklex.utils.slot import Slot
 from arklex.orchestrator.NLU.nlu import SlotFilling
 from arklex.utils.utils import format_chat_history
 from arklex.exceptions import ToolExecutionError, AuthenticationError
@@ -34,23 +35,8 @@ class Tool:
         self.output = outputs
         self.slotfillapi: SlotFilling = None
         self.info = self.get_info(slots)
-        self.slots = self._format_slots(slots)
+        self.slots = slots
         self.isResponse = isResponse
-
-    def _format_slots(self, slots):
-        format_slots = []
-        for slot in slots:
-            format_slots.append(Slot(
-                name=slot["name"], 
-                type=slot["type"], 
-                value="", 
-                enum=slot.get("enum", []),
-                description=slot["description"], 
-                prompt=slot["prompt"], 
-                required=slot.get("required", False),
-                verified=slot.get("verified", False)
-            ))
-        return format_slots
 
     def get_info(self, slots):
         self.properties = {}
@@ -80,7 +66,7 @@ class Tool:
             return
         response = {}
         for default_slot in default_slots:
-            response[default_slot.name] = default_slot.value
+            response[default_slot["name"]] = default_slot["value"]
             for slot in self.slots:
                 if slot.name == default_slot.name and default_slot.value:
                     slot.value = default_slot.value
@@ -134,7 +120,8 @@ class Tool:
                 tool_success = True
             except ToolExecutionError as tee:
                 logger.error(f"{tee}: {tee.extra_message}")
-                response = tee.extra_message
+                # response = tee.extra_message
+                response = str(tee)
             except AuthenticationError as ae:
                 logger.error(ae)
                 response = str(ae)
