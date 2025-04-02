@@ -7,10 +7,10 @@ import networkx as nx
 import numpy as np
 from langchain_openai import ChatOpenAI
 
-
+from arklex.env.nested_graph.nested_graph import NestedGraph
 from arklex.utils.model_provider_config import PROVIDER_MAP
 from arklex.utils.utils import normalize, str_similarity, format_chat_history
-from arklex.utils.graph_state import NodeInfo, Params, StatusEnum
+from arklex.utils.graph_state import NodeInfo, Params, PathNode, StatusEnum
 from arklex.orchestrator.NLU.nlu import NLU, SlotFilling
 from arklex.utils.model_config import MODEL
 
@@ -202,7 +202,6 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"Current local intent: {candidates_intents}")
         return dict(candidates_intents)
 
-    
     def get_last_flow_stack_node(self, params: Params):
         path = params["taskgraph"]["path"]
         for i in range(len(path) - 1, -1, -1):
@@ -263,8 +262,7 @@ class TaskGraph(TaskGraphBase):
                     node_info["add_flow_stack"] = True
                 return True, pred_intent, node_info, params
         return False, pred_intent, {}, params
-
-    
+ 
     def handle_random_next_node(self, curr_node, params: Params) -> Tuple[bool, dict, Params]:
         next_node = self.randomly_move_to_next_node(curr_node)
         if next_node != curr_node:  # continue if curr_node is not leaf node, i.e. there is a actual next_node
@@ -315,7 +313,23 @@ class TaskGraph(TaskGraphBase):
         )
         return node_info, params
         
-
+    def handle_leaf_node(self, curr_node, params: Params):
+        def is_leaf(node):
+            return len(list(self.graph.successors(node))) == 0
+        
+        if not is_leaf(curr_node):
+            return curr_node, params
+        
+        nested_graph_next_node, params = NestedGraph.get_nested_graph_component_node(params, is_leaf)
+        if not is_leaf(nested_graph_next_node):
+            return curr_node, params
+        
+        last_flow_stack_node = self.get_last_flow_stack_node(params)
+        if last_flow_stack_node:
+            curr_node = last_flow_stack_node
+        if self.initial_node:
+            curr_node = self.initial_node
+        return curr_node, params
 
     def get_node(self, inputs):
         self.text = inputs["text"]
@@ -332,12 +346,8 @@ class TaskGraph(TaskGraphBase):
         if is_multi_step_node:
             return node_output, params
         
-        if not list(self.graph.successors(curr_node)):  # leaf node
-            last_flow_stack_node = self.get_last_flow_stack_node(params)
-            if last_flow_stack_node:
-                curr_node = last_flow_stack_node
-            if self.initial_node:
-                curr_node = self.initial_node
+        curr_node, params = self.handle_leaf_node(curr_node, params)
+        
         
         # store current node
         params["taskgraph"]["curr_node"] = curr_node
@@ -418,3 +428,6 @@ class TaskGraph(TaskGraphBase):
         params["taskgraph"]["dialog_states"] = dialog_states
 
         return node_info, params
+
+    def get_node_info_by_id(self, node_id):
+        return self.graph.nodes[node_id]

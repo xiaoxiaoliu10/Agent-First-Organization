@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 
 from langchain_core.runnables import RunnableLambda
 
+from arklex.env.nested_graph.nested_graph import NESTED_GRAPH_ID, NestedGraph
 from arklex.orchestrator.task_graph import TaskGraph
 from arklex.env.tools.utils import ToolGenerator
 from arklex.types import EventType, StreamType
@@ -138,6 +139,8 @@ class AgentOrg:
     
     def perform_node(self, node_info: NodeInfo, params: Params, text: str, chat_history_str: str, stream_type: StreamType, message_queue: janus.SyncQueue):
         # Tool/Worker
+        node_info, params = self.handle_nested_graph_node(node_info, params)
+
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info["attributes"]["value"], attribute=node_info["attributes"])
         sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + \
@@ -167,6 +170,26 @@ class AgentOrg:
         response_state, params = self.env.step(node_info["resource_id"], message_state, params)
         return response_state, params
     
+    def handle_nested_graph_node(self, node_info: NodeInfo, params: Params):
+        if node_info["resource"]["id"] != NESTED_GRAPH_ID:
+            return node_info, params
+        
+        nested_graph = NestedGraph(node_info=node_info)
+        next_node_id = nested_graph.get_nested_graph_start_node_id()
+        nested_graph_node = params["taskgraph"]["curr_node"]
+        node = PathNode(
+            node_id = nested_graph_node,
+            is_skipped=False,
+            in_flow_stack=False,
+            nested_graph_node_value = node_info["attributes"]["value"],
+            nested_graph_leaf_jump = None,
+        )
+        
+        params["taskgraph"]['path'].append(node)
+        node_info = self.task_graph.get_node_info_by_id(next_node_id)
+        params["taskgraph"]["curr_node"] = next_node_id
+        return node_info, params
+    
     def get_response(self, inputs: dict, stream_type: StreamType = None, message_queue: janus.SyncQueue = None) -> Dict[str, Any]:
         text, chat_history_str, params = self.init_params(inputs)
         ##### TaskGraph Chain
@@ -174,10 +197,9 @@ class AgentOrg:
             "text": text,
             "chat_history_str": chat_history_str,
             "parameters": params,  ## TODO: different params for different components
-            "allow_global_intent_switch": True,
+            "allow_global_intent_switch": True, # allow global intent change only for the first get_node.
         }
         taskgraph_chain = RunnableLambda(self.task_graph.get_node) | RunnableLambda(self.task_graph.postprocess_node)
-
         
         counter_message_worker = 0
         counter_planner = 0 # TODO: when planner is re-implemented, remove this.
