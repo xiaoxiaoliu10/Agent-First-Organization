@@ -53,6 +53,8 @@ if __name__ == "__main__":
     parser.add_argument('--customer_type', type=str, default=None, choices=['b2b', 'b2c'])
     parser.add_argument('--task', type=str, default='first_pass', choices=['first_pass', "action_pass", 'all'])
     parser.add_argument('--user_attributes', type=str, default='arklex/evaluation/user_attributes.json')
+    parser.add_argument('--custom_profile', action='store_true')
+    parser.add_argument('--system_inputs', action='store_true')
     parser.add_argument('--data_file', type=str, default=None)
     args = parser.parse_args()
 
@@ -83,7 +85,8 @@ if __name__ == "__main__":
                                        'data_file': args.data_file}
     config['task'] = args.task
     config['user_attributes'] = user_attributes
-
+    config['custom_profile'] = args.custom_profile
+    config['system_inputs'] = args.system_inputs
     first_pass_data, final_convos, goal_metrics, goals = evaluate(config)
 
     with open(os.path.join(args.output_dir, 'goals.json'), 'w') as f:

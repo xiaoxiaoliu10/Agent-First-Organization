@@ -1,4 +1,5 @@
 import json
+import os
 import random
 from arklex.evaluation.get_documents import load_docs
 from arklex.evaluation.build_user_profiles import build_profile, ATTR_TO_PROFILE
@@ -84,20 +85,14 @@ def check_goal_completion(goal, convo):
     output = chatgpt_chatbot([{'role': 'user', 'content': prompt}])
     return output == "True"
 
-def conversation(model_api, profile, goal, attr, summary, model_params, synthetic_data_params, env_config):
+def conversation(model_api, profile, goal, attr, sys_input, summary, model_params, synthetic_data_params, env_config):
     instructional_prompt, start_text = retrieve_prompts(profile, goal, attr, summary, synthetic_data_params)
     history = []
     history.append({'role': 'system','content': instructional_prompt})
     history.append({'role': 'user', 'content': start_text})
     chatbot_history = []
     default_slots = []
-    meta_data = {
-        "shopify": {
-            "user_id": "gid://shopify/Customer/7450970259569", 
-            "web_product_id": "gid://shpify/Product/7296585662577", 
-            "cart_id": "gid://shopify/Cart/Z2NwLXVzLWVhc3QxOjAxSk1BQjQwNkFXWlZFNDlORzJTWVdTNUZG?key=afb499bd080781b14fee1fe5f595e405"}
-    }
-    for key, value in meta_data.get("shopify", {}).items():
+    for key, value in sys_input.items():
         if key and value:
             default_slots.append({"name": key, "value": value})
     default_slots = Tool.format_slots(default_slots)
@@ -130,10 +125,10 @@ def conversation(model_api, profile, goal, attr, summary, model_params, syntheti
     #     history.append({'goal_completetion': False})
     return history, goal_completetion
 
-def generate_conversations(model_api, profiles, goals, attributes_list, summary, model_params, synthetic_data_params, env_config):
+def generate_conversations(model_api, profiles, goals, attributes_list, system_inputs, summary, model_params, synthetic_data_params, env_config):
     convos = []
-    for profile, goal, attr in zip(profiles, goals, attributes_list):
-        convo, goal_completion = conversation(model_api, profile, goal, attr, summary, model_params, synthetic_data_params, env_config)
+    for profile, goal, attr, sys_input in zip(profiles, goals, attributes_list, system_inputs):
+        convo, goal_completion = conversation(model_api, profile, goal, attr, sys_input, summary, model_params, synthetic_data_params, env_config)
         syn_convo = flip_hist(filter_convo(convo, filter_turns=False))
         convos.append(
             {
@@ -147,7 +142,31 @@ def generate_conversations(model_api, profiles, goals, attributes_list, summary,
     return convos
 
 def simulate_conversations(model_api, model_params, synthetic_data_params, config):
-    profiles, goals, attributes_list = build_profile(synthetic_data_params, config)
+    profiles, goals, attributes_list, system_inputs, labels_list = build_profile(synthetic_data_params, config)
+
+    # save the profiles, goals, attributes_list, system_inputs, labels_list in a json file
+    os.makedirs(os.path.join(config['output_dir'], "simulate_data"), exist_ok=True)
+    with open(os.path.join(config['output_dir'], "simulate_data", "profiles.json"), "w") as f:
+        json.dump(profiles, f, indent=4)
+    with open(os.path.join(config['output_dir'], "simulate_data", "goals.json"), "w") as f:
+        json.dump(goals, f, indent=4)
+    with open(os.path.join(config['output_dir'], "simulate_data", "attributes_list.json"), "w") as f:
+        json.dump(attributes_list, f, indent=4)
+    with open(os.path.join(config['output_dir'], "simulate_data", "system_inputs.json"), "w") as f:
+        json.dump(system_inputs, f, indent=4)
+    with open(os.path.join(config['output_dir'], "simulate_data", "labels_list.json"), "w") as f:
+        json.dump(labels_list, f, indent=4)
+
+    # with open(os.path.join(config['output_dir'], "simulate_data", "profiles.json"), "r") as f:
+    #     profiles = json.load(f)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "goals.json"), "r") as f:
+    #     goals = json.load(f)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "attributes_list.json"), "r") as f:
+    #     attributes_list = json.load(f)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "system_inputs.json"), "r") as f:
+    #     system_inputs = json.load(f)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "labels_list.json"), "r") as f:
+    #     labels_list = json.load(f)
     summary = config['intro']
     env_config = {
         "workers": config['workers'],
@@ -160,6 +179,7 @@ def simulate_conversations(model_api, model_params, synthetic_data_params, confi
         profiles,
         goals,
         attributes_list,
+        system_inputs,
         summary,
         model_params,
         synthetic_data_params,
