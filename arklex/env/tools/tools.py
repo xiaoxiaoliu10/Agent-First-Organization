@@ -102,7 +102,7 @@ class Tool:
                 if slot.name == default_slot.name and default_slot.value:
                     slot.value = default_slot.value
                     slot.verified = True
-        state["trajectory"].append({
+        state["function_calling_trajectory"].append({
             "role": "tool",
             "tool_call_id": str(uuid.uuid4()),
             "name": "default_slots",
@@ -123,7 +123,7 @@ class Tool:
         if all([output.get("value") for output in self.output if output.get("required", False)]):
             state["status"] = StatusEnum.COMPLETE.value
             call_id = str(uuid.uuid4())
-            state["trajectory"].append({
+            state["function_calling_trajectory"].append({
                 "role": "tool",
                 "tool_call_id": call_id,
                 "name": self.name,
@@ -153,7 +153,7 @@ class Tool:
             return state
         max_tries = 3
         while max_tries > 0 and "error" in response:
-            chat_history_str = format_chat_history(state["trajectory"])
+            chat_history_str = format_chat_history(state["function_calling_trajectory"])
             slots : list[Slot] = self.slotfillapi.execute(self.slots, chat_history_str)
             logger.info(f'{slots=}')
             if not all([slot.value and slot.verified for slot in slots if slot.required]):
@@ -194,7 +194,7 @@ class Tool:
                 response = self.func(**combined_kwargs)
                 logger.info(f"Tool {self.name} response: {response}")
                 call_id = str(uuid.uuid4())
-                state["trajectory"].append({
+                state["function_calling_trajectory"].append({
                     'content': None, 
                     'role': 'assistant', 
                     'tool_calls': [
@@ -209,12 +209,16 @@ class Tool:
                     ], 
                     'function_call': None
                 })
-                state["trajectory"].append({
+                state["function_calling_trajectory"].append({
                     "role": "tool",
                     "tool_call_id": call_id,
                     "name": self.name,
                     "content": response
                 })
+                state["trajectory"] = {
+                    "input": self.format_slots(slots),
+                    "output": response
+                 }
                 if "error" in response:
                     max_tries -= 1
                     continue

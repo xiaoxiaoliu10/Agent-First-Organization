@@ -96,10 +96,14 @@ class Env():
             # slotfilling is in the basetoool class
             tool.init_slotfilling(self.slotfillapi)
             response_state = tool.execute(message_state, **self.tools[id]["fixed_args"])
-            params["memory"]["history"] = response_state.get("trajectory", [])
+            params["memory"]["function_calling_trajectory"] = response_state.get("function_calling_trajectory", [])
+            params["memory"]["trajectory"][-1][-1]["input"] = response_state["trajectory"]["input"]
+            params["memory"]["trajectory"][-1][-1]["output"] = response_state["trajectory"]["output"]
             params["taskgraph"]["dialog_states"] = response_state.get("slots", [])
+            params["memory"]["trajectory"][-1]["output"]= params["taskgraph"]["dialog_states"]
             current_node = params['taskgraph'].get("curr_node")
             params["taskgraph"]["node_status"][current_node] = response_state.get("status", StatusEnum.COMPLETE.value)
+
                 
         elif id in self.workers:
             logger.info(f"{self.workers[id]['name']} worker selected")
@@ -109,17 +113,22 @@ class Env():
                 worker.init_slotfilling(self.slotfillapi)
             response_state = worker.execute(message_state)
             call_id = str(uuid.uuid4())
-            params["memory"]["history"].append({'content': None, 'role': 'assistant', 'tool_calls': [{'function': {'arguments': "{}", 'name': self.id2name[id]}, 'id': call_id, 'type': 'function'}], 'function_call': None})
-            params["memory"]["history"].append({
+            params["taskgraph"]["dialog_states"]
+            params["memory"]["function_calling_trajectory"].append({'content': None, 'role': 'assistant', 'tool_calls': [{'function': {'arguments': "{}", 'name': self.id2name[id]}, 'id': call_id, 'type': 'function'}], 'function_call': None})
+            params["memory"]["function_calling_trajectory"].append({
                         "role": "tool",
                         "tool_call_id": call_id,
                         "name": self.id2name[id],
                         "content": response_state["response"] if "response" in response_state else response_state.get("message_flow", ""),
             })
+            params["memory"]["trajectory"][-1][-1]["output"] = params["memory"]["function_calling_trajectory"][-1]["content"]
             params["taskgraph"]["node_status"][params["taskgraph"].get("curr_node")] = response_state.get("status", StatusEnum.COMPLETE.value)
         else:
             logger.info("planner selected")
-            action, response_state, msg_history = self.planner.execute(message_state, params["memory"]["history"])
+            action, response_state, msg_history = self.planner.execute(message_state, params["memory"]["function_calling_trajectory"])
+        
         
         logger.info(f"Response state from {id}: {response_state}")
         return response_state, params
+
+

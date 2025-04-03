@@ -83,7 +83,7 @@ class AgentOrg:
             available_global_intents=params.get("taskgraph", {}).get("available_global_intents", [])
         )
         memory = Memory(
-            history=params.get("memory", {}).get("history", []),
+            function_calling_trajectory=params.get("memory", {}).get("function_calling_trajectory", []),
             tool_response=params.get("memory", {}).get("tool_response", {}),
         )
         params = Params(
@@ -102,11 +102,11 @@ class AgentOrg:
             params["taskgraph"]["dialog_states"] = {}
         params["metadata"]["turn_id"] += 1
         params["metadata"]["tool_response"] = {}
-        if not params["memory"]["history"]:
-            params["memory"]["history"] = copy.deepcopy(chat_history_copy)
+        if not params["memory"]["function_calling_trajectory"]:
+            params["memory"]["function_calling_trajectory"] = copy.deepcopy(chat_history_copy)
         else:
-            params["memory"]["history"].append(chat_history_copy[-2])
-            params["memory"]["history"].append(chat_history_copy[-1])
+            params["memory"]["function_calling_trajectory"].append(chat_history_copy[-2])
+            params["memory"]["function_calling_trajectory"].append(chat_history_copy[-1])
         return text, chat_history_str, params
 
     def check_skip_node(self, node_info: NodeInfo, params: Params):
@@ -171,12 +171,13 @@ class AgentOrg:
             language=self.product_kwargs.get("language", "EN"),
             bot_type=self.product_kwargs.get("bot_type", "presalebot"),
         )
+        
         message_state = MessageState(
             sys_instruct=sys_instruct, 
             bot_config=bot_config,
             user_message=user_message, 
             orchestrator_message=orchestrator_message, 
-            trajectory=params["memory"]["history"], 
+            trajectory=params["memory"]["function_calling_trajectory"], 
             message_flow=params.get("worker_response", {}).get("message_flow", ""), 
             slots=params["taskgraph"]["dialog_states"],
             metadata=params["metadata"],

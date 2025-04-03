@@ -1,4 +1,4 @@
-from typing import TypedDict, Any, Annotated, Optional, Union, List
+from typing import TypedDict, Any, Annotated, Optional, Union, List, Dict
 import janus
 from pydantic import BaseModel
 from enum import Enum
@@ -66,7 +66,7 @@ class MessageState(TypedDict):
     user_message: ConvoMessage
     orchestrator_message: OrchestratorMessage
     # action trajectory
-    trajectory: list[dict[str, any]]
+    function_calling_trajectory: list[dict[str, any]]
     # message flow between different nodes
     message_flow: Annotated[str, "message flow between different nodes"]
     # final response
@@ -107,10 +107,16 @@ class Taskgraph(TypedDict):
     node_status: dict[str, StatusEnum]
     available_global_intents: list
 
-class Memory(TypedDict):
-    history: list[dict[str, Any]]
-    tool_response: dict
+class ResourceRecord(TypedDict):
+    info: Dict
+    input: List
+    output: str
+    steps: List
 
+class Memory(TypedDict):
+    trajectory: List[List[ResourceRecord]]
+    function_calling_trajectory: list[dict[str, Any]]
+    
 class Params(TypedDict):
     metadata: Metadata
     taskgraph: Taskgraph

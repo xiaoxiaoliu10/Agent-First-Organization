@@ -413,7 +413,7 @@ class TaskGraph(TaskGraphBase):
         if dialog_states.get(node_info["resource_id"]):
             dialog_states = self.slotfillapi.execute(
                 dialog_states.get(node_info["resource_id"]),
-                format_chat_history(params["memory"].get("history"))
+                format_chat_history(params["memory"].get("function_calling_trajectory"))
             )
         params["taskgraph"]["dialog_states"] = dialog_states
 
