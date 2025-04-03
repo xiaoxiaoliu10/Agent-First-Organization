@@ -171,7 +171,7 @@ class AgentOrg:
         return response_state, params
     
     def handle_nested_graph_node(self, node_info: NodeInfo, params: Params):
-        if node_info["resource"]["id"] != NESTED_GRAPH_ID:
+        if node_info["resource_id"] != NESTED_GRAPH_ID:
             return node_info, params
         
         nested_graph = NestedGraph(node_info=node_info)
@@ -263,6 +263,7 @@ class AgentOrg:
                     tool: [s.model_dump() for s in slots]
                     for tool, slots in params["taskgraph"]["dialog_states"].items()
                 }
+        print(params["taskgraph"]["path"])
         
         return {
             "answer": response,
