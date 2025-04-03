@@ -4,9 +4,10 @@ import json
 import uuid
 import ast
 import inspect
+import traceback
 
 from arklex.utils.graph_state import MessageState, StatusEnum
-from arklex.utils.slot import Slot
+from arklex.utils.slot import Slot, TypeMapping
 from arklex.orchestrator.NLU.nlu import SlotFilling
 from arklex.utils.utils import format_chat_history
 from arklex.exceptions import ToolExecutionError, AuthenticationError
@@ -119,14 +120,13 @@ class Tool:
                 response = self.func(**combined_kwargs)
                 tool_success = True
             except ToolExecutionError as tee:
-                logger.error(f"{tee}: {tee.extra_message}")
-                # response = tee.extra_message
-                response = str(tee)
+                logger.error(traceback.format_exc())
+                response = tee.extra_message
             except AuthenticationError as ae:
-                logger.error(ae)
+                logger.error(traceback.format_exc())
                 response = str(ae)
             except Exception as e:
-                logger.error(e)
+                logger.error(traceback.format_exc())
                 response = str(e)
             logger.info(f"Tool {self.name} response: {response}")
             call_id = str(uuid.uuid4())
