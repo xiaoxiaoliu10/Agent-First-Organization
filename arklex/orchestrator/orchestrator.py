@@ -3,22 +3,42 @@ import time
 from typing import Any, Dict
 import logging
 import uuid
+import os
 from typing import List, Dict, Any, Tuple
+import ast
 import copy
 from arklex.env.env import Env
 import janus
 from dotenv import load_dotenv
+from difflib import SequenceMatcher
 
 from langchain_core.runnables import RunnableLambda
+from openai import OpenAI
+from langchain_openai import ChatOpenAI
+
 
 from arklex.orchestrator.task_graph import TaskGraph
 from arklex.env.tools.utils import ToolGenerator
+from arklex.orchestrator.NLU.nlu import SlotFilling
+from arklex.orchestrator.prompts import RESPOND_ACTION_NAME, RESPOND_ACTION_FIELD_NAME, REACT_INSTRUCTION
 from arklex.types import EventType, StreamType
-from arklex.utils.graph_state import (ConvoMessage, NodeInfo, OrchestratorMessage,
-                                      MessageState, PathNode, StatusEnum,
-                                      BotConfig, Slot, Timing, Metadata,
-                                      Taskgraph, Memory, Params)
-from arklex.utils.utils import format_chat_history
+from arklex.utils.graph_state import (ConvoMessage, NodeInfo,
+                                      OrchestratorMessage,
+                                      MessageState, PathNode,
+                                      StatusEnum,
+                                      BotConfig,
+                                      Slot,
+                                      Timing,
+                                      Metadata,
+                                      Taskgraph,
+                                      Memory,
+                                      Params)
+from arklex.utils.utils import init_logger, truncate_string, format_chat_history, format_truncated_chat_history
+from arklex.orchestrator.NLU.nlu import NLU
+from arklex.utils.trace import TraceRunName
+from arklex.utils.model_config import MODEL
+from arklex.utils.model_provider_config import PROVIDER_MAP
+from arklex.env.planner.function_calling import aimessage_to_dict
 
 
 load_dotenv()
@@ -151,13 +171,38 @@ class AgentOrg:
             language=self.product_kwargs.get("language", "EN"),
             bot_type=self.product_kwargs.get("bot_type", "presalebot"),
         )
+        latest_trajectory = params["memory"]["function_calling_trajectory"][-1]
+    
+        # Create initial resource record with common info and output from trajectory
+        resource_record = {
+            "info": {
+                "id": node_info["resource_id"],
+                "name": node_info["resource_name"],
+                "attribute": {
+                    "value": node_info["attributes"].get("value", ""),
+                    "task": node_info["attributes"].get("task", ""),
+                    "direct": node_info["attributes"].get("direct", False)
+                },
+                "node_id": params["taskgraph"]["curr_node"]
+            },
+            "input": None,  # Will be set in env.step
+            "output": None,  # Will be set in env.step
+            "steps": []  # Will be set in env.step
+        }
+
+        # If this is first node of turn, create new list
+        if not params["memory"]["trajectory"] or isinstance(params["memory"]["trajectory"][-1], list):
+            params["memory"]["trajectory"].append([])
         
+        # Add resource record to current turn's list
+        params["memory"]["trajectory"][-1].append(resource_record)
+
         message_state = MessageState(
             sys_instruct=sys_instruct, 
             bot_config=bot_config,
             user_message=user_message, 
             orchestrator_message=orchestrator_message, 
-            trajectory=params["memory"]["function_calling_trajectory"], 
+            function_calling_trajectory=params["memory"]["function_calling_trajectory"], 
             message_flow=params.get("worker_response", {}).get("message_flow", ""), 
             slots=params["taskgraph"]["dialog_states"],
             metadata=params["metadata"],
@@ -175,7 +220,7 @@ class AgentOrg:
             "text": text,
             "chat_history_str": chat_history_str,
             "parameters": params,  ## TODO: different params for different components
-            "allow_global_intent_switch": True, # ensure global intent changing happends only in the first get_node.
+            "allow_global_intent_switch": True,
         }
         taskgraph_chain = RunnableLambda(self.task_graph.get_node) | RunnableLambda(self.task_graph.postprocess_node)
 
@@ -234,7 +279,7 @@ class AgentOrg:
                 response_state = ToolGenerator.context_generate(response_state)
             else:
                 response_state = ToolGenerator.stream_context_generate(response_state)
-            params["memory"]["tool_response"] = {}
+            #params["memory"]["tool_response"] = {}
         
         response = response_state.get("response", "")
         if params["taskgraph"].get("dialog_states"):
@@ -248,3 +293,4 @@ class AgentOrg:
             "parameters": params,
             "human-in-the-loop": params['metadata'].get('hitl', None),
         }
+        
