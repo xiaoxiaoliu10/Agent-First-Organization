@@ -95,8 +95,20 @@ def conversation(model_api, profile, goal, attr, sys_input, summary, model_param
     for key, value in sys_input.items():
         if key and value:
             default_slots.append({"name": key, "value": value})
-    default_slots = Tool.format_slots(default_slots)
-    model_params = {"dialog_states": {"default_slots": default_slots}}
+    # After slotfilling restructure finished, don't need manual transformation
+    format_slots = []
+    for slot in default_slots:
+        format_slots.append({
+            "name": slot["name"],
+            "value": slot["value"],
+            "type": slot.get("type", "string"),
+            "enum": slot.get("enum", []),
+            "description": slot.get("description", ""),
+            "prompt": slot.get("prompt", ""),
+            "required": slot.get("required", False),
+            "verified": slot.get("verified", False)
+        })
+    model_params = {"taskgraph": {"dialog_states": {"default_slots": format_slots}}}
     goal_completetion = False
 
     for i in range(synthetic_data_params['max_turns']):
@@ -108,11 +120,9 @@ def conversation(model_api, profile, goal, attr, sys_input, summary, model_param
         answer = response_data["answer"]
         answer = answer.replace('\n', ' ')
         model_params = response_data["parameters"]
-        metadata = model_params["metadata"]
-        pred_intent = response_data['parameters']['nlu_records'][-1]['pred_intent']
-        history[-1]['intent'] = pred_intent
-        history[-1]['curr_node'] = curr_node
-        history[-1]['metadata'] = metadata
+        history[-1]['intent'] = model_params["taskgraph"]["intent"]  ## TODO: After add global intent, change to global intent, the current intent if the last intent of each turn
+        history[-1]['curr_node'] = model_params["taskgraph"]["curr_node"]
+        history[-1]['trajectory'] = model_params["memory"]["trajectory"][-1]
 
         history.append({'role': 'user', 'content': answer})
         chatbot_history.append({'role': 'user', 'content': answer})
@@ -142,31 +152,31 @@ def generate_conversations(model_api, profiles, goals, attributes_list, system_i
     return convos
 
 def simulate_conversations(model_api, model_params, synthetic_data_params, config):
-    profiles, goals, attributes_list, system_inputs, labels_list = build_profile(synthetic_data_params, config)
+    # profiles, goals, attributes_list, system_inputs, labels_list = build_profile(synthetic_data_params, config)
 
     # save the profiles, goals, attributes_list, system_inputs, labels_list in a json file
-    os.makedirs(os.path.join(config['output_dir'], "simulate_data"), exist_ok=True)
-    with open(os.path.join(config['output_dir'], "simulate_data", "profiles.json"), "w") as f:
-        json.dump(profiles, f, indent=4)
-    with open(os.path.join(config['output_dir'], "simulate_data", "goals.json"), "w") as f:
-        json.dump(goals, f, indent=4)
-    with open(os.path.join(config['output_dir'], "simulate_data", "attributes_list.json"), "w") as f:
-        json.dump(attributes_list, f, indent=4)
-    with open(os.path.join(config['output_dir'], "simulate_data", "system_inputs.json"), "w") as f:
-        json.dump(system_inputs, f, indent=4)
-    with open(os.path.join(config['output_dir'], "simulate_data", "labels_list.json"), "w") as f:
-        json.dump(labels_list, f, indent=4)
+    # os.makedirs(os.path.join(config['output_dir'], "simulate_data"), exist_ok=True)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "profiles.json"), "w") as f:
+    #     json.dump(profiles, f, indent=4)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "goals.json"), "w") as f:
+    #     json.dump(goals, f, indent=4)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "attributes_list.json"), "w") as f:
+    #     json.dump(attributes_list, f, indent=4)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "system_inputs.json"), "w") as f:
+    #     json.dump(system_inputs, f, indent=4)
+    # with open(os.path.join(config['output_dir'], "simulate_data", "labels_list.json"), "w") as f:
+    #     json.dump(labels_list, f, indent=4)
 
-    # with open(os.path.join(config['output_dir'], "simulate_data", "profiles.json"), "r") as f:
-    #     profiles = json.load(f)
-    # with open(os.path.join(config['output_dir'], "simulate_data", "goals.json"), "r") as f:
-    #     goals = json.load(f)
-    # with open(os.path.join(config['output_dir'], "simulate_data", "attributes_list.json"), "r") as f:
-    #     attributes_list = json.load(f)
-    # with open(os.path.join(config['output_dir'], "simulate_data", "system_inputs.json"), "r") as f:
-    #     system_inputs = json.load(f)
-    # with open(os.path.join(config['output_dir'], "simulate_data", "labels_list.json"), "r") as f:
-    #     labels_list = json.load(f)
+    with open(os.path.join(config['output_dir'], "simulate_data", "profiles.json"), "r") as f:
+        profiles = json.load(f)
+    with open(os.path.join(config['output_dir'], "simulate_data", "goals.json"), "r") as f:
+        goals = json.load(f)
+    with open(os.path.join(config['output_dir'], "simulate_data", "attributes_list.json"), "r") as f:
+        attributes_list = json.load(f)
+    with open(os.path.join(config['output_dir'], "simulate_data", "system_inputs.json"), "r") as f:
+        system_inputs = json.load(f)
+    with open(os.path.join(config['output_dir'], "simulate_data", "labels_list.json"), "r") as f:
+        labels_list = json.load(f)
     summary = config['intro']
     env_config = {
         "workers": config['workers'],
