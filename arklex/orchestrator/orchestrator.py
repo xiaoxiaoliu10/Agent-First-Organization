@@ -110,7 +110,7 @@ class AgentOrg:
             return True, return_response, params
         return False, None, params
     
-    def perform_node(self, node_info: NodeInfo, params: Params, text: str, chat_history_str: str, stream_type: StreamType, message_queue: janus.SyncQueue):
+    def perform_node(self, node_info: NodeInfo, params: Params, text: str, chat_history_str: str, same_turn: bool, stream_type: StreamType, message_queue: janus.SyncQueue):
         # Tool/Worker
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info.attributes["value"], attribute=node_info.attributes)
@@ -136,8 +136,8 @@ class AgentOrg:
             }
         )
 
-        # If this is first node of turn, create new list
-        if not params.memory.trajectory or isinstance(params.memory.trajectory[-1], list):
+        # If this is a new turn, create a new list
+        if not same_turn:
             params.memory.trajectory.append([])
         
         # Add resource record to current turn's list
@@ -167,6 +167,7 @@ class AgentOrg:
                      message_queue: janus.SyncQueue = None) -> OrchestratorResp:
         text, chat_history_str, params = self.init_params(inputs)
         ##### TaskGraph Chain
+        same_turn = False
         taskgraph_inputs = {
             "text": text,
             "chat_history_str": chat_history_str,
@@ -206,11 +207,12 @@ class AgentOrg:
                                                        params,
                                                        text,
                                                        chat_history_str,
+                                                       same_turn,
                                                        stream_type,
                                                        message_queue)
             params = self.post_process_node(node_info, params)
             n_node_performed += 1
-
+            same_turn = True
             # If the current node is not complete, then no need to continue to the next node
             node_status = params.taskgraph.node_status
             cur_node_id = params.taskgraph.curr_node

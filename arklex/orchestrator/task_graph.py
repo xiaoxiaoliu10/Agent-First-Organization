@@ -271,7 +271,7 @@ class TaskGraph(TaskGraphBase):
                 node_info, params = self._get_node(next_node, params, intent=next_intent)
                 # if current node is not a leaf node and jump to another node, then add it onto stack
                 if next_node != curr_node and list(self.graph.successors(curr_node)):
-                    node_info["add_flow_stack"] = True
+                    node_info.add_flow_stack = True
                 return True, pred_intent, node_info, params
         return False, pred_intent, {}, params
 
