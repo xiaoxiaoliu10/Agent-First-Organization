@@ -17,20 +17,21 @@ from arklex.utils.graph_state import MessageState
 from arklex.utils.model_provider_config import PROVIDER_MAP, PROVIDER_EMBEDDINGS, PROVIDER_EMBEDDING_MODELS
 from arklex.env.tools.utils import trace
 
+
 logger = logging.getLogger(__name__)
 
 class RetrieveEngine():
     @staticmethod
     def faiss_retrieve(state: MessageState):
         # get the input message
-        user_message = state['user_message']
+        user_message = state.user_message
 
         # Search for the relevant documents
-        prompts = load_prompts(state["bot_config"])
+        prompts = load_prompts(state.bot_config)
         docs = FaissRetrieverExecutor.load_docs(database_path=os.environ.get("DATA_DIR"))
         retrieved_text, retriever_returns = docs.search(user_message.history, prompts["retrieve_contextualize_q_prompt"])
 
-        state["message_flow"] = retrieved_text
+        state.message_flow = retrieved_text
         state = trace(input=retriever_returns, state=state)
         return state
 
