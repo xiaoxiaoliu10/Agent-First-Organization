@@ -13,7 +13,7 @@ from arklex.env.tools.shopify.utils_slots import ShopifyGetWebProductSlots, Shop
 from arklex.env.tools.tools import register_tool
 
 from arklex.exceptions import ToolExecutionError
-from arklex.env.tools.shopify._exception_prompt import ExceptionPrompt
+from arklex.env.tools.shopify._exception_prompt import ShopifyExceptionPrompt
 import inspect
 
 logger = logging.getLogger(__name__)
@@ -89,4 +89,4 @@ def get_web_product(web_product_id: str, **kwargs) -> str:
 
             return response_text
     except Exception as e:
-        raise ToolExecutionError(func_name, ExceptionPrompt.PRODUCT_NOT_FOUND_PROMPT)
+        raise ToolExecutionError(func_name, ShopifyExceptionPrompt.PRODUCT_NOT_FOUND_PROMPT)

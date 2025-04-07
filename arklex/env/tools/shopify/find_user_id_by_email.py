@@ -7,7 +7,7 @@ from arklex.env.tools.tools import register_tool
 from arklex.env.tools.shopify.utils import authorify_admin
 from arklex.env.tools.shopify.utils_slots import ShopifyFindUserByEmailSlots, ShopifyOutputs
 from arklex.exceptions import ToolExecutionError
-from arklex.env.tools.shopify._exception_prompt import ExceptionPrompt
+from arklex.env.tools.shopify._exception_prompt import ShopifyExceptionPrompt
 
 description = "Find user id by email. If the user is not found, the function will return an error message."
 slots = ShopifyFindUserByEmailSlots.get_all_slots()
@@ -41,6 +41,6 @@ def find_user_id_by_email(user_email: str, **kwargs) -> str:
             user_id = nodes[0]["node"]["id"]
             return user_id
         else:
-            raise ToolExecutionError(func_name, ExceptionPrompt.MULTIPLE_USERS_SAME_EMAIL_ERROR_PROMPT)
+            raise ToolExecutionError(func_name, ShopifyExceptionPrompt.MULTIPLE_USERS_SAME_EMAIL_ERROR_PROMPT)
     except Exception as e:
-        raise ToolExecutionError(func_name, ExceptionPrompt.USER_NOT_FOUND_ERROR_PROMPT)
+        raise ToolExecutionError(func_name, ShopifyExceptionPrompt.USER_NOT_FOUND_ERROR_PROMPT)

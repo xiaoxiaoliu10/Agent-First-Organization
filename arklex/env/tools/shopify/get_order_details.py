@@ -7,7 +7,7 @@ from arklex.env.tools.tools import register_tool
 from arklex.env.tools.shopify.utils import authorify_admin
 from arklex.env.tools.shopify.utils_slots import ShopifyGetOrderDetailsSlots, ShopifyOutputs
 from arklex.exceptions import ToolExecutionError
-from arklex.env.tools.shopify._exception_prompt import ExceptionPrompt
+from arklex.env.tools.shopify._exception_prompt import ShopifyExceptionPrompt
 import inspect
 
 description = "Get the status and details of an order."
@@ -94,4 +94,4 @@ def get_order_details(order_ids: list, order_names: list, user_id: str, limit=10
                 response_text += "\n"
         return response_text
     except Exception as e:
-        raise ToolExecutionError(func_name, ExceptionPrompt.ORDERS_NOT_FOUND_PROMPT)
+        raise ToolExecutionError(func_name, ShopifyExceptionPrompt.ORDERS_NOT_FOUND_PROMPT)

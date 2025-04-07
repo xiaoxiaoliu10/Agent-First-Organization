@@ -1,4 +1,10 @@
-class ExceptionPrompt:
+from arklex.exceptions import ExceptionPrompt
+
+
+class ShopifyExceptionPrompt(ExceptionPrompt):
+    """
+    Shopify-specific exception prompts.
+    """
     # cancel_order exception prompt
     ORDER_CANCEL_ERROR_PROMPT = "Order cancel failed, please try again later or refresh the chat window."
     

@@ -6,7 +6,7 @@ from arklex.env.tools.tools import register_tool
 from arklex.env.tools.shopify.utils_slots import ShopifyGetUserDetailsAdminSlots, ShopifyOutputs
 from arklex.env.tools.shopify.utils_nav import *
 from arklex.env.tools.shopify.utils import authorify_admin
-from arklex.env.tools.shopify._exception_prompt import ExceptionPrompt
+from arklex.env.tools.shopify._exception_prompt import ShopifyExceptionPrompt
 from arklex.exceptions import ToolExecutionError
 
 import inspect
@@ -66,7 +66,7 @@ def get_user_details_admin(user_id: str, **kwargs) -> str:
             if data:
                 return json.dumps(data)
             else:
-                raise ToolExecutionError(func_name, ExceptionPrompt.USER_NOT_FOUND_PROMPT)
+                raise ToolExecutionError(func_name, ShopifyExceptionPrompt.USER_NOT_FOUND_PROMPT)
 
     except Exception as e:
-        raise ToolExecutionError(func_name, ExceptionPrompt.USER_NOT_FOUND_PROMPT)
+        raise ToolExecutionError(func_name, ShopifyExceptionPrompt.USER_NOT_FOUND_PROMPT)

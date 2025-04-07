@@ -15,7 +15,7 @@ from arklex.utils.model_provider_config import PROVIDER_MAP
 from arklex.utils.model_config import MODEL
 from langchain_openai import ChatOpenAI
 from arklex.exceptions import ToolExecutionError
-from arklex.env.tools.shopify._exception_prompt import ExceptionPrompt
+from arklex.env.tools.shopify._exception_prompt import ShopifyExceptionPrompt
 import inspect
 logger = logging.getLogger(__name__)
 
@@ -91,6 +91,6 @@ def get_product_images(product_ids: list, **kwargs) -> str:
                     "card_list": card_list
                 })
             else:
-                raise ToolExecutionError(func_name, ExceptionPrompt.PRODUCTS_NOT_FOUND_PROMPT)
+                raise ToolExecutionError(func_name, ShopifyExceptionPrompt.PRODUCTS_NOT_FOUND_PROMPT)
     except Exception as e:
-        raise ToolExecutionError(func_name, ExceptionPrompt.PRODUCTS_NOT_FOUND_PROMPT)
+        raise ToolExecutionError(func_name, ShopifyExceptionPrompt.PRODUCTS_NOT_FOUND_PROMPT)

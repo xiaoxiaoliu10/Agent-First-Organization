@@ -1,3 +1,4 @@
+import inspect
 from datetime import datetime, timedelta
 import json
 
@@ -6,6 +7,7 @@ from google.oauth2 import service_account
 
 from arklex.env.tools.tools import register_tool
 from arklex.env.tools.google.calendar.utils import AUTH_ERROR
+from arklex.env.tools.google.calendar._exception_prompt import GoogleCalendarExceptionPrompt
 from arklex.exceptions import AuthenticationError, ToolExecutionError
 
 # Scopes required for accessing Google Calendar
@@ -45,15 +47,12 @@ slots = [
 ]
 outputs = []
 
-DATETIME_ERROR_PROMPT = "Datetime error, please check the start time format."
-EVENT_CREATION_ERROR_PROMPT = "Event creation error (the event could not be created because {error}), please try again later."
-
 
 SUCCESS = "The event has been created successfully at {start_time}. The meeting invitation has been sent to {email}."
 
 @register_tool(description, slots, outputs)
 def create_event(email:str, event: str, start_time: str, timezone: str, duration=30, **kwargs) -> str:
-
+    func_name = inspect.currentframe().f_code.co_name
     # Authenticate using the service account
     try:
         service_account_info = kwargs.get("service_account_info")
@@ -84,7 +83,7 @@ def create_event(email:str, event: str, start_time: str, timezone: str, duration
         end_time = end_time_obj.isoformat()
 
     except Exception as e:
-        raise ToolExecutionError("create_event failed", DATETIME_ERROR_PROMPT)
+        raise ToolExecutionError(func_name, GoogleCalendarExceptionPrompt.DATETIME_ERROR_PROMPT)
     
     try:
 
@@ -109,7 +108,7 @@ def create_event(email:str, event: str, start_time: str, timezone: str, duration
         print('Event created: %s' % (event.get('htmlLink')))
 
     except Exception as e:
-        raise ToolExecutionError("create_event failed", EVENT_CREATION_ERROR_PROMPT.format(error=e))
+        raise ToolExecutionError(func_name, GoogleCalendarExceptionPrompt.EVENT_CREATION_ERROR_PROMPT.format(error=e))
 
     # return SUCCESS.format(start_time=start_time, email=email)
     return json.dumps(event)

@@ -10,7 +10,7 @@ from arklex.env.tools.shopify.utils_slots import ShopifyCancelOrderSlots, Shopif
 
 from arklex.env.tools.tools import register_tool
 from arklex.exceptions import ToolExecutionError
-from arklex.env.tools.shopify._exception_prompt import ExceptionPrompt
+from arklex.env.tools.shopify._exception_prompt import ShopifyExceptionPrompt
 logger = logging.getLogger(__name__)
 
 description = "Cancel order by order id."
@@ -50,4 +50,4 @@ def cancel_order(cancel_order_id: str, **kwargs) -> str:
                 raise ToolExecutionError(func_name, json.dumps(response["orderCancel"]["userErrors"]))
     
     except Exception as e:
-        raise ToolExecutionError(func_name, ExceptionPrompt.ORDER_CANCEL_ERROR_PROMPT)
+        raise ToolExecutionError(func_name, ShopifyExceptionPrompt.ORDER_CANCEL_ERROR_PROMPT)
