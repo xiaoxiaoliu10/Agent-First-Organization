@@ -158,10 +158,12 @@ class SlotFillModelAPI():
             llm = llm.with_structured_output(schema=format)
             response = llm.invoke(dialog_history)
     
+        # TODO: fix slotfilling for huggingface
         elif MODEL['llm_provider']=='huggingface':
-            llm = llm.bind_tools([format])
-            chain =  llm | JsonOutputToolsParser()
-            res = chain.invoke(dialog_history)
+            # llm = llm.bind_tools([format])
+            # chain =  llm | JsonOutputToolsParser()
+            # response = chain.invoke(dialog_history)
+            raise NotImplementedError("Slotfilling for Huggingface is not implemented")
 
         elif MODEL['llm_provider'] == 'gemini':
             agent = Agent(f"google-gla:{MODEL['model_type_or_path']}", result_type=SlotOutputListGemini)
