@@ -95,8 +95,20 @@ def conversation(model_api, profile, goal, attr, sys_input, summary, model_param
     for key, value in sys_input.items():
         if key and value:
             default_slots.append({"name": key, "value": value})
-    default_slots = Tool.format_slots(default_slots)
-    model_params = {"dialog_states": {"default_slots": default_slots}}
+    # After slotfilling restructure finished, don't need manual transformation
+    format_slots = []
+    for slot in default_slots:
+        format_slots.append({
+            "name": slot["name"],
+            "value": slot["value"],
+            "type": slot.get("type", "string"),
+            "enum": slot.get("enum", []),
+            "description": slot.get("description", ""),
+            "prompt": slot.get("prompt", ""),
+            "required": slot.get("required", False),
+            "verified": slot.get("verified", False)
+        })
+    model_params = {"taskgraph": {"dialog_states": {"default_slots": format_slots}}}
     goal_completetion = False
 
     for i in range(synthetic_data_params['max_turns']):
@@ -108,11 +120,9 @@ def conversation(model_api, profile, goal, attr, sys_input, summary, model_param
         answer = response_data["answer"]
         answer = answer.replace('\n', ' ')
         model_params = response_data["parameters"]
-        metadata = model_params["metadata"]
-        pred_intent = response_data['parameters']['nlu_records'][-1]['pred_intent']
-        history[-1]['intent'] = pred_intent
-        history[-1]['curr_node'] = curr_node
-        history[-1]['metadata'] = metadata
+        history[-1]['intent'] = model_params["taskgraph"]["intent"]  ## TODO: After add global intent, change to global intent, the current intent if the last intent of each turn
+        history[-1]['curr_node'] = model_params["taskgraph"]["curr_node"]
+        history[-1]['trajectory'] = model_params["memory"]["trajectory"][-1]
 
         history.append({'role': 'user', 'content': answer})
         chatbot_history.append({'role': 'user', 'content': answer})

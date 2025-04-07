@@ -3,10 +3,10 @@ import json
 import argparse
 
 from arklex.evaluation.simulate_first_pass_convos import simulate_conversations
-from arklex.evaluation.simulate_action_convos import simulate_action_conversations
+# from arklex.evaluation.simulate_action_convos import simulate_action_conversations
 from arklex.evaluation.extract_conversation_info import extract_task_completion_metrics
 from arklex.evaluation.simulate_second_pass_convos import get_labeled_convos
-from arklex.evaluation.analyze import analyze_action_accuracy_metrics
+# from arklex.evaluation.analyze import analyze_action_accuracy_metrics
 from arklex.utils.model_config import MODEL
 
 
