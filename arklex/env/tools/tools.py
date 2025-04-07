@@ -69,9 +69,9 @@ class Tool:
         for default_slot in default_slots:
             response[default_slot["name"]] = default_slot["value"]
             for slot in self.slots:
-                if slot.name == default_slot.name and default_slot.value:
-                    slot.value = default_slot.value
-                    slot.verified = True
+                if slot["name"] == default_slot["name"] and default_slot["value"]:
+                    slot["value"] = default_slot["value"]
+                    slot["verified"] = True
         state.function_calling_trajectory.append({
             "role": "tool",
             "tool_call_id": str(uuid.uuid4()),
@@ -89,7 +89,7 @@ class Tool:
         # init slot values saved in default slots
         self._init_slots(state)
         # do slotfilling
-        chat_history_str = format_chat_history(state["trajectory"])
+        chat_history_str = format_chat_history(state.function_calling_trajectory)
         slots : list[Slot] = self.slotfillapi.execute(self.slots, chat_history_str)
         logger.info(f'{slots=}')
         if not all([slot.value and slot.verified for slot in slots if slot.required]):
@@ -153,15 +153,14 @@ class Tool:
             })
             state.trajectory[-1][-1].input = slots
             state.trajectory[-1][-1].output = response
-            state["status"] = StatusEnum.COMPLETE.value if tool_success else StatusEnum.INCOMPLETE.value
+            state.status = StatusEnum.COMPLETE.value if tool_success else StatusEnum.INCOMPLETE.value
 
         if self.isResponse and tool_success:
             logger.info("Tool output is stored in response instead of message flow")
             state.response = response
-        # TODO: with memory section, the message flow could be deleted
         else:
-            state.message_flow = state.message_flow + f"Context from {self.name}: {response}\n\n"
-        state.slots[self.name] = slots
+            state.message_flow = state.message_flow + f"Context from {self.name} tool execution: {response}\n"
+        state.slots[self.name] = [slot.model_dump() for slot in slots]
         return state
 
     def execute(self, state: MessageState, **fixed_args):

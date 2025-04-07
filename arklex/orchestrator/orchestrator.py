@@ -170,18 +170,14 @@ class AgentOrg:
         taskgraph_inputs = {
             "text": text,
             "chat_history_str": chat_history_str,
-            "parameters": params,  ## TODO: different params for different components
+            "parameters": params,
             "allow_global_intent_switch": True,
         }
         taskgraph_chain = RunnableLambda(self.task_graph.get_node) | RunnableLambda(self.task_graph.postprocess_node)
 
+        # TODO: when planner is re-implemented, execute/break the loop based on whether the planner should be used (bot config).
+        msg_counter = 0
         
-        counter_message_worker = 0
-        counter_ragmsg_worker = 0
-        counter_planner = 0 # TODO: when planner is re-implemented, execute/break the loop based on whether the planner should be used (bot config) .
-        
-        message_flow = "" # Store the message flow between different nodes
-
         n_node_performed = 0
         max_n_node_performed = 5
         while n_node_performed < max_n_node_performed:
@@ -196,12 +192,8 @@ class AgentOrg:
                 continue
             logger.info(f"The current node info is : {node_info}")
             # Check current node attributes
-            if node_info.resource_id == "planner":
-                counter_planner += 1
-            elif node_info.resource_id == self.env.name2id["MessageWorker"]:
-                counter_message_worker += 1
-            elif node_info["resource_id"] == self.env.name2id["RagMsgWorker"]:
-                counter_ragmsg_worker += 1
+            if node_info.resource_name in ["planner", "MessageWorker", "RagMsgWorker"]:
+                msg_counter += 1
             # handle direct node
             is_direct_node, direct_response, params = self.handl_direct_node(node_info, params)
             if is_direct_node:
@@ -210,13 +202,11 @@ class AgentOrg:
             response_state, params = self.perform_node(node_info,
                                                        params,
                                                        text,
-                                                       message_flow,
                                                        chat_history_str,
                                                        same_turn,
                                                        stream_type,
                                                        message_queue)
             params = self.post_process_node(node_info, params)
-            message_flow = response_state.get("message_flow", "")
             n_node_performed += 1
             same_turn = True
             # If the current node is not complete, then no need to continue to the next node
@@ -225,8 +215,8 @@ class AgentOrg:
             status = node_status.get(cur_node_id, StatusEnum.COMPLETE.value)
             if status == StatusEnum.INCOMPLETE.value:
                 break
-            # If the counter of message worker or counter of default worker or counter of ragmsg worker == 1, break the loop
-            if counter_message_worker == 1 or counter_planner == 1 or counter_ragmsg_worker == 1:
+            # If the counter of message worker or counter of planner or counter of ragmsg worker == 1, break the loop
+            if msg_counter == 1:
                 break
             if node_info.is_leaf is True:
                 break
@@ -240,7 +230,7 @@ class AgentOrg:
         
         # TODO: Need to reformat the RAG response from trajectory
         # params["memory"]["tool_response"] = {}
-        
+
         return OrchestratorResp(
             answer=response_state.response,
             parameters=params.model_dump(),
