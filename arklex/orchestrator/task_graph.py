@@ -123,6 +123,7 @@ class TaskGraph(TaskGraphBase):
         params.taskgraph.curr_node = sample_node
         
         node_info = NodeInfo(
+            node_id=sample_node,
             resource_id=resource_id,
             resource_name=resource_name,
             can_skipped=True,
@@ -202,7 +203,7 @@ class TaskGraph(TaskGraphBase):
         logger.info(f"Current local intent: {candidates_intents}")
         return dict(candidates_intents)
 
-    def get_last_flow_stack_node(self, params: Params):
+    def get_last_flow_stack_node(self, params: Params) -> PathNode:
         """
         Get the last flow stack node from path
         """
@@ -210,7 +211,7 @@ class TaskGraph(TaskGraphBase):
         for i in range(len(path) - 1, -1, -1):
             if path[i].in_flow_stack:
                 path[i].in_flow_stack = False
-                return path[i].node_id
+                return path[i]
         return None
     
     def handle_multi_step_node(self, curr_node, params: Params) -> Tuple[bool, dict, Params]:
@@ -262,8 +263,9 @@ class TaskGraph(TaskGraphBase):
             found_pred_in_avil, pred_intent, intent_idx = self._postprocess_intent(pred_intent, available_global_intents)
             # if found prediction and prediction is not unsure intent and current intent
             # TODO: how to know if user want to proceed or going back to the initial node of the same global intent
-            # TODO: use pred_intent != params["taskgraph"]["global_intent"], but global_intent is not stored now.
-            if found_pred_in_avil and pred_intent != self.unsure_intent.get("intent"):
+            if found_pred_in_avil and \
+                pred_intent != self.unsure_intent.get("intent") and \
+                pred_intent != params.taskgraph.curr_global_intent:
                 params.taskgraph.intent = pred_intent
                 next_node, next_intent = self.jump_to_node(pred_intent, intent_idx, curr_node)
                 logger.info(f"curr_node: {next_node}")
@@ -271,6 +273,7 @@ class TaskGraph(TaskGraphBase):
                 # if current node is not a leaf node and jump to another node, then add it onto stack
                 if next_node != curr_node and list(self.graph.successors(curr_node)):
                     node_info.add_flow_stack = True
+                params.taskgraph.curr_global_intent = pred_intent
                 return True, pred_intent, node_info, params
         return False, pred_intent, {}, params
  
@@ -318,6 +321,8 @@ class TaskGraph(TaskGraphBase):
                     break
             logger.info(f"curr_node: {next_node}")
             node_info, params = self._get_node(next_node, params, intent=pred_intent)
+            if curr_node == self.start_node:
+                params.taskgraph.curr_global_intent = pred_intent
             return True, node_info, params
         return False, {}, params
     
@@ -333,6 +338,7 @@ class TaskGraph(TaskGraphBase):
             params.taskgraph.nlu_records.append({"candidate_intents": [], "pred_intent": "", "no_intent": True, "global_intent": False})
         params.taskgraph.curr_node = curr_node
         node_info = NodeInfo(
+            node_id=None,
             resource_id = "planner",
             resource_name = "planner",
             can_skipped=False,
@@ -349,14 +355,19 @@ class TaskGraph(TaskGraphBase):
             return curr_node, params
         
         nested_graph_next_node, params = NestedGraph.get_nested_graph_component_node(params, is_leaf)
-        if not is_leaf(nested_graph_next_node):
-            return curr_node, params
+        if nested_graph_next_node is not None:
+            curr_node = nested_graph_next_node.node_id
+            params.taskgraph.curr_node = curr_node
+            if not is_leaf(nested_graph_next_node.node_id):
+                return curr_node, params
         
-        last_flow_stack_node = self.get_last_flow_stack_node(params)
+        last_flow_stack_node: PathNode = self.get_last_flow_stack_node(params)
         if last_flow_stack_node:
-            curr_node = last_flow_stack_node
+            curr_node = last_flow_stack_node.node_id
+            params.taskgraph.curr_global_intent = last_flow_stack_node.global_intent
         if self.initial_node:
             curr_node = self.initial_node
+        
         return curr_node, params
 
     def get_node(self, inputs):
@@ -460,6 +471,3 @@ class TaskGraph(TaskGraphBase):
         params.taskgraph.dialog_states = dialog_states
 
         return node_info, params
-
-    def get_node_info_by_id(self, node_id):
-        return self.graph.nodes[node_id]

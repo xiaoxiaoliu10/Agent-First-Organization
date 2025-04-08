@@ -65,6 +65,8 @@ class AgentOrg:
         else:
             params.memory.function_calling_trajectory.extend(chat_history_copy[-2:])
         
+        params.memory.trajectory.append([])
+        
         return text, chat_history_str, params
 
     def check_skip_node(self, node_info: NodeInfo, params: Params):
@@ -88,6 +90,7 @@ class AgentOrg:
             in_flow_stack=node_info.add_flow_stack,
             nested_graph_node_value = None,
             nested_graph_leaf_jump = None,
+            global_intent= params.taskgraph.curr_global_intent,
         )
         
         params.taskgraph.path.append(node)
@@ -111,7 +114,9 @@ class AgentOrg:
             return True, return_response, params
         return False, None, params
     
-    def perform_node(self, node_info: NodeInfo, params: Params, text: str, chat_history_str: str, same_turn: bool, stream_type: StreamType, message_queue: janus.SyncQueue):
+    def perform_node(self, node_info: NodeInfo, params: Params,
+                     text: str, chat_history_str: str,
+                     stream_type: StreamType, message_queue: janus.SyncQueue):
         # Tool/Worker
         node_info, params = self.handle_nested_graph_node(node_info, params)
 
@@ -138,10 +143,6 @@ class AgentOrg:
                 "node_id": params.taskgraph.curr_node
             }
         )
-
-        # If this is a new turn, create a new list
-        if not same_turn:
-            params.memory.trajectory.append([])
         
         # Add resource record to current turn's list
         params.memory.trajectory[-1].append(resource_record)
@@ -162,7 +163,7 @@ class AgentOrg:
         
         response_state, params = self.env.step(node_info.resource_id, message_state, params)
         params.memory.trajectory = response_state.trajectory
-        return response_state, params
+        return node_info, response_state, params
     
     def handle_nested_graph_node(self, node_info: NodeInfo, params: Params):
         if node_info.resource_id != NESTED_GRAPH_ID:
@@ -177,10 +178,13 @@ class AgentOrg:
             in_flow_stack=False,
             nested_graph_node_value = node_info.attributes["value"],
             nested_graph_leaf_jump = None,
+            global_intent= params.taskgraph.curr_global_intent,
         )
         params.taskgraph.path.append(node)
-        node_info = self.task_graph.get_node_info_by_id(next_node_id)
         params.taskgraph.curr_node = next_node_id
+        params.taskgraph.node_status[node_info.node_id] = StatusEnum.INPROGRESS
+        node_info, params = self.task_graph._get_node(next_node_id, params)
+   
         return node_info, params
     
     def _get_response(self, 
@@ -189,7 +193,6 @@ class AgentOrg:
                      message_queue: janus.SyncQueue = None) -> OrchestratorResp:
         text, chat_history_str, params = self.init_params(inputs)
         ##### TaskGraph Chain
-        same_turn = False
         taskgraph_inputs = {
             "text": text,
             "chat_history_str": chat_history_str,
@@ -214,32 +217,33 @@ class AgentOrg:
                 params = self.post_process_node(node_info, params, {"is_skipped": True})
                 continue
             logger.info(f"The current node info is : {node_info}")
-            # Check current node attributes
-            if node_info.resource_id == "planner":
-                counter_planner += 1
-            elif node_info.resource_id == self.env.name2id["MessageWorker"]:
-                counter_message_worker += 1
+            
             # handle direct node
             is_direct_node, direct_response, params = self.handl_direct_node(node_info, params)
             if is_direct_node:
                 return direct_response
             # perform node
-            response_state, params = self.perform_node(node_info,
+            node_info, response_state, params = self.perform_node(node_info,
                                                        params,
                                                        text,
                                                        chat_history_str,
-                                                       same_turn,
                                                        stream_type,
                                                        message_queue)
             params = self.post_process_node(node_info, params)
+            
             n_node_performed += 1
-            same_turn = True
             # If the current node is not complete, then no need to continue to the next node
             node_status = params.taskgraph.node_status
             cur_node_id = params.taskgraph.curr_node
             status = node_status.get(cur_node_id, StatusEnum.COMPLETE.value)
             if status == StatusEnum.INCOMPLETE.value:
                 break
+
+            # Check current node attributes
+            if node_info.resource_id == "planner":
+                counter_planner += 1
+            elif node_info.resource_id == self.env.name2id["MessageWorker"]:
+                counter_message_worker += 1
             # If the counter of message worker or counter of default worker == 1, break the loop
             if counter_message_worker == 1 or counter_planner == 1:
                 break
