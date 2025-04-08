@@ -175,7 +175,7 @@ class AgentOrg:
             node_id = nested_graph_node,
             is_skipped=False,
             in_flow_stack=False,
-            nested_graph_node_value = node_info.attributes["values"],
+            nested_graph_node_value = node_info.attributes["value"],
             nested_graph_leaf_jump = None,
         )
         params.taskgraph.path.append(node)
