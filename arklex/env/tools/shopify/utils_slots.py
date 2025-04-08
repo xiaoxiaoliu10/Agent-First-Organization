@@ -2,7 +2,7 @@ class ShopifySlots:
     def to_list(baseSlot: dict):
         slot = baseSlot.copy()
         slot["name"] += 's'
-        slot["type"] = "list"
+        slot["type"] = f"list[{slot['type']}]"
         slot["description"] = f"List of {slot['name']}. {slot['description']}"
         return slot
     

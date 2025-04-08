@@ -26,6 +26,8 @@ from arklex.utils.utils import format_chat_history
 load_dotenv()
 logger = logging.getLogger(__name__)
 
+INFO_WORKERS = ["planner", "MessageWorker", "RagMsgWorker"]
+
 class AgentOrg:
     def __init__(self, config, env: Env, **kwargs):
         if isinstance(config, dict):
@@ -192,7 +194,7 @@ class AgentOrg:
                 continue
             logger.info(f"The current node info is : {node_info}")
             # Check current node attributes
-            if node_info.resource_name in ["planner", "MessageWorker", "RagMsgWorker"]:
+            if node_info.resource_name in INFO_WORKERS:
                 msg_counter += 1
             # handle direct node
             is_direct_node, direct_response, params = self.handl_direct_node(node_info, params)
@@ -212,8 +214,8 @@ class AgentOrg:
             # If the current node is not complete, then no need to continue to the next node
             node_status = params.taskgraph.node_status
             cur_node_id = params.taskgraph.curr_node
-            status = node_status.get(cur_node_id, StatusEnum.COMPLETE.value)
-            if status == StatusEnum.INCOMPLETE.value:
+            status = node_status.get(cur_node_id, StatusEnum.COMPLETE)
+            if status == StatusEnum.INCOMPLETE:
                 break
             # If the counter of message worker or counter of planner or counter of ragmsg worker == 1, break the loop
             if msg_counter == 1:
@@ -230,7 +232,6 @@ class AgentOrg:
         
         # TODO: Need to reformat the RAG response from trajectory
         # params["memory"]["tool_response"] = {}
-
         return OrchestratorResp(
             answer=response_state.response,
             parameters=params.model_dump(),

@@ -2,7 +2,7 @@ from typing import Any, Optional, List, Dict
 from pydantic import BaseModel, Field
 from enum import Enum
 import uuid
-
+from arklex.utils.slot import Slot
 
 ### Bot-related classes
 class BotConfig(BaseModel):
@@ -63,7 +63,7 @@ class MessageState(BaseModel):
     response: str = Field(default="")
     # task-related params
     status: StatusEnum = Field(default=StatusEnum.INCOMPLETE)
-    slots: Dict[str, List[Dict]] = Field(description="record the dialogue states of each action")
+    slots: Dict[str, List[Slot]] = Field(description="record the dialogue states of each action")
     metadata: Metadata
     # stream
     is_stream: bool
@@ -80,13 +80,13 @@ class PathNode(BaseModel):
 
 class Taskgraph(BaseModel):
     # Need add global intent
-    dialog_states: Dict[str, List[Dict]] = Field(default_factory=dict)
+    dialog_states: Dict[str, List[Slot]] = Field(default_factory=dict)
     path: List[PathNode] = Field(default_factory=list)
     curr_node: str = Field(default="")
     intent: str = Field(default="")
     node_limit: Dict[str, int] = Field(default_factory=dict)
     nlu_records: List = Field(default_factory=list)
-    node_status: Dict[str, str] = Field(default_factory=dict)
+    node_status: Dict[str, StatusEnum] = Field(default_factory=dict)
     available_global_intents: List = Field(default_factory=list)
 
 

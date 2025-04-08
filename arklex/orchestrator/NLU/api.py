@@ -7,14 +7,13 @@ import string
 
 from fastapi import FastAPI, Response
 
-from arklex.utils.slot import Verification, SlotInputList, SlotOutputList, SlotOutputListGemini, format_slots, format_slotfilling_input, format_slotfilling_output
+from arklex.utils.slot import Verification, SlotInputList, structured_input_output, format_slotfilling_output, Slot
 from dotenv import load_dotenv
 load_dotenv()
 
 from arklex.utils.model_config import MODEL
 from arklex.utils.model_provider_config import PROVIDER_MAP
 from langchain_openai import ChatOpenAI
-from langchain_core.output_parsers.openai_tools import  JsonOutputToolsParser
 from pydantic_ai import Agent
 
 
@@ -146,7 +145,7 @@ class SlotFillModelAPI():
         return system_prompt
 
     # get response from model
-    def get_response(self, sys_prompt, format=SlotOutputList, note="slot filling"):
+    def get_response(self, sys_prompt, format, note="slot filling"):
         logger.info(f"Prompt for {note}: {sys_prompt}")
         dialog_history = [{"role": "system", "content": sys_prompt}]
         kwargs = {'model': MODEL["model_type_or_path"], 'temperature': 0.7}
@@ -166,7 +165,7 @@ class SlotFillModelAPI():
             raise NotImplementedError("Slotfilling for Huggingface is not implemented")
 
         elif MODEL['llm_provider'] == 'gemini':
-            agent = Agent(f"google-gla:{MODEL['model_type_or_path']}", result_type=SlotOutputListGemini)
+            agent = Agent(f"google-gla:{MODEL['model_type_or_path']}", result_type=format)
             result = agent.run_sync(dialog_history[0]['content'])
             response = result.data
 
@@ -181,14 +180,13 @@ class SlotFillModelAPI():
     # endpoint for slot filling
     def predict(
         self,
-        slots,
-        chat_history_str,
+        slots: list[Slot],
+        chat_history_str: str,
     ):
-        formatted_slots = format_slots(slots)
-        input_slots = format_slotfilling_input(formatted_slots)
+        input_slots, output_slots = structured_input_output(slots)
         system_prompt = self.format_input(input_slots, chat_history_str)
-        response = self.get_response(system_prompt, note="slot filling")
-        filled_slots = format_slotfilling_output(formatted_slots, response)
+        response = self.get_response(system_prompt, output_slots, note="slot filling")
+        filled_slots = format_slotfilling_output(slots, response)
         logger.info(f"Updated dialogue states: {filled_slots}")
         return filled_slots
     

@@ -2,12 +2,11 @@ import os
 import logging
 import json
 import uuid
-import ast
 import inspect
 import traceback
 
 from arklex.utils.graph_state import MessageState, StatusEnum
-from arklex.utils.slot import Slot, TypeMapping
+from arklex.utils.slot import Slot
 from arklex.orchestrator.NLU.nlu import SlotFilling
 from arklex.utils.utils import format_chat_history
 from arklex.exceptions import ToolExecutionError, AuthenticationError
@@ -36,7 +35,7 @@ class Tool:
         self.output = outputs
         self.slotfillapi: SlotFilling = None
         self.info = self.get_info(slots)
-        self.slots = slots
+        self.slots = [Slot.model_validate(slot) for slot in slots]
         self.isResponse = isResponse
 
     def get_info(self, slots):
@@ -67,11 +66,11 @@ class Tool:
             return
         response = {}
         for default_slot in default_slots:
-            response[default_slot["name"]] = default_slot["value"]
+            response[default_slot.name] = default_slot.value
             for slot in self.slots:
-                if slot["name"] == default_slot["name"] and default_slot["value"]:
-                    slot["value"] = default_slot["value"]
-                    slot["verified"] = True
+                if slot.name == default_slot.name and default_slot.value:
+                    slot.value = default_slot.value
+                    slot.verified = True
         state.function_calling_trajectory.append({
             "role": "tool",
             "tool_call_id": str(uuid.uuid4()),
@@ -108,7 +107,7 @@ class Tool:
                     response = slot.prompt
                     break
             
-            state.status = StatusEnum.INCOMPLETE.value
+            state.status = StatusEnum.INCOMPLETE
 
         # if slot.value is not empty for all slots, and all the slots has been verified, then execute the function
         tool_success = False
@@ -153,14 +152,14 @@ class Tool:
             })
             state.trajectory[-1][-1].input = slots
             state.trajectory[-1][-1].output = response
-            state.status = StatusEnum.COMPLETE.value if tool_success else StatusEnum.INCOMPLETE.value
+            state.status = StatusEnum.COMPLETE if tool_success else StatusEnum.INCOMPLETE
 
         if self.isResponse and tool_success:
             logger.info("Tool output is stored in response instead of message flow")
             state.response = response
         else:
             state.message_flow = state.message_flow + f"Context from {self.name} tool execution: {response}\n"
-        state.slots[self.name] = [slot.model_dump() for slot in slots]
+        state.slots[self.name] = slots
         return state
 
     def execute(self, state: MessageState, **fixed_args):

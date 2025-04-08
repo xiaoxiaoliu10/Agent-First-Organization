@@ -70,7 +70,7 @@ class SlotFilling:
 
         return verification_needed, thought
 
-    def execute(self, slots:list, chat_history_str:str) -> dict:
+    def execute(self, slots:list[Slot], chat_history_str:str) -> list[Slot]:
         logger.info(f"extracted slots: {slots}")
         if not slots: return []
         
