@@ -165,23 +165,22 @@ class AgentOrg:
         return response_state, params
     
     def handle_nested_graph_node(self, node_info: NodeInfo, params: Params):
-        if node_info["resource_id"] != NESTED_GRAPH_ID:
+        if node_info.resource_id != NESTED_GRAPH_ID:
             return node_info, params
         
         nested_graph = NestedGraph(node_info=node_info)
         next_node_id = nested_graph.get_nested_graph_start_node_id()
-        nested_graph_node = params["taskgraph"]["curr_node"]
+        nested_graph_node = params.taskgraph.curr_node
         node = PathNode(
             node_id = nested_graph_node,
             is_skipped=False,
             in_flow_stack=False,
-            nested_graph_node_value = node_info["attributes"]["value"],
+            nested_graph_node_value = node_info.attributes.values,
             nested_graph_leaf_jump = None,
         )
-        
-        params["taskgraph"]['path'].append(node)
+        params.taskgraph.path.append(node)
         node_info = self.task_graph.get_node_info_by_id(next_node_id)
-        params["taskgraph"]["curr_node"] = next_node_id
+        params.taskgraph.curr_node = next_node_id
         return node_info, params
     
     def _get_response(self, 
