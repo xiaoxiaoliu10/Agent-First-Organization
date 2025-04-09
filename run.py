@@ -68,6 +68,5 @@ if __name__ == "__main__":
         output, params, hitl = get_api_bot_response(args, history, user_text, params, env)
         history.append({"role": user_prefix, "content": user_text})
         history.append({"role": worker_prefix, "content": output})
-        print(json.dumps(params, indent=4))
         print(f"getAPIBotResponse Time: {time.time() - start_time}")
         pprint_with_color(f"Bot: {output}")
