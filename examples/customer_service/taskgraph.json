@@ -1200,11 +1200,6 @@
             "id": "9c15af81-04b3-443e-be04-a3522124b905",
             "name": "SearchWorker",
             "path": "search_worker.py"
-        },
-        {
-            "id": "b06c2b58-12c5-41fe-9838-e93b530e42e8",
-            "name": "DefaultWorker",
-            "path": "default_worker.py"
         }
     ],
     "tools": [],
