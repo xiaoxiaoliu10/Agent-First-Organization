@@ -6,7 +6,7 @@ from pathlib import Path
 from os.path import dirname, abspath
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
-from arklex.utils.loader import Loader, CrawledURLObject
+from arklex.utils.loader import Loader, CrawledObject, CrawledURLObject, CrawledLocalObject
 
 def get_domain_info(documents):
     summary = None
@@ -36,17 +36,26 @@ def load_docs(document_dir, doc_config, limit=10):
             docs = []
             for doc in rag_docs:
                 source = doc.get("source")
-                num_docs = doc.get("num") if doc.get("num") else 1
-                urls = loader.get_all_urls(source, num_docs)
-                crawled_urls = loader.to_crawled_obj(urls)
-                docs.extend(crawled_urls)
+                if doc.get('type') != 'local':
+                    num_docs = doc.get("num") if doc.get("num") else 1
+                    urls = loader.get_all_urls(source, num_docs)
+                    crawled_urls = loader.to_crawled_url_objs(urls)
+                    docs.extend(crawled_urls)
+                    
+                elif doc.get('type') == 'local':
+                    file_list = [os.path.join(source, f) for f in os.listdir(source)]
+                    docs.extend(loader.to_crawled_local_objs(file_list))
+                
             Loader.save(filepath, docs)
         if total_num_docs > 50:
             limit = total_num_docs // 5
         else:
             limit = 10
-        if isinstance(docs[0], CrawledURLObject):
-            documents = loader.get_candidates_websites(docs, limit)
+        if isinstance(docs[0], CrawledObject):
+            documents = []
+            documents.extend(loader.get_candidates_websites(filter(lambda x: isinstance(x, CrawledURLObject), docs), limit))
+            documents.extend(filter(lambda x: isinstance(x, CrawledLocalObject), docs))
+            
         else:
             documents = []
             for doc in docs:

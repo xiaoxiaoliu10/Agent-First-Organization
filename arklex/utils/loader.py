@@ -31,9 +31,31 @@ class URLObject:
     def __init__(self, id: str, url: str):
         self.id = id
         self.url = url
-
-
-class CrawledURLObject(URLObject):
+        
+class LocalObject:
+    def __init__(self, id: str, location: str):
+        self.id = id
+        self.location = location
+class CrawledObject():
+    def __init__(
+        self,
+        id: str,
+        location: str,
+        content: str,
+        metadata={},
+        is_chunk=False,
+        is_error=False,
+        error_message=None,
+    ):
+        self.id = id
+        self.location = location
+        self.content = content
+        self.metadata = metadata
+        self.is_chunk = is_chunk
+        self.is_error = is_error
+        self.error_message = error_message
+        
+class CrawledURLObject(CrawledObject):
     def __init__(
         self,
         id: str,
@@ -44,19 +66,27 @@ class CrawledURLObject(URLObject):
         is_error=False,
         error_message=None,
     ):
-        super().__init__(id, url)
-        self.content = content
-        self.metadata = metadata
-        self.is_chunk = is_chunk
-        self.is_error = is_error
-        self.error_message = error_message
-
+        super().__init__(id, url, content, metadata, is_chunk, is_error, error_message)
+        self.url = url
+        
+class CrawledLocalObject(CrawledObject):
+    def __init__(
+        self,
+        id: str,
+        location: str,
+        content: str,
+        metadata={},
+        is_chunk=False,
+        is_error=False,
+        error_message=None,
+    ):
+        super().__init__(id, location, content, metadata, is_chunk, is_error, error_message)
 
 class Loader:
     def __init__(self):
         pass
 
-    def to_crawled_obj(self, url_list: List[str]):    
+    def to_crawled_url_objs(self, url_list: List[str]) -> List[CrawledURLObject]:    
         url_objs = [URLObject(str(uuid.uuid4()), url) for url in url_list]
         crawled_url_objs = self.crawl_urls(url_objs)
         return crawled_url_objs
@@ -210,34 +240,43 @@ class Loader:
         urls_cleaned = [doc for doc in urls_candidates if doc]
         return urls_cleaned
     
+    def to_crawled_local_objs(self, file_list: List[str]) -> List[CrawledLocalObject]:    
+        local_objs = [LocalObject(str(uuid.uuid4()), file) for file in file_list]
+        crawled_local_objs = self.crawl_local(local_objs)
+        return crawled_local_objs
+    
+    def crawl_local(local_objs) -> List[CrawledLocalObject]:
+        ### TODO
+        pass
+    
     @staticmethod
-    def save(file_path: str, docs: List[CrawledURLObject]):
+    def save(file_path: str, docs: List[CrawledObject]):
         with open(file_path, "wb") as f:
             pickle.dump(docs, f)
     
     @classmethod
-    def chunk(cls, url_objs: List[CrawledURLObject]) -> List[CrawledURLObject]:
+    def chunk(cls, crawled_objs: List[CrawledObject]) -> List[CrawledObject]:
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(encoding_name="cl100k_base", chunk_size=200, chunk_overlap=40)
         docs = []
         langchain_docs = []
-        for url_obj in url_objs:
-            if url_obj.is_error or url_obj.content is None:
-                logger.info(f"Skip url: {url_obj.url} because of error or no content")
+        for crawled_obj in crawled_objs:
+            if crawled_obj.is_error or crawled_obj.content is None:
+                logger.info(f"Skip source: {crawled_obj.location} because of error or no content")
                 continue
-            elif url_obj.is_chunk:
-                logger.info(f"Skip url: {url_obj.url} because it has been chunked")
-                docs.append(url_obj)
+            elif crawled_obj.is_chunk:
+                logger.info(f"Skip source: {crawled_obj.location} because it has been chunked")
+                docs.append(crawled_obj)
                 continue
-            splitted_text = text_splitter.split_text(url_obj.content)
+            splitted_text = text_splitter.split_text(crawled_obj.content)
             for i, txt in enumerate(splitted_text):
-                doc = CrawledURLObject(
-                    id=url_obj.id+"_"+str(i),
-                    url=url_obj.url,
+                doc = CrawledObject(
+                    id=crawled_obj.id+"_"+str(i),
+                    location=crawled_obj.location,
                     content=txt,
-                    metadata=url_obj.metadata,
+                    metadata=crawled_obj.metadata,
                     is_chunk=True,
                 )
                 docs.append(doc)
-                langchain_docs.append(Document(page_content=txt, metadata={"source": url_obj.url}))
+                langchain_docs.append(Document(page_content=txt, metadata={"source": crawled_obj.location}))
         return langchain_docs
 
