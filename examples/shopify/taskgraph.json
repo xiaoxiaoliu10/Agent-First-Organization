@@ -551,11 +551,6 @@
             "id": "MessageWorker",
             "name": "MessageWorker",
             "path": "message_worker.py"
-        },
-        {
-            "id": "DefaultWorker",
-            "name": "DefaultWorker",
-            "path": "default_worker.py"
         }
     ],
     "role": "customer service assistant",
