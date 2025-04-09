@@ -55,7 +55,6 @@ class ToolGenerator():
         state.message_flow = ""
         state.response = answer
         state = trace(input=answer, state=state)
-
         return state
     
     @staticmethod
