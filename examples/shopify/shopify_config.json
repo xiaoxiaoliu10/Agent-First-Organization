@@ -73,16 +73,6 @@
             }
         },
         {
-            "id": "1b3850ls-025d-1025-1082-a4df13da0e32",
-            "name": "get_product_images",
-            "path": "shopify/get_product_images.py",
-            "fixed_args": {
-                "admin_token": "<shopify_admin_token>",
-                "shop_url": "<shopify_store_url>",
-                "api_version": "2024-10"
-            }
-        },
-        {
             "id": "alfse0ls-lx4f-a01m-1mch-a4dfsl010end",
             "name": "return_products",
             "path": "shopify/return_products.py",
