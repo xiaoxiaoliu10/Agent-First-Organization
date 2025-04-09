@@ -95,20 +95,7 @@ def conversation(model_api, profile, goal, attr, sys_input, summary, model_param
     for key, value in sys_input.items():
         if key and value:
             default_slots.append({"name": key, "value": value})
-    # After slotfilling restructure finished, don't need manual transformation
-    format_slots = []
-    for slot in default_slots:
-        format_slots.append({
-            "name": slot["name"],
-            "value": slot["value"],
-            "type": slot.get("type", "string"),
-            "enum": slot.get("enum", []),
-            "description": slot.get("description", ""),
-            "prompt": slot.get("prompt", ""),
-            "required": slot.get("required", False),
-            "verified": slot.get("verified", False)
-        })
-    model_params = {"taskgraph": {"dialog_states": {"default_slots": format_slots}}}
+    model_params = {"taskgraph": {"dialog_states": {"default_slots": default_slots}}}
     goal_completetion = False
 
     for i in range(synthetic_data_params['max_turns']):

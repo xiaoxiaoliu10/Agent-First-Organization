@@ -177,7 +177,7 @@ def get_label(attribute, config):
                 break
             selected_tool = env.tools[pred_tool_id]["execute"]()
             slots = selected_tool.slots
-            pred_slots = SlotFilling(url="").execute(slots, str(attribute), metadata={}, type="user_simulator")
+            pred_slots = SlotFilling(url="").execute(slots, str(attribute), type="user_simulator")
             pred_slots_dict = {slot.name: slot.value for slot in pred_slots}
             label = [
                 {
