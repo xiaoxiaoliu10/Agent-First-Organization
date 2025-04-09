@@ -65,15 +65,14 @@ class AgentFirstOrg(Agent):
             user_message = {"role": "user", "content": user_text}
             assistant_message = {"role": "assistant", "content": output}
             assistant_message_metadata = {"role": "assistant", "content": output, 
-                                 'curr_node': deepcopy(params['curr_node']),
-                                 'intent': deepcopy(params['nlu_records'][-1]['pred_intent']),
-                                 'metadata': deepcopy(params['metadata']),
-                                 'node_status': deepcopy(params['node_status'])}
+                                 'curr_node': deepcopy(params["taskgraph"]["curr_node"]),
+                                 'intent': deepcopy(params["taskgraph"]["intent"]),
+                                 'metadata': deepcopy(params["memory"]["trajectory"][-1])}
             history.append(user_message)
             history.append(assistant_message)
 
             print("=============trajectory============")
-            trajectory = params["history"]
+            trajectory = params["memory"]["function_calling_trajectory"]
             print(trajectory)
 
             while message_index < len(trajectory):
