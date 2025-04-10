@@ -14,7 +14,6 @@ from arklex.orchestrator.NLU.nlu import SlotFilling
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_WORKER  = {"id": "default_worker", "name": "DefaultWorker", "path": "default_worker.py"}
 
 class BaseResourceInitializer:
     @staticmethod
@@ -73,7 +72,7 @@ class DefaulResourceInitializer(BaseResourceInitializer):
         return worker_registry
 
 class Env():
-    def __init__(self, tools, workers, slotsfillapi, resource_inizializer: Optional[BaseResourceInitializer] = None):
+    def __init__(self, tools, workers, slotsfillapi = "", resource_inizializer: Optional[BaseResourceInitializer] = None):
         if resource_inizializer is None:
             resource_inizializer = DefaulResourceInitializer()
         self.tools = resource_inizializer.init_tools(tools)
@@ -132,5 +131,3 @@ class Env():
         
         logger.info(f"Response state from {id}: {response_state}")
         return response_state, params
-
-

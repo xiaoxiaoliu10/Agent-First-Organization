@@ -1,5 +1,6 @@
 import logging
 import inspect
+
 from langchain.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
@@ -54,7 +55,6 @@ class ToolGenerator():
         state.message_flow = ""
         state.response = answer
         state = trace(input=answer, state=state)
-
         return state
     
     @staticmethod
