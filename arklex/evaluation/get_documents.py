@@ -26,6 +26,7 @@ def load_docs(document_dir, doc_config, limit=10):
     else:
         rag_docs = doc_config['rag_docs']
         filename = "documents.pkl"
+        
     if document_dir is not None:
         filepath = os.path.join(document_dir, filename)
         total_num_docs = sum([doc.get("num") if doc.get("num") else 1 for doc in rag_docs])
@@ -47,10 +48,12 @@ def load_docs(document_dir, doc_config, limit=10):
                     docs.extend(loader.to_crawled_local_objs(file_list))
                 
             Loader.save(filepath, docs)
+            
         if total_num_docs > 50:
             limit = total_num_docs // 5
         else:
             limit = 10
+            
         if isinstance(docs[0], CrawledObject):
             documents = []
             documents.extend(loader.get_candidates_websites(filter(lambda x: isinstance(x, CrawledURLObject), docs), limit))

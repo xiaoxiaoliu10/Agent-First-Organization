@@ -36,6 +36,7 @@ class LocalObject:
     def __init__(self, id: str, location: str):
         self.id = id
         self.location = location
+        
 class CrawledObject():
     def __init__(
         self,
@@ -242,12 +243,54 @@ class Loader:
     
     def to_crawled_local_objs(self, file_list: List[str]) -> List[CrawledLocalObject]:    
         local_objs = [LocalObject(str(uuid.uuid4()), file) for file in file_list]
-        crawled_local_objs = self.crawl_local(local_objs)
+        crawled_local_objs = [self.crawl_local(local_obj) for local_obj in local_objs]
+        crawled_local_objs = list(filter(None, crawled_local_objs))
         return crawled_local_objs
     
-    def crawl_local(local_objs) -> List[CrawledLocalObject]:
-        ### TODO
-        pass
+    def crawl_local(self, local_obj: LocalObject) -> CrawledLocalObject:
+        ## TODO: implement the local file crawling
+        ext = os.path.splitext(local_obj.location)[1]
+        logging.info(f"Crawling local file: {local_obj.location} with extension {ext}")
+        
+        if ext == ".txt" or ext == '.md':
+            return CrawledLocalObject(
+                local_obj.id,
+                local_obj.location,
+                content=open(local_obj.location, "r", encoding="utf-8").read(),
+                metadata={"title": os.path.basename(local_obj.location), "source": local_obj.location},
+            )
+            
+        elif ext == '.html':
+            html = open(local_obj.location, "r", encoding="utf-8").read()
+            soup = BeautifulSoup(html, "html.parser")
+
+            text_list = []
+            for string in soup.strings:        
+                if string.find_parent("a"):
+                    href = string.find_parent("a").get("href")
+                    text = f"{string} {href}"
+                    text_list.append(text)
+                elif string.strip():
+                    text_list.append(string)
+            text_output = "\n".join(text_list)
+            
+            title = os.path.basename(local_obj.location)
+            for title in soup.find_all("title"):
+                title = title.get_text()
+                break
+
+            return CrawledLocalObject(
+                    id=local_obj.id,
+                    location=local_obj.location,
+                    content=text_output,
+                    metadata={"title": title, "source": local_obj.location},
+                )
+            
+        elif ext =='pdf':
+            # TODO
+            pass
+        
+        return None
     
     @staticmethod
     def save(file_path: str, docs: List[CrawledObject]):
