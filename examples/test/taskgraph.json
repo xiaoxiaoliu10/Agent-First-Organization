@@ -35,7 +35,7 @@
             "2",
             {
                 "resource": {
-                    "id": "NestedGraph",
+                    "id": "nested_graph",
                     "name": "NestedGraph"
                 },
                 "attribute": {
@@ -106,6 +106,51 @@
                 },
                 "limit": 1
             }
+        ],
+        [
+            "8",
+            {
+                "resource": {
+                    "id": "nested_graph",
+                    "name": "NestedGraph"
+                },
+                "attribute": {
+                    "value": "9",
+                    "task": "Check user email",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "9",
+            {
+                "resource": {
+                    "id": "message_worker",
+                    "name": "MessageWorker"
+                },
+                "attribute": {
+                    "value": "is your email test@test.com?",
+                    "task": "ask if user's email is test@test.com",
+                    "directed": false
+                },
+                "limit": 1
+            }
+        ],
+        [
+            "10",
+            {
+                "resource": {
+                    "id": "message_worker",
+                    "name": "MessageWorker"
+                },
+                "attribute": {
+                    "value": "The conversation is over",
+                    "task": "terminate the conversation",
+                    "directed": false
+                },
+                "limit": 1
+            }
         ]
     ],
     "edges": [
@@ -149,19 +194,6 @@
             }
         ],
         [
-            "2",
-            "4",
-            {
-                "intent": "None",
-                "attribute": {
-                    "weight": 1,
-                    "pred": false,
-                    "definition": "",
-                    "sample_utterances": []
-                }
-            }
-        ],
-        [
             "4",
             "6",
             {
@@ -176,9 +208,22 @@
         ],
         [
             "4",
-            "7",
+            "8",
             {
                 "intent": "User answer no",
+                "attribute": {
+                    "weight": 1,
+                    "pred": false,
+                    "definition": "",
+                    "sample_utterances": []
+                }
+            }
+        ],
+        [
+            "9",
+            "10",
+            {
+                "intent": "None",
                 "attribute": {
                     "weight": 1,
                     "pred": false,
