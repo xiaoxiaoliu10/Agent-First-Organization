@@ -2,10 +2,7 @@ import json
 import time
 from typing import Any, Dict
 import logging
-import uuid
-import os
-from typing import List, Dict, Any, Tuple
-import ast
+from typing import Dict, Any, Tuple
 import copy
 import janus
 from dotenv import load_dotenv
@@ -19,7 +16,7 @@ from arklex.types import StreamType
 from arklex.utils.graph_state import (ConvoMessage, NodeInfo, OrchestratorMessage,
                                       MessageState, PathNode,StatusEnum,
                                       BotConfig, Params, ResourceRecord,
-                                      OrchestratorResp)
+                                      OrchestratorResp, NodeTypeEnum)
 from arklex.utils.utils import format_chat_history
 
 
@@ -115,18 +112,19 @@ class AgentOrg:
         return params
     
     def handl_direct_node(self, node_info: NodeInfo, params: Params):
-        # Direct response
         node_attribute = node_info.attributes
-        if node_attribute.get("value", "").strip() and node_attribute.get("direct"):
-            params = self.post_process_node(node_info, params)
-            return_response = OrchestratorResp(
-                answer=node_attribute["value"],
-                parameters=params.model_dump()
-            )
-            # TODO: multiple choice list
-            # if node_attribute.get("type", "") == "multiple-choice" and node_attribute.get("choice_list", []):
-            #     return_response["choice_list"] = node_attribute["choice_list"]
-            return True, return_response, params
+        if node_attribute.get("direct"):
+            # Direct response
+            if node_attribute.get("value", "").strip():
+                params = self.post_process_node(node_info, params)
+                return_response = OrchestratorResp(
+                    answer=node_attribute["value"],
+                    parameters=params.model_dump()
+                )
+                # Multiple choice list
+                if node_info.type == NodeTypeEnum.MULTIPLE_CHOICE.value and node_attribute.get("choice_list", []):
+                    return_response.choice_list = node_attribute["choice_list"]
+                return True, return_response, params
         return False, None, params
     
     def perform_node(self, message_state: MessageState, node_info: NodeInfo, params: Params, text: str, chat_history_str: str, same_turn: bool, stream_type: StreamType, message_queue: janus.SyncQueue):
