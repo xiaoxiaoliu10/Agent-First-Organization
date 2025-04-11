@@ -62,7 +62,7 @@ class MessageState(BaseModel):
     # final response
     response: str = Field(default="")
     # task-related params
-    status: StatusEnum = Field(default=StatusEnum.INCOMPLETE)    
+    status: StatusEnum = Field(default=StatusEnum.INCOMPLETE)
     slots: Dict[str, List[Slot]] = Field(description="record the dialogue states of each action", default=None)
     metadata: Metadata = Field(default=None)
     # stream
