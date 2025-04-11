@@ -5,10 +5,10 @@
             "I want to talk to human!",
             "I want to know more about your product: Adam!"
         ],
-        "description": "The user wants to talk to a human, then it should activate the human-in-the-loop worker. Skip the middle conversation between human and user, the next user utterance is delivered to agent again and answered by RAG worker.",
+        "description": "The user wants to talk to a human, then it should activate the human-in-the-loop worker. Skip the middle conversation between human and user, the next user utterance is delivered to agent again and go to the second half of the hitl worker.",
         "criteria": "After the first turn, the bot response key 'human-in-the-loop' should be return 'live'.",
         "final_state": ["live", ""],
-        "trajectory": ["1", "3"],
+        "trajectory": ["1", "1"],
         "expected_conversation": [
             {
                 "role": "assistant",
@@ -16,43 +16,19 @@
             },
             {
                 "role": "user",
-                "content": "I want to book a demo!"
+                "content": "I want to talk to human!"
             },
             {
                 "role": "assistant",
-                "content": "To book a demo, could you please provide your email address? This will help us set up the meeting for you."
+                "content": "I'll connect you to a representative! Please hold on for a moment."
             },
             {
                 "role": "user",
-                "content": "yl4021@columbia.edu"
+                "content": "I want to know more about your product: Adam!"
             },
             {
                 "role": "assistant",
-                "content": "Could you please provide the time when you will be available for the meeting? This will help us schedule your demo at a convenient time for you."
-            },
-            {
-                "role": "user",
-                "content": "Tmr"
-            },
-            {
-                "role": "assistant",
-                "content": "Could you please provide the exact date and time for the meeting? This will help us schedule your demo accurately. Thank you!"
-            },
-            {
-                "role": "user",
-                "content": "Anytime between 2 - 4pm"
-            },
-            {
-                "role": "assistant",
-                "content": "Thank you for providing the time range. To ensure we schedule the demo at a time that suits you best, would you like the meeting to start at 2:00 PM, or is there another specific time within 2:00 PM to 4:00 PM that you prefer?"
-            },
-            {
-                "role": "user",
-                "content": "New York"
-            },
-            {
-                "role": "assistant",
-                "content": "Your demo has been successfully scheduled for tomorrow, February 4th, at 2:00 PM (New York time). You will receive an invitation at your email address: yl4021@columbia.edu. \n\nIf you have any further questions or need to make changes, feel free to let me know!"
+                "content": "Certainly! The ADAM robot is a versatile worker robot available for both purchase and rental. It can serve multiple purposes, including acting as a robot bartender to make tea, coffee, and cocktails. If you have any specific questions about its features or how it can be used in your business, feel free to ask!"
             }
         ]
     },
@@ -73,11 +49,19 @@
             },
             {
                 "role": "user",
-                "content": "I want to book a demo for my email yl4021@columbia.edu at Tmr 2pm in New York time!"
+                "content": "I want to know more about your product: Adam!"
             },
             {
                 "role": "assistant",
-                "content": "Your demo has been successfully scheduled for tomorrow, February 4th, at 2:00 PM (New York time). You will receive an invitation at your email address: yl4021@columbia.edu. \n\nIf you have any further questions or need to make changes, feel free to let me know!"
+                "content": "ADAM is a versatile, interactive robot designed for various beverage preparation tasks. It's equipped with advanced sensors, artificial intelligence, and a user-friendly touchscreen interface, allowing it to create a wide range of customizable drinks with precision and speed. ADAM is particularly popular for making drinks like the Iced Foamy Hazelnut Latte and can handle everything from classic milk teas with tapioca pearls to creative twists on traditional favorites. This robot is not only a barista but also a game-changer for the beverage industry, helping businesses streamline operations, reduce labor costs, and increase efficiency while maintaining high-quality drink standards. If you're interested in learning more about ADAM, you can visit [Richtech Robotics' website](https://www.richtechrobotics.com/adam)."
+            },
+            {
+                "role": "user",
+                "content": "I want to talk to human!"
+            },
+            {
+                "role": "assistant",
+                "content": "I'll connect you to a representative! Please hold on for a moment."
             }
         ]
     }

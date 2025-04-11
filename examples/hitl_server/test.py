@@ -48,7 +48,7 @@ class Logic_Test(unittest.TestCase):
         orchestrator = AgentOrg(config=self.config, env=self.env)
         result = orchestrator.get_response(data)
 
-        return result['answer'], result['parameters'], result['human-in-the-loop']
+        return result['answer'], result['parameters'], result['human_in_the_loop']
 
     def test_Unittest0(self):
         print("\n=============Unit Test 0=============")
@@ -67,7 +67,7 @@ class Logic_Test(unittest.TestCase):
             print(f"User: {user_text}")
             output, params, hitl = self._get_api_bot_response(user_text, history, params)
             print(f"Bot: {output}")
-            nodes.append(params.get("curr_node"))
+            nodes.append(params["taskgraph"]["curr_node"])
             final_state.append(hitl if hitl else "")
             history.append({"role": self.user_prefix, "content": user_text})
             history.append({"role": self.worker_prefix, "content": output})
@@ -93,7 +93,7 @@ class Logic_Test(unittest.TestCase):
             print(f"User: {user_text}")
             output, params, hitl = self._get_api_bot_response(user_text, history, params)
             print(f"Bot: {output}")
-            nodes.append(params.get("curr_node"))
+            nodes.append(params["taskgraph"]["curr_node"])
             final_state.append(hitl if hitl else "")
             history.append({"role": self.user_prefix, "content": user_text})
             history.append({"role": self.worker_prefix, "content": output})
