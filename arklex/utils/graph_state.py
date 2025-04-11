@@ -67,7 +67,8 @@ class MessageState(BaseModel):
     metadata: Metadata
     # stream
     is_stream: bool
-    message_queue: Any = Field(exclude=True)
+    # message_queue: Any = Field(exclude=True)
+    message_queue: Any = None
 
 
 class PathNode(BaseModel):

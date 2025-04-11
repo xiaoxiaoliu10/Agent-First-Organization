@@ -8,7 +8,8 @@ from arklex.evaluation.extract_conversation_info import extract_task_completion_
 from arklex.evaluation.simulate_second_pass_convos import get_labeled_convos
 # from arklex.evaluation.analyze import analyze_action_accuracy_metrics
 from arklex.utils.model_config import MODEL
-
+from arklex.utils.model_provider_config import LLM_PROVIDERS
+from arklex.evaluation.chatgpt_utils import create_client
 
 def evaluate(config):
     task = config['task']
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', type=str)
     parser.add_argument('--output_dir', type=str)
     parser.add_argument('--model', type=str, default=MODEL["model_type_or_path"])
+    parser.add_argument( '--llm-provider',type=str,default=MODEL["llm_provider"],choices=LLM_PROVIDERS)
     parser.add_argument('--customer_type', type=str, default=None, choices=['b2b', 'b2c'])
     parser.add_argument('--task', type=str, default='first_pass', choices=['first_pass', "action_pass", 'all'])
     parser.add_argument('--user_attributes', type=str, default='arklex/evaluation/user_attributes.json')
@@ -59,6 +61,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     MODEL["model_type_or_path"] = args.model
+    MODEL["llm_provider"] = args.llm_provider
+    create_client()
 
     assert args.model_api is not None, "Model api must be provided"
     assert args.config is not None, "Config file must be provided"
