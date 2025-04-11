@@ -26,7 +26,7 @@ from arklex.utils.utils import format_chat_history
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-INFO_WORKERS = ["planner", "MessageWorker", "RagMsgWorker"]
+INFO_WORKERS = ["planner", "MessageWorker", "RagMsgWorker", "HITLWorkerChatFlag"]
 
 class AgentOrg:
     def __init__(self, config, env: Env, **kwargs):
