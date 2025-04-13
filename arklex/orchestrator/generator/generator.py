@@ -10,6 +10,7 @@ from pathlib import Path
 import inspect
 import importlib
 from typing import Optional
+from collections import deque
 
 from langchain.prompts import PromptTemplate
 from langchain_openai.chat_models import ChatOpenAI
@@ -25,9 +26,13 @@ from arklex.utils.utils import postprocess_json
 from arklex.orchestrator.generator.prompts import *
 from arklex.utils.loader import Loader
 from arklex.env.env import BaseResourceInitializer, DefaulResourceInitializer
+from arklex.env.nested_graph.nested_graph import NESTED_GRAPH_ID
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_NODE_LIMIT = 100
 
 class InputModal(Screen):
     """A simple input modal for editing or adding tasks/steps."""
@@ -184,6 +189,51 @@ class Generator:
         self.output_dir = output_dir
     
     
+    def _generate_reusable_tasks(self):
+        prompt = PromptTemplate.from_template(generate_reusable_tasks_sys_prompt)
+        input_prompt = prompt.invoke({
+            "role": self.role,
+            "u_objective": self.u_objective,
+            "intro": self.intro,
+            "tasks": self.tasks,
+            "docs": self.documents
+            })
+        final_chain = self.model | StrOutputParser()
+        answer = final_chain.invoke(input_prompt)
+        results = postprocess_json(answer)
+        reusable_tasks = {}
+        for task in results:
+            task_name = task["name"].replace(" ", "_").lower()
+            reusable_tasks[task_name] = {
+                "nestedgraph_task": task["task"],
+                "subgraph": task["steps"]
+            }
+
+        resources = {}
+        for worker_id, worker_info in self.workers.items():
+            worker_name = worker_info["name"]
+            worker_desc = worker_info["description"]
+            resources[worker_name] = worker_desc
+
+        for tool_id, tool_info in self.tools.items():
+            tool_name = tool_info["name"]
+            tool_desc = tool_info["description"]
+            resources[tool_name] = tool_desc
+
+        # TODO: do I want to allow subgraph in subgraph?
+        # for task_name, task_info in reusable_tasks.items():
+        #     resources[task_name] = task_info["nestedgraph_task"]
+
+        reusable_task_finetune_prompt = PromptTemplate.from_template(embed_reusable_task_resources_sys_prompt)
+        for task_name in reusable_tasks:
+            input_prompt = reusable_task_finetune_prompt.invoke({"best_practice": reusable_tasks[task_name]["subgraph"], "resources": resources})
+            final_chain = self.model | StrOutputParser()
+            answer = final_chain.invoke(input_prompt)
+            task_subgraph = postprocess_json(answer)
+            reusable_tasks[task_name]["subgraph"] = task_subgraph
+
+        self.reusable_tasks = reusable_tasks
+
     def _generate_tasks(self):
         # based on the type and documents
         prompt = PromptTemplate.from_template(generate_tasks_sys_prompt)
@@ -206,7 +256,7 @@ class Generator:
     def _generate_best_practice(self, task):
         # Best practice detection
         resources = {}
-        for worker_id, worker_info in self.workers.items():
+        for _, worker_info in self.workers.items():
             worker_name = worker_info["name"]
             worker_desc = worker_info["description"]
             worker_func = worker_info["execute"]
@@ -220,6 +270,14 @@ class Generator:
             logger.debug(f"Code skeleton of the worker: {worker_resource}")
             
             resources[worker_name] = worker_resource
+        for _, tool_info in self.tools.items():
+            tool_name = tool_info["name"]
+            tool_desc = tool_info["description"]
+            resources[tool_name] = tool_desc
+
+        for task_name, task_info in self.reusable_tasks.items():
+            resources[task_name] = task_info["nestedgraph_task"]
+            
         resources_str = "\n".join([f"{name}\n: {desc}" for name, desc in resources.items()])
         prompt = PromptTemplate.from_template(check_best_practice_sys_prompt)
         input_prompt = prompt.invoke({"task": task["task"], "level": "1", "resources": resources_str})
@@ -267,6 +325,10 @@ class Generator:
             tool_desc = tool_info["description"]
             resources[tool_name] = tool_desc
             resource_id_map[tool_name] = tool_id
+        
+        for task_name, task_info in self.reusable_tasks.items():
+            resources[task_name] = task_info["nestedgraph_task"]
+            resource_id_map[task_name] = NESTED_GRAPH_ID
             
         input_prompt = prompt.invoke({"best_practice": best_practice, "resources": resources})
         final_chain = self.model | StrOutputParser()
@@ -294,6 +356,7 @@ class Generator:
         nodes = []
         edges = []
         task_ids = {}
+        nested_graph_nodes = []
         for best_practice, task in zip(finetuned_best_practices, self.tasks):
             task_ids[node_id] = task
             for idx, step in enumerate(best_practice):
@@ -309,8 +372,10 @@ class Generator:
                         "task": step['task'],
                         "directed": False
                     },
-                    "limit": 1
+                    "limit": DEFAULT_NODE_LIMIT
                 })
+                if step["resource_id"] == NESTED_GRAPH_ID:
+                    nested_graph_nodes.append(len(nodes))
                 nodes.append(node)
 
                 if idx == 0:
@@ -341,6 +406,62 @@ class Generator:
                     })
                 edges.append(edge)
                 node_id += 1
+
+        nested_graph_map = {}
+        resource_id_map = {}
+        for worker_id, worker_info in self.workers.items():
+            worker_name = worker_info["name"]
+            resource_id_map[worker_name] = worker_id
+        for tool_id, tool_info in self.tools.items():
+            tool_name = tool_info["name"]
+            resource_id_map[tool_name] = tool_id
+        for task_name, _ in self.reusable_tasks.items():
+            resource_id_map[task_name] = NESTED_GRAPH_ID
+
+        # Nested Graph Format Task Graph
+        for node_idx in nested_graph_nodes:
+            task_name = nodes[node_idx][1]["resource"]["name"]
+            if task_name in nested_graph_map: continue
+            nested_graph_map[task_name] = node_id
+            next_tasks = deque()
+            next_tasks.append((self.reusable_tasks[task_name]["subgraph"], None))
+            while next_tasks:
+                cur_task, prev_node_id = next_tasks.popleft()
+                node = []
+                node.append(str(node_id))
+                node.append({
+                    "resource": {
+                        "id": resource_id_map[cur_task['resource']],
+                        "name": cur_task['resource'],
+                    },
+                    "attribute": {
+                        "value": cur_task['example_response'],
+                        "task": cur_task['task'],
+                        "directed": False
+                    },
+                    "limit": DEFAULT_NODE_LIMIT
+                })
+                nodes.append(node)
+                if prev_node_id is not None:
+                    edge = []
+                    edge.append(str(prev_node_id))
+                    edge.append(str(node_id))
+                    edge.append({
+                        "intent": "None",
+                        "attribute": {
+                            "weight": 1,
+                            "pred": False,
+                            "definition": "",
+                            "sample_utterances": []
+                        }
+                    })
+                    edges.append(edge)
+                for next_task in cur_task.get("next", []):
+                    next_tasks.append((next_task, node_id))
+                node_id += 1
+
+        for node_idx in nested_graph_nodes:
+            nodes[node_idx][1]["attribute"]["value"] = str(nested_graph_map[nodes[node_idx][1]["resource"]["name"]])
         
         # Add the start node
         start_node = []
@@ -420,6 +541,8 @@ class Generator:
         else:
             self._format_tasks()
             logger.info(f"Formatted tasks: {self.tasks}")
+
+        self._generate_reusable_tasks()
 
         # Step 2: Generate the task planning
         best_practices = []
