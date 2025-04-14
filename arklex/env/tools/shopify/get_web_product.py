@@ -73,7 +73,7 @@ def get_web_product(web_product_id: str, **kwargs) -> str:
             result = json.loads(response)['data']['products']
             response = result["nodes"]
             if len(response) == 0:
-                raise ToolExecutionError(func_name, ExceptionPrompt.PRODUCT_NOT_FOUND_PROMPT)
+                raise ToolExecutionError(func_name, ShopifyExceptionPrompt.PRODUCT_NOT_FOUND_PROMPT)
             product = response[0]
             response_text = ""
             response_text += f"Product ID: {product.get('id', 'None')}\n"
