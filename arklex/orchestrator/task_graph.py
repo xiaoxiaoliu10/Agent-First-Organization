@@ -123,7 +123,7 @@ class TaskGraph(TaskGraphBase):
         params.taskgraph.curr_node = sample_node
         
         node_info = NodeInfo(
-            type=node_info["type"],
+            type=node_info.get("type", ""),
             resource_id=resource_id,
             resource_name=resource_name,
             can_skipped=True,
