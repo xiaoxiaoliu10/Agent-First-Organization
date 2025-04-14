@@ -6,6 +6,7 @@ from arklex.evaluation.build_user_profiles import build_profile, ATTR_TO_PROFILE
 from arklex.evaluation.chatgpt_utils import (chatgpt_chatbot, query_chatbot, filter_convo, adjust_goal,
                                                flip_hist, generate_goals, format_chat_history_str, flip_hist_content_only)
 from arklex.env.tools.tools import Tool
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # USER_DATA_KEYS = ['goal', 'product_experience_level', 'deal_stage', 'customer_type', 'decision_making_authority', 'persona', 'discovery_type', 'buying_behavior']
 USER_DATA_KEYS = ['goal', 'product_experience_level', 'customer_type', 'persona', 'discovery_type', 'buying_behavior']
@@ -124,18 +125,26 @@ def conversation(model_api, profile, goal, attr, sys_input, summary, model_param
 
 def generate_conversations(model_api, profiles, goals, attributes_list, system_inputs, summary, model_params, synthetic_data_params, env_config):
     convos = []
-    for profile, goal, attr, sys_input in zip(profiles, goals, attributes_list, system_inputs):
+    def worker(profile, goal, attr, sys_input):
         convo, goal_completion = conversation(model_api, profile, goal, attr, sys_input, summary, model_params, synthetic_data_params, env_config)
         syn_convo = flip_hist(filter_convo(convo, filter_turns=False))
-        convos.append(
-            {
-                "convo": syn_convo,
-                "profile": profile,
-                "goal": goal,
-                "attributes": attr,
-                "goal_completion": goal_completion
-            }
-        )
+        return {
+            "convo": syn_convo,
+            "profile": profile,
+            "goal": goal,
+            "attributes": attr,
+            "goal_completion": goal_completion
+        }
+
+    with ThreadPoolExecutor(max_workers=8) as executor:  
+        futures = [
+            executor.submit(worker, profile, goal, attr, sys_input)
+            for profile, goal, attr, sys_input in zip(profiles, goals, attributes_list, system_inputs)
+        ]
+
+        for future in as_completed(futures):
+            convos.append(future.result())
+
     return convos
 
 def simulate_conversations(model_api, model_params, synthetic_data_params, config):
