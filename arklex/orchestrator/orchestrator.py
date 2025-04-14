@@ -154,7 +154,6 @@ class AgentOrg:
         message_state.orchestrator_message = orchestrator_message
         message_state.function_calling_trajectory = params.memory.function_calling_trajectory
         message_state.trajectory = params.memory.trajectory
-        message_state.message_flow = params.memory.trajectory[-1][-1].output if params.memory.trajectory[-1] else ""
         message_state.slots = params.taskgraph.dialog_states
         message_state.metadata = params.metadata
         message_state.is_stream = True if stream_type is not None else False
