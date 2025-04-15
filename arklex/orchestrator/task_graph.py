@@ -123,6 +123,7 @@ class TaskGraph(TaskGraphBase):
         params.taskgraph.curr_node = sample_node
         
         node_info = NodeInfo(
+            type=node_info.get("type", ""),
             resource_id=resource_id,
             resource_name=resource_name,
             can_skipped=True,
@@ -226,6 +227,7 @@ class TaskGraph(TaskGraphBase):
             resource_name = node_info["resource"]["name"]
             resource_id = node_info["resource"]["id"]
             node_info = NodeInfo(
+                type=node_info.get("type", ""),
                 node_id=curr_node,
                 resource_id = resource_id,
                 resource_name = resource_name,
@@ -342,6 +344,7 @@ class TaskGraph(TaskGraphBase):
             params.taskgraph.nlu_records.append({"candidate_intents": [], "pred_intent": "", "no_intent": True, "global_intent": False})
         params.taskgraph.curr_node = curr_node
         node_info = NodeInfo(
+            type="",
             resource_id = "planner",
             resource_name = "planner",
             can_skipped=False,

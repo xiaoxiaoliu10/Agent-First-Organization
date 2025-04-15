@@ -99,7 +99,13 @@ class Params(BaseModel):
     taskgraph: Taskgraph = Field(default_factory=Taskgraph)
     memory: Memory = Field(default_factory=Memory)
 
+class NodeTypeEnum(str, Enum):
+    NONE = ""
+    START = "start"
+    MULTIPLE_CHOICE = "multiple_choice"
+
 class NodeInfo(BaseModel):
+    type: str = Field(default="")
     resource_id: str = Field(default="")
     resource_name: str = Field(default="")
     can_skipped: bool = Field(default=False)
@@ -111,3 +117,4 @@ class OrchestratorResp(BaseModel):
     answer: str = Field(default="")
     parameters: Dict[str, Any] = Field(default_factory=dict)
     human_in_the_loop: Optional[str] = Field(default=None)
+    choice_list: Optional[List[str]] = Field(default=[])
