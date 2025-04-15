@@ -23,6 +23,7 @@ class NestedGraph:
         """
         return str(self.node_info.attributes["value"])
     
+    
     @staticmethod
     def get_nested_graph_component_node(params: Params, is_leaf_func) -> Tuple[PathNode | None, Params]:
         """
