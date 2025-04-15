@@ -348,11 +348,17 @@ class TaskGraph(TaskGraphBase):
         return node_info, params
         
     def handle_leaf_node(self, curr_node, params: Params):
+        '''
+        if leaf node, first check if it's in a nested graph
+        if not in nested graph, check if we have flow stack
+        '''
         def is_leaf(node):
             return len(list(self.graph.successors(node))) == 0
         
+        # if not leaf, return directly current node
         if not is_leaf(curr_node):
             return curr_node, params
+        
         
         nested_graph_next_node, params = NestedGraph.get_nested_graph_component_node(params, is_leaf)
         if nested_graph_next_node is not None:

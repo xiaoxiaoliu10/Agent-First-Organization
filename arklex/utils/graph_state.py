@@ -27,7 +27,6 @@ class OrchestratorMessage(BaseModel):
 
 class StatusEnum(str, Enum):
     COMPLETE = "complete"
-    INPROGRESS = "in_progress"
     INCOMPLETE = "incomplete"
     STAY = "stay"
 

@@ -169,7 +169,7 @@ class AgentOrg:
     def handle_nested_graph_node(self, node_info: NodeInfo, params: Params):
         if node_info.resource_id != NESTED_GRAPH_ID:
             return node_info, params
-        
+        # if current node is a nested graph resource, change current node to the start of the nested graph
         nested_graph = NestedGraph(node_info=node_info)
         next_node_id = nested_graph.get_nested_graph_start_node_id()
         nested_graph_node = params.taskgraph.curr_node
@@ -181,9 +181,12 @@ class AgentOrg:
             nested_graph_leaf_jump = None,
             global_intent= params.taskgraph.curr_global_intent,
         )
+        # add nested graph resource node to path
+        # start node of the nested graph will be added to the path after performed
         params.taskgraph.path.append(node)
         params.taskgraph.curr_node = next_node_id
-        params.taskgraph.node_status[node_info.node_id] = StatusEnum.INPROGRESS
+        # use incomplete status at the beginning, status will be changed when whole nested graph is traversed
+        params.taskgraph.node_status[node_info.node_id] = StatusEnum.INCOMPLETE
         node_info, params = self.task_graph._get_node(next_node_id, params)
    
         return node_info, params
