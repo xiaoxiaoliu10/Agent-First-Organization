@@ -14,16 +14,16 @@ outputs = [
 
 
 @register_tool(description, slots, outputs)
-def cart_add_items(cart_id: str, add_line_items: list, **kwargs):
+def cart_add_items(cart_id: str, product_variant_ids: list[str], **kwargs):
     func_name = inspect.currentframe().f_code.co_name
     auth = authorify_storefront(kwargs)
     
     variable = {
         "cartId": cart_id,
         "lines": [
-            {"merchandiseId": item,
+            {"merchandiseId": pv_id,
                 "quantity": 1
-            } for item in add_line_items
+            } for pv_id in product_variant_ids
         ]
     }
     headers = {
