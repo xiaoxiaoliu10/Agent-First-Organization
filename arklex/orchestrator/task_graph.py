@@ -227,6 +227,7 @@ class TaskGraph(TaskGraphBase):
             resource_name = node_info["resource"]["name"]
             resource_id = node_info["resource"]["id"]
             node_info = NodeInfo(
+                type=node_info.get("type", ""),
                 node_id=curr_node,
                 resource_id = resource_id,
                 resource_name = resource_name,
