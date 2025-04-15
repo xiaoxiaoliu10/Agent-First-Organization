@@ -337,7 +337,7 @@ Answer:
 """
 
 
-embed_resources_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the best practices for addressing a specific task, and the available resources, your task is to map the steps with the resources. The response should include the resources used for each step and example responses, if applicable. Return the answer in JSON format. Do not add any comment on the answer.
+embed_resources_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the best practices for addressing a specific task, and the available resources, your task is to map the steps with the resources. The response should include only the most suitable resource used for each step and example responses, if applicable. Return the answer in JSON format. Do not add any comment on the answer.
 
 For example:
 Best Practice: 
@@ -411,7 +411,7 @@ Resources: {resources}
 Answer:
 """
 
-embed_reusable_task_resources_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the best practices for addressing a specific task, and the available resources, your task is to map the steps with the resources. The response should include the resources used for each step and example responses, if applicable. Return the answer in JSON format. Do not add any comment on the answer.
+embed_reusable_task_resources_sys_prompt = """The builder plans to create an assistant designed to provide services to users. Given the best practices for addressing a specific task, and the available resources, your task is to map the steps with the resources. The response should include only the most suitable resource used for each step and example responses, if applicable. Return the answer in JSON format. Do not add any comment on the answer.
 For example:
 Best Practice: 
 {{

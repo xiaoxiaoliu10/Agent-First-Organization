@@ -32,8 +32,6 @@ from arklex.env.nested_graph.nested_graph import NESTED_GRAPH_ID
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_NODE_LIMIT = 100
-
 class InputModal(Screen):
     """A simple input modal for editing or adding tasks/steps."""
     
@@ -210,12 +208,12 @@ class Generator:
             }
 
         resources = {}
-        for worker_id, worker_info in self.workers.items():
+        for _, worker_info in self.workers.items():
             worker_name = worker_info["name"]
             worker_desc = worker_info["description"]
             resources[worker_name] = worker_desc
 
-        for tool_id, tool_info in self.tools.items():
+        for _, tool_info in self.tools.items():
             tool_name = tool_info["name"]
             tool_desc = tool_info["description"]
             resources[tool_name] = tool_desc
@@ -371,8 +369,7 @@ class Generator:
                         "value": step['example_response'],
                         "task": step['task'],
                         "directed": False
-                    },
-                    "limit": DEFAULT_NODE_LIMIT
+                    }
                 })
                 if step["resource_id"] == NESTED_GRAPH_ID:
                     nested_graph_nodes.append(len(nodes))
@@ -438,8 +435,7 @@ class Generator:
                         "value": cur_task['example_response'],
                         "task": cur_task['task'],
                         "directed": False
-                    },
-                    "limit": DEFAULT_NODE_LIMIT
+                    }
                 })
                 nodes.append(node)
                 if prev_node_id is not None:
