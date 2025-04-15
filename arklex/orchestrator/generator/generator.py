@@ -203,7 +203,7 @@ class Generator:
         for task in results:
             task_name = task["name"].replace(" ", "_").lower()
             reusable_tasks[task_name] = {
-                "nestedgraph_task": task["task"],
+                "nestedgraph_task": task["description"],
                 "subgraph": task["steps"]
             }
 

@@ -133,7 +133,8 @@ Name Each Subtask Clearly: Use descriptive names for the subtasks.
 Describe the Subtask’s Purpose and Steps: Provide a clear and detailed definition for each subtask, along with a detailed outline of the steps it involves.
 Maintain Independence: Subtasks should be self-contained, modular, and applicable in different contexts.
 Return the Response in JSON Format
-The JSON structure should include a clear name, task, and a steps (or next) hierarchy that outlines the logical flow.
+The JSON structure should include a clear name, description, and a steps (or next) hierarchy that outlines the logical flow.
+The description should be detailed, so that one can understand clearly what the task does.
 For each node in the hierarchy:
 - Include a "task" field describing its function.
 - Include a "next" array of child nodes. If a node is a leaf, set "next" to an empty array ([]).
@@ -142,7 +143,7 @@ Expected Answer Format (Example):
 [
     {{
         "name": "User Authentication",
-        "task": "Verify the user's identity",
+        "description": "There are two types of user identity verification: via email or using name and ZIP code. This function first prompts the user to choose a verification method, then calls the corresponding authentication function accordingly.",
         "steps": {{
             "task": "Ask user for credentials; can authenticate via email or name + zip code.",
             "next": [
@@ -159,21 +160,26 @@ Expected Answer Format (Example):
     }},
     {{
         "name": "Order Status Validation",
-        "task": "Check the order status",
+        "description": "This task is used to check the status of an order. It prompts the user for the order ID and retrieves the order details to determine the status. Finally, based on the allowed states for the requested action, it either proceeds or informs the user that they do not have permission.",
         "steps": [
             {{
-                "task": "Retrieve the order details.",
+                "task": "Ask user for order id.",
                 "next": [
                     {{
-                        "task": "Verify if the order is in an allowed state for the requested action.",
+                        "task": "Retrieve the order details.",
                         "next": [
                             {{
-                                "task": "If yes, continue with the requested action.",
-                                "next": []
-                            }},
-                            {{
-                                "task": "If not, inform the user and deny the request.",
-                                "next": []
+                                "task": "Verify if the order is in an allowed state for the requested action.",
+                                "next": [
+                                    {{
+                                        "task": "If yes, continue with the requested action.",
+                                        "next": []
+                                    }},
+                                    {{
+                                        "task": "If not, inform the user and deny the request.",
+                                        "next": []
+                                    }}
+                                ]
                             }}
                         ]
                     }}
