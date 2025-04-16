@@ -62,7 +62,6 @@ if __name__ == "__main__":
 
     assert args.model_api is not None, "Model api must be provided"
     assert args.config is not None, "Config file must be provided"
-    assert args.documents_dir is not None, "Documents directory must be provided"
     assert args.user_attributes is not None, "User attribute file must be provided"
     if not args.output_dir:
         args.output_dir = os.path.join(args.documents_dir, 'eval')
