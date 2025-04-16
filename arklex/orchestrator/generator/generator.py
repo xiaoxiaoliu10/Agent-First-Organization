@@ -372,6 +372,7 @@ class Generator:
                     }
                 })
                 if step["resource_id"] == NESTED_GRAPH_ID:
+                    # store the index of the nested graph == len(nodes) (not the id of the node)
                     nested_graph_nodes.append(len(nodes))
                 nodes.append(node)
 
@@ -419,6 +420,7 @@ class Generator:
         for node_idx in nested_graph_nodes:
             task_name = nodes[node_idx][1]["resource"]["name"]
             if task_name in nested_graph_map: continue
+            # store node_id which is the value of the nested graph resource node id
             nested_graph_map[task_name] = node_id
             next_tasks = deque()
             next_tasks.append((self.reusable_tasks[task_name]["subgraph"], None))
