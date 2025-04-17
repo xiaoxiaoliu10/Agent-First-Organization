@@ -6,7 +6,7 @@ from pathlib import Path
 from os.path import dirname, abspath
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
-from arklex.utils.loader import Loader, CrawledObject, CrawledURLObject, CrawledLocalObject
+from arklex.utils.loader import Loader, CrawledURLObject, URLType
 
 def get_domain_info(documents):
     summary = None
@@ -54,10 +54,11 @@ def load_docs(document_dir, doc_config, limit=10):
         else:
             limit = 10
             
-        if isinstance(docs[0], CrawledObject):
+        if isinstance(docs[0], CrawledURLObject):
             documents = []
-            documents.extend(loader.get_candidates_websites(filter(lambda x: isinstance(x, CrawledURLObject), docs), limit))
-            documents.extend(filter(lambda x: isinstance(x, CrawledLocalObject), docs))
+            # Get candidate websites for only web urls
+            documents.extend(loader.get_candidates_websites(filter(lambda x: x.url_type == URLType.WEB, docs), limit))
+            documents.extend(filter(lambda x: x.url_type == URLType.LOCAL, docs))
             
         else:
             documents = []

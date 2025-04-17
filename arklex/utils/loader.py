@@ -6,6 +6,7 @@ import requests
 import pickle
 import uuid
 import argparse
+from enum import Enum
 import os
 
 from webdriver_manager.chrome import ChromeDriverManager
@@ -15,7 +16,11 @@ from urllib.parse import urljoin
 import networkx as nx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-
+from mistralai import Mistral
+import filetype
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, UnstructuredWordDocumentLoader, UnstructuredExcelLoader, UnstructuredMarkdownLoader, TextLoader
+import base64
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -26,37 +31,30 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 CHROME_DRIVER_VERSION = "125.0.6422.7"
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+
+def encode_image(image_path):
+    """Encode the image to base64."""
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+    except FileNotFoundError:
+        logger.error(f"Error: The file {image_path} was not found.")
+        return None
+    except Exception as e:  # Added general exception handling
+        logger.error(f"Error: {e}")
+        return None
+
+class URLType(Enum):
+    WEB = 1
+    LOCAL = 2
 
 class URLObject:
     def __init__(self, id: str, url: str):
         self.id = id
         self.url = url
-        
-class LocalObject:
-    def __init__(self, id: str, location: str):
-        self.id = id
-        self.location = location
-        
-class CrawledObject():
-    def __init__(
-        self,
-        id: str,
-        location: str,
-        content: str,
-        metadata={},
-        is_chunk=False,
-        is_error=False,
-        error_message=None,
-    ):
-        self.id = id
-        self.location = location
-        self.content = content
-        self.metadata = metadata
-        self.is_chunk = is_chunk
-        self.is_error = is_error
-        self.error_message = error_message
-        
-class CrawledURLObject(CrawledObject):
+
+class CrawledURLObject(URLObject):
     def __init__(
         self,
         id: str,
@@ -66,23 +64,18 @@ class CrawledURLObject(CrawledObject):
         is_chunk=False,
         is_error=False,
         error_message=None,
+        url_type = URLType.WEB
     ):
-        super().__init__(id, url, content, metadata, is_chunk, is_error, error_message)
+        super().__init__(id, url)
+        self.id = id
         self.url = url
+        self.content = content
+        self.metadata = metadata
+        self.is_chunk = is_chunk
+        self.is_error = is_error
+        self.error_message = error_message
+        self.url_type = url_type
         
-class CrawledLocalObject(CrawledObject):
-    def __init__(
-        self,
-        id: str,
-        location: str,
-        content: str,
-        metadata={},
-        is_chunk=False,
-        is_error=False,
-        error_message=None,
-    ):
-        super().__init__(id, location, content, metadata, is_chunk, is_error, error_message)
-
 class Loader:
     def __init__(self):
         pass
@@ -241,85 +234,159 @@ class Loader:
         urls_cleaned = [doc for doc in urls_candidates if doc]
         return urls_cleaned
     
-    def to_crawled_local_objs(self, file_list: List[str]) -> List[CrawledLocalObject]:    
-        local_objs = [LocalObject(str(uuid.uuid4()), file) for file in file_list]
-        crawled_local_objs = [self.crawl_local(local_obj) for local_obj in local_objs]
-        crawled_local_objs = list(filter(None, crawled_local_objs))
+    def to_crawled_local_objs(self, file_list: List[str]) -> List[CrawledURLObject]:
+        '''Crawls a list of locally present files.'''    
+        local_objs = [URLObject(str(uuid.uuid4()), file) for file in file_list]
+        crawled_local_objs = [self.crawl_file(local_obj) for local_obj in local_objs]
         return crawled_local_objs
     
-    def crawl_local(self, local_obj: LocalObject) -> CrawledLocalObject:
-        ## TODO: implement the local file crawling
-        ext = os.path.splitext(local_obj.location)[1]
-        logging.info(f"Crawling local file: {local_obj.location} with extension {ext}")
+    def crawl_file(self, local_obj: URLObject) -> CrawledURLObject:
+        '''This function crawls a file that is present locally and returns the crawled object.'''
+        file_type = filetype.guess(local_obj.url)
+        file_path = Path(local_obj.url)
+        file_name = file_path.name
         
-        if ext == ".txt" or ext == '.md':
-            return CrawledLocalObject(
-                local_obj.id,
-                local_obj.location,
-                content=open(local_obj.location, "r", encoding="utf-8").read(),
-                metadata={"title": os.path.basename(local_obj.location), "source": local_obj.location},
-            )
+        try:
+            if not file_type:
+                err_msg = "No file type detected"
+                raise FileNotFoundError(err_msg)
             
-        elif ext == '.html':
-            html = open(local_obj.location, "r", encoding="utf-8").read()
-            soup = BeautifulSoup(html, "html.parser")
-
-            text_list = []
-            for string in soup.strings:        
-                if string.find_parent("a"):
-                    href = string.find_parent("a").get("href")
-                    text = f"{string} {href}"
-                    text_list.append(text)
-                elif string.strip():
-                    text_list.append(string)
-            text_output = "\n".join(text_list)
-            
-            title = os.path.basename(local_obj.location)
-            for title in soup.find_all("title"):
-                title = title.get_text()
-                break
-
-            return CrawledLocalObject(
+            if file_type.extension in ["pdf", "png", "jpg", "jpeg"] and MISTRAL_API_KEY is not None:
+                # Call the Mistral API to extract data.
+                client = Mistral(api_key=MISTRAL_API_KEY)
+                if file_type.extension == "pdf":
+                    # For pdf's
+                    uploaded_pdf = client.files.upload(
+                        file={
+                            "file_name": file_name,
+                            "content": open(file_path, "rb"),
+                        },
+                        purpose="ocr"
+                    ) 
+                    signed_url = client.files.get_signed_url(file_id=uploaded_pdf.id)
+                    ocr_response = client.ocr.process(
+                        model="mistral-ocr-latest",
+                        document={
+                            "type": "document_url",
+                            "document_url": signed_url.url,
+                        }
+                    )
+                else:
+                    # For image files
+                    base64_image = encode_image(file_path)
+                    ocr_response = client.ocr.process(
+                        model="mistral-ocr-latest",
+                        document={
+                            "type": "image_url",
+                            "image_url": f"data:image/{file_type.extension};base64,{base64_image}" 
+                        }
+                    )
+                doc_text = ""
+                for page in ocr_response.pages:
+                    doc_text += page.markdown
+                
+                logger.info('Mistral PDF extractor worked as expected.')
+                return CrawledURLObject(
                     id=local_obj.id,
-                    location=local_obj.location,
-                    content=text_output,
-                    metadata={"title": title, "source": local_obj.location},
+                    url=local_obj.url,
+                    content=doc_text,
+                    metadata={"title": file_name, "source": local_obj.url},
+                    url_type=URLType.LOCAL
                 )
-            
-        elif ext =='pdf':
-            # TODO
-            pass
-        
-        return None
+            elif file_type.extension == "html":
+                # TODO : Consider replacing this logic with the Unstructured HTML Loader.
+                # Would need to be done in crawl_urls too.
+                html = open(file_path, "r", encoding="utf-8").read()
+                soup = BeautifulSoup(html, "html.parser")
+
+                text_list = []
+                for string in soup.strings:        
+                    if string.find_parent("a"):
+                        href = string.find_parent("a").get("href")
+                        text = f"{string} {href}"
+                        text_list.append(text)
+                    elif string.strip():
+                        text_list.append(string)
+                text_output = "\n".join(text_list)
+                
+                title = file_name
+                for title in soup.find_all("title"):
+                    title = title.get_text()
+                    break
+
+                return CrawledURLObject(
+                        id=local_obj.id,
+                        url=local_obj.url,
+                        content=text_output,
+                        metadata={"title": title, "source": local_obj.url},
+                        url_type=URLType.LOCAL
+                    )
+            elif file_type.extension == "pdf":
+                # Since Mistral API key is absent, we default to basic pdf parser
+                logger.info("MISTRAL_API_KEY env variable not set, hence defaulting to static parsing.")
+                loader = PyPDFLoader(file_path)
+            elif file_type.extension == "doc" or file_type.extension == "docx":
+                loader = UnstructuredWordDocumentLoader(file_path, mode="single")
+            elif file_type.extension == "xlsx" or file_type.extension == "xls":
+                loader = UnstructuredExcelLoader(file_path, mode="single")
+            elif file_type.extension == "txt":
+                loader = TextLoader(file_path)
+            elif file_type.extension == "md":
+                loader = UnstructuredMarkdownLoader(file_path)
+            else:
+                err_msg = "Unsupported file type. If you are trying to upload a pdf, make sure it is less than 50MB. Images are only supported with the advanced parser."
+                raise NotImplementedError(err_msg)
+                
+            document = loader.load()[0]
+            doc_text = document.to_json()["kwargs"]["page_content"]
+            return CrawledURLObject(
+                id=local_obj.id,
+                url=local_obj.url,
+                content=doc_text,
+                metadata={"title": file_name, "source": local_obj.url},
+                url_type=URLType.LOCAL,   
+            )
+
+        except Exception as err_msg:
+            logger.info(f"error processing file: {err_msg}")
+            return CrawledURLObject(
+                id=local_obj.id,
+                url=local_obj.url,
+                content=None,
+                metadata={"title": file_name},
+                url_type=URLType.LOCAL,
+                is_error=True,
+                error_message=str(err_msg)
+            )
     
     @staticmethod
-    def save(file_path: str, docs: List[CrawledObject]):
+    def save(file_path: str, docs: List[CrawledURLObject]):
         with open(file_path, "wb") as f:
             pickle.dump(docs, f)
     
     @classmethod
-    def chunk(cls, crawled_objs: List[CrawledObject]) -> List[CrawledObject]:
+    def chunk(cls, url_objs: List[CrawledURLObject]) -> List[CrawledURLObject]:
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(encoding_name="cl100k_base", chunk_size=200, chunk_overlap=40)
         docs = []
         langchain_docs = []
-        for crawled_obj in crawled_objs:
-            if crawled_obj.is_error or crawled_obj.content is None:
-                logger.info(f"Skip source: {crawled_obj.location} because of error or no content")
+        for url_obj in url_objs:
+            if url_obj.is_error or url_obj.content is None:
+                logger.info(f"Skip source: {url_obj.url} because of error or no content")
                 continue
-            elif crawled_obj.is_chunk:
-                logger.info(f"Skip source: {crawled_obj.location} because it has been chunked")
-                docs.append(crawled_obj)
+            elif url_obj.is_chunk:
+                logger.info(f"Skip source: {url_obj.url} because it has been chunked")
+                docs.append(url_obj)
                 continue
-            splitted_text = text_splitter.split_text(crawled_obj.content)
+            splitted_text = text_splitter.split_text(url_obj.content)
             for i, txt in enumerate(splitted_text):
-                doc = CrawledObject(
-                    id=crawled_obj.id+"_"+str(i),
-                    location=crawled_obj.location,
+                doc = CrawledURLObject(
+                    id=url_obj.id+"_"+str(i),
+                    location=url_obj.url,
                     content=txt,
-                    metadata=crawled_obj.metadata,
+                    metadata=url_obj.metadata,
                     is_chunk=True,
                 )
                 docs.append(doc)
-                langchain_docs.append(Document(page_content=txt, metadata={"source": crawled_obj.location}))
+                langchain_docs.append(Document(page_content=txt, metadata={"source": url_obj.url}))
         return langchain_docs
 
