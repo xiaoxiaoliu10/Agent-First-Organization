@@ -6,25 +6,28 @@ from tests.utils.utils_workers import MCWorkerOrchestrator, MsgWorkerOrchestrato
 from tests.utils.utils_tools import ShopifyToolOrchestrator
 
 
+TEST_CASES = [
+    (
+        MCWorkerOrchestrator,
+        "mc_worker_taskgraph.json",
+        "mc_worker_testcases.json",
+    ),
+    (
+        MsgWorkerOrchestrator,
+        "message_worker_taskgraph.json",
+        "message_worker_testcases.json",
+    ),
+    (
+        ShopifyToolOrchestrator,
+        "shopify_tool_taskgraph.json",
+        "shopify_tool_testcases.json",
+    ),
+]
+
+
 @pytest.mark.parametrize(
     "orchestrator_cls, config_file_name, test_cases_file_name",
-    [
-        (
-            MCWorkerOrchestrator,
-            "mc_worker_taskgraph.json",
-            "mc_worker_testcases.json",
-        ),
-        (
-            MsgWorkerOrchestrator,
-            "message_worker_taskgraph.json",
-            "message_worker_testcases.json",
-        ),
-        (
-            ShopifyToolOrchestrator,
-            "shopify_tool_taskgraph.json",
-            "shopify_tool_testcases.json",
-        ),
-    ],
+    TEST_CASES,
 )
 def test_resources(orchestrator_cls, config_file_name, test_cases_file_name):
     test_resources_instance = orchestrator_cls(os.path.join(os.path.dirname(__file__), "data", config_file_name))
