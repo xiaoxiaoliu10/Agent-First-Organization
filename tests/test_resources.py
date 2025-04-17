@@ -2,8 +2,8 @@ import json
 import os
 import pytest
 
-from tests.utils_workers import MCWorkerOrchestrator, MsgWorkerOrchestrator
-from tests.utils_shopify_tools import ShopifyToolOrchestrator
+from tests.utils.utils_workers import MCWorkerOrchestrator, MsgWorkerOrchestrator
+from tests.utils.utils_tools import ShopifyToolOrchestrator
 
 
 @pytest.mark.parametrize(
@@ -21,8 +21,8 @@ from tests.utils_shopify_tools import ShopifyToolOrchestrator
         ),
         (
             ShopifyToolOrchestrator,
-            "shopify_tools_taskgraph.json",
-            "shopify_tools_testcases.json",
+            "shopify_tool_taskgraph.json",
+            "shopify_tool_testcases.json",
         ),
     ],
 )

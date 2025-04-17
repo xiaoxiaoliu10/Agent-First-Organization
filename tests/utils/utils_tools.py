@@ -1,7 +1,7 @@
 import os
 import json
 
-from tests.utils import MockOrchestrator
+from tests.utils.utils import MockOrchestrator
 
 
 class ShopifyToolOrchestrator(MockOrchestrator):

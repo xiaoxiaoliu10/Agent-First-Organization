@@ -20,8 +20,8 @@
             "1",
             {
                 "resource": {
-                    "id": "planner",
-                    "name": "planner"
+                    "id": "multiple_choice_worker",
+                    "name": "MultipleChoiceWorker"
                 },
                 "attribute": {
                     "value": "We have the following products, which one do you want to know more about?",
