@@ -16,19 +16,18 @@ def evaluate(config):
     model_api = config['model_api']
     model_params = config['model_params']
     synthetic_data_params = config['synthetic_data_params']
-
     bot_goal = config.get('builder_objective', None)
     bot_goal = None if bot_goal == "" else bot_goal
     
     if task == 'first_pass':
         # first pass
         first_pass_data, goals = simulate_conversations(model_api, model_params, synthetic_data_params, config)
-        goal_metrics = extract_task_completion_metrics(first_pass_data, bot_goal)
+        goal_metrics = extract_task_completion_metrics(first_pass_data, config['client'], bot_goal)
         data = first_pass_data
     elif task == 'action_pass':
         # action pass
         action_pass_data, goals, labels_list = simulate_action_conversations(model_api, model_params, synthetic_data_params, config)
-        goal_metrics = extract_task_completion_metrics(action_pass_data, bot_goal)
+        goal_metrics = extract_task_completion_metrics(action_pass_data, config['client'], bot_goal)
         goal_metrics['action_pass'] = analyze_action_accuracy_metrics(action_pass_data, labels_list)
         data = action_pass_data
     # second pass
@@ -62,7 +61,7 @@ if __name__ == "__main__":
 
     MODEL["model_type_or_path"] = args.model
     MODEL["llm_provider"] = args.llm_provider
-    create_client()
+    client = create_client()
 
     assert args.model_api is not None, "Model api must be provided"
     assert args.config is not None, "Config file must be provided"
@@ -91,6 +90,7 @@ if __name__ == "__main__":
     config['user_attributes'] = user_attributes
     config['custom_profile'] = args.custom_profile
     config['system_inputs'] = args.system_inputs
+    config['client'] =client
     first_pass_data, final_convos, goal_metrics, goals = evaluate(config)
 
     with open(os.path.join(args.output_dir, 'goals.json'), 'w') as f:
