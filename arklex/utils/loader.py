@@ -67,8 +67,6 @@ class CrawledURLObject(URLObject):
         url_type = URLType.WEB
     ):
         super().__init__(id, url)
-        self.id = id
-        self.url = url
         self.content = content
         self.metadata = metadata
         self.is_chunk = is_chunk
@@ -371,17 +369,17 @@ class Loader:
         langchain_docs = []
         for url_obj in url_objs:
             if url_obj.is_error or url_obj.content is None:
-                logger.info(f"Skip source: {url_obj.url} because of error or no content")
+                logger.info(f"Skip url: {url_obj.url} because of error or no content")
                 continue
             elif url_obj.is_chunk:
-                logger.info(f"Skip source: {url_obj.url} because it has been chunked")
+                logger.info(f"Skip url: {url_obj.url} because it has been chunked")
                 docs.append(url_obj)
                 continue
             splitted_text = text_splitter.split_text(url_obj.content)
             for i, txt in enumerate(splitted_text):
                 doc = CrawledURLObject(
                     id=url_obj.id+"_"+str(i),
-                    location=url_obj.url,
+                    url=url_obj.url,
                     content=txt,
                     metadata=url_obj.metadata,
                     is_chunk=True,
