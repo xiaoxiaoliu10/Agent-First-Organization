@@ -24,7 +24,7 @@ slots = [
         "name": "time_zone",
         "type": "str",
         "enum": ["America/New_York", "America/Los_Angeles", "Asia/Tokyo", "Europe/London"],
-        "description": "The timezone of the user. For example, 'America/New_York'. If you are not sure, just ask the user to confirm.",
+        "description": "The timezone of the user. It allows users to input abbreviation like nyc, NYC. If you are not sure, just ask the user to confirm in response.",
         "prompt": "Could you please provide your timezone or where are you now?",
         "required": True
     },
@@ -39,7 +39,7 @@ slots = [
 outputs = [
     {
         "name": "meeting_info",
-        "type": "string",
+        "type": "dict",
         "description": "The unavailable time slots of the representative and the corresponding slug.",
     }
 ]

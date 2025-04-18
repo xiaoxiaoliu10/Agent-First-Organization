@@ -18,7 +18,7 @@ slots = [
     {
         "name": "cus_cid",
         "type": "str",
-        "description": "The id of the customer contact.",
+        "description": "The id of the customer contact. It consists of all numbers. e.g. 97530152525",
         "prompt": "",
         "required": True,
     },

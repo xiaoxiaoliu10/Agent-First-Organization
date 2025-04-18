@@ -31,7 +31,7 @@ slots = [
 outputs = [
     {
         "name": "contact_information",
-        "type": "str",
+        "type": "dict",
         "description": "The basic contact information for the existing customer (e.g. id, first_name, last_name, etc.)",
     }
 ]
