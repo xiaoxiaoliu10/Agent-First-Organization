@@ -75,7 +75,8 @@ class PathNode(BaseModel):
     is_skipped: bool = False
     in_flow_stack: bool = False
     nested_graph_node_value: Optional[str] = None
-    nested_graph_leaf_jump: Optional[str] = None
+    nested_graph_leaf_jump: Optional[int] = None
+    global_intent: str = Field(default="")
 
 
 class Taskgraph(BaseModel):
@@ -84,6 +85,7 @@ class Taskgraph(BaseModel):
     path: List[PathNode] = Field(default_factory=list)
     curr_node: str = Field(default="")
     intent: str = Field(default="")
+    curr_global_intent: str = Field(default="")
     node_limit: Dict[str, int] = Field(default_factory=dict)
     nlu_records: List = Field(default_factory=list)
     node_status: Dict[str, StatusEnum] = Field(default_factory=dict)
@@ -105,6 +107,7 @@ class NodeTypeEnum(str, Enum):
     MULTIPLE_CHOICE = "multiple_choice"
 
 class NodeInfo(BaseModel):
+    node_id: Optional[str] = Field(default=None)
     type: str = Field(default="")
     resource_id: str = Field(default="")
     resource_name: str = Field(default="")

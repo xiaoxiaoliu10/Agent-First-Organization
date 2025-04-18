@@ -1,12 +1,12 @@
 [project]
 name = "arklex"
-version = "0.0.1"
 description = "The official Python library for the arklex API"
 authors = [
   { name="Arklex.AI", email="support@arklex.ai" },
 ]
 readme = "README.md"
 requires-python = ">=3.10"
+dynamic = ["version"]
 classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.10",
@@ -44,7 +44,8 @@ dependencies = [
   "scipy>=1.14.1,<2.0.0",
   "litellm>=1.59.0,<2.0.0",
   "janus>=1.0.0,<2.0.0",
-  "pydantic_ai>=0.0.46,<1.0.0"
+  "pydantic_ai>=0.0.46,<1.0.0",
+  "pytest>=8.3.5,<9.0.0"
 ]
 license = "MIT"
 
@@ -56,6 +57,10 @@ milvus = [
 ]
 shopify = ["ShopifyAPI>=12.7.0,<13.0.0"]
 hubspot = ["hubspot-api-client>=11.1.0,<12.0.0"]
+
+[tool.hatch.version]
+path = "arklex/__init__.py"
+
 [project.urls]
 Homepage = "https://github.com/arklexai/Agent-First-Organization"
 Issues = "https://github.com/arklexai/Agent-First-Organization/issues"
