@@ -224,10 +224,28 @@ class Generator:
 
         reusable_task_finetune_prompt = PromptTemplate.from_template(embed_reusable_task_resources_sys_prompt)
         for task_name in reusable_tasks:
-            input_prompt = reusable_task_finetune_prompt.invoke({"best_practice": reusable_tasks[task_name]["subgraph"], "resources": resources})
-            final_chain = self.model | StrOutputParser()
-            answer = final_chain.invoke(input_prompt)
-            task_subgraph = postprocess_json(answer)
+            n_trials = 0
+            max_trials = 3
+            while n_trials < max_trials:
+                input_prompt = reusable_task_finetune_prompt.invoke({"best_practice": reusable_tasks[task_name]["subgraph"], "resources": resources})
+                final_chain = self.model | StrOutputParser()
+                answer = final_chain.invoke(input_prompt)
+                task_subgraph = postprocess_json(answer)
+                
+                tasks = [task_subgraph]
+                has_all_resource = True
+                while tasks:
+                    task = tasks.pop()
+                    if task.get("resource") not in resources:
+                        has_all_resource = False
+                        break
+                    for next_task in task.get("next", []):
+                        tasks.append(next_task)
+                if has_all_resource:
+                    break
+                n_trials += 1
+
+
             reusable_tasks[task_name]["subgraph"] = task_subgraph
 
         self.reusable_tasks = reusable_tasks
@@ -355,19 +373,32 @@ class Generator:
         edges = []
         task_ids = {}
         nested_graph_nodes = []
+
+        resource_id_map = {}
+        for worker_id, worker_info in self.workers.items():
+            worker_name = worker_info["name"]
+            resource_id_map[worker_name] = worker_id
+        for tool_id, tool_info in self.tools.items():
+            tool_name = tool_info["name"]
+            resource_id_map[tool_name] = tool_id
+        for task_name, _ in self.reusable_tasks.items():
+            resource_id_map[task_name] = NESTED_GRAPH_ID
+
         for best_practice, task in zip(finetuned_best_practices, self.tasks):
             task_ids[node_id] = task
             for idx, step in enumerate(best_practice):
+                resource_name = step.get('resource') if step.get('resource') in resource_id_map else "MessageWorker"
+                resource_id = resource_id_map[resource_name]
                 node = []
                 node.append(str(node_id))
                 node.append({
                     "resource": {
-                        "id": step["resource_id"],
-                        "name": step['resource'],
+                        "id": resource_id,
+                        "name": resource_name,
                     },
                     "attribute": {
-                        "value": step['example_response'],
-                        "task": step['task'],
+                        "value": step.get('example_response', ""),
+                        "task": step.get('task', ""),
                         "directed": False
                     }
                 })
@@ -381,7 +412,7 @@ class Generator:
                     edge.append("0")
                     edge.append(str(node_id))
                     edge.append({
-                        "intent": task['intent'],
+                        "intent": task.get('intent'),
                         "attribute": {
                             "weight": 1,
                             "pred": True,
@@ -405,18 +436,8 @@ class Generator:
                 edges.append(edge)
                 node_id += 1
 
-        nested_graph_map = {}
-        resource_id_map = {}
-        for worker_id, worker_info in self.workers.items():
-            worker_name = worker_info["name"]
-            resource_id_map[worker_name] = worker_id
-        for tool_id, tool_info in self.tools.items():
-            tool_name = tool_info["name"]
-            resource_id_map[tool_name] = tool_id
-        for task_name, _ in self.reusable_tasks.items():
-            resource_id_map[task_name] = NESTED_GRAPH_ID
-
         # Nested Graph Format Task Graph
+        nested_graph_map = {}
         for node_idx in nested_graph_nodes:
             task_name = nodes[node_idx][1]["resource"]["name"]
             if task_name in nested_graph_map: continue
@@ -426,16 +447,18 @@ class Generator:
             next_tasks.append((self.reusable_tasks[task_name]["subgraph"], None))
             while next_tasks:
                 cur_task, prev_node_id = next_tasks.popleft()
+                resource_name = cur_task.get('resource') if cur_task.get('resource') in resource_id_map else "MessageWorker"
+                resource_id = resource_id_map[resource_name]
                 node = []
                 node.append(str(node_id))
                 node.append({
                     "resource": {
-                        "id": resource_id_map[cur_task['resource']],
-                        "name": cur_task['resource'],
+                        "id": resource_id,
+                        "name": resource_name,
                     },
                     "attribute": {
-                        "value": cur_task['example_response'],
-                        "task": cur_task['task'],
+                        "value": cur_task.get('example_response', ""),
+                        "task": cur_task.get('task', ""),
                         "directed": False
                     }
                 })
@@ -470,18 +493,14 @@ class Generator:
         final_chain = self.model | StrOutputParser()
         answer = final_chain.invoke(input_prompt)
         start_msg = postprocess_json(answer)
-        message_worker_id = None
-        for worker_id, worker_info in self.workers.items():
-            if worker_info["name"] == "MessageWorker":
-                message_worker_id = worker_id
-                break
+        
         start_node.append({
             "resource": {
-                "id": message_worker_id,
+                "id": resource_id_map.get("MessageWorker"),
                 "name": "MessageWorker",
             },
             "attribute": {
-                "value": start_msg['message'],
+                "value": start_msg.get('message', ""),
                 "task": "start message",
                 "directed": False
             },
