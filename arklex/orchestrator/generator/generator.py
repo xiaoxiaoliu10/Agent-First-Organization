@@ -188,6 +188,14 @@ class Generator:
     
     
     def _generate_reusable_tasks(self):
+        """
+            Generate reusable task graphs and pair each step with available resources.
+
+            Steps:
+            1. Prompt the LLM for tasks as nested graphs.
+            2. Build a resource map from workers and tools.
+            3. Refine each task graph to embed only valid resources.
+        """
         prompt = PromptTemplate.from_template(generate_reusable_tasks_sys_prompt)
         input_prompt = prompt.invoke({
             "role": self.role,
