@@ -27,7 +27,6 @@ class OrchestratorMessage(BaseModel):
 
 class StatusEnum(str, Enum):
     COMPLETE = "complete"
-    INPROGRESS = "in_progress"
     INCOMPLETE = "incomplete"
     STAY = "stay"
 
@@ -49,26 +48,26 @@ class Metadata(BaseModel):
 
 class MessageState(BaseModel):
     # system configuration
-    sys_instruct: str
+    sys_instruct: str = Field(default="")
     # bot configuration 
-    bot_config: BotConfig
+    bot_config: BotConfig = Field(default=None)
     # input message
-    user_message: ConvoMessage
-    orchestrator_message: OrchestratorMessage
+    user_message: ConvoMessage = Field(default=None)
+    orchestrator_message: OrchestratorMessage = Field(default=None)
     # action trajectory
-    function_calling_trajectory: List[Dict[str, Any]]
-    trajectory: List[List[ResourceRecord]]
+    function_calling_trajectory: List[Dict[str, Any]] = Field(default=None)
+    trajectory: List[List[ResourceRecord]] = Field(default=None)
     # message flow between different nodes
-    message_flow: str = Field(description="message flow between different nodes")
+    message_flow: str = Field(description="message flow between different nodes", default="")
     # final response
     response: str = Field(default="")
     # task-related params
     status: StatusEnum = Field(default=StatusEnum.INCOMPLETE)
-    slots: Dict[str, List[Slot]] = Field(description="record the dialogue states of each action")
-    metadata: Metadata
+    slots: Dict[str, List[Slot]] = Field(description="record the dialogue states of each action", default=None)
+    metadata: Metadata = Field(default=None)
     # stream
-    is_stream: bool
-    message_queue: Any = Field(exclude=True)
+    is_stream: bool = Field(default=False)
+    message_queue: Any = Field(exclude=True, default=None)
 
 
 class PathNode(BaseModel):
@@ -102,8 +101,14 @@ class Params(BaseModel):
     taskgraph: Taskgraph = Field(default_factory=Taskgraph)
     memory: Memory = Field(default_factory=Memory)
 
+class NodeTypeEnum(str, Enum):
+    NONE = ""
+    START = "start"
+    MULTIPLE_CHOICE = "multiple_choice"
+
 class NodeInfo(BaseModel):
     node_id: Optional[str] = Field(default=None)
+    type: str = Field(default="")
     resource_id: str = Field(default="")
     resource_name: str = Field(default="")
     can_skipped: bool = Field(default=False)
@@ -115,3 +120,4 @@ class OrchestratorResp(BaseModel):
     answer: str = Field(default="")
     parameters: Dict[str, Any] = Field(default_factory=dict)
     human_in_the_loop: Optional[str] = Field(default=None)
+    choice_list: Optional[List[str]] = Field(default=[])

@@ -20,8 +20,6 @@ outputs = [
 def find_user_id_by_email(user_email: str, **kwargs) -> str:
     func_name = inspect.currentframe().f_code.co_name
     auth = authorify_admin(kwargs)
-    if auth["error"]:
-        return auth["error"]
     
     try:
         with shopify.Session.temp(**auth):

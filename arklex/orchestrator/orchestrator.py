@@ -2,10 +2,7 @@ import json
 import time
 from typing import Any, Dict
 import logging
-import uuid
-import os
-from typing import List, Dict, Any, Tuple
-import ast
+from typing import Dict, Any, Tuple
 import copy
 import janus
 from dotenv import load_dotenv
@@ -20,14 +17,14 @@ from arklex.types import StreamType
 from arklex.utils.graph_state import (ConvoMessage, NodeInfo, OrchestratorMessage,
                                       MessageState, PathNode,StatusEnum,
                                       BotConfig, Params, ResourceRecord,
-                                      OrchestratorResp)
+                                      OrchestratorResp, NodeTypeEnum)
 from arklex.utils.utils import format_chat_history
 
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-INFO_WORKERS = ["planner", "MessageWorker", "RagMsgWorker"]
+INFO_WORKERS = ["planner", "MessageWorker", "RagMsgWorker", "HITLWorkerChatFlag"]
 
 class AgentOrg:
     def __init__(self, config, env: Env, **kwargs):
@@ -43,7 +40,7 @@ class AgentOrg:
         self.env = env
 
     
-    def init_params(self, inputs) -> Tuple[str, str, Params]:
+    def init_params(self, inputs) -> Tuple[str, str, Params, MessageState]:
         text = inputs["text"]
         chat_history = inputs["chat_history"]
         input_params = inputs["parameters"]
@@ -68,9 +65,28 @@ class AgentOrg:
         
         params.memory.trajectory.append([])
         
-        return text, chat_history_str, params
+
+        # Initialize the message state
+        sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + \
+                            self.product_kwargs["user_objective"] + \
+                            self.product_kwargs["builder_objective"] + \
+                            self.product_kwargs["intro"] + \
+                            self.product_kwargs.get("opt_instruct", "")
+        bot_config = BotConfig(
+            bot_id=self.product_kwargs.get("bot_id", "default"),
+            version=self.product_kwargs.get("version", "default"),
+            language=self.product_kwargs.get("language", "EN"),
+            bot_type=self.product_kwargs.get("bot_type", "presalebot"),
+        )
+        message_state = MessageState(
+            sys_instruct=sys_instruct,
+            bot_config=bot_config,
+        )
+        return text, chat_history_str, params, message_state
 
     def check_skip_node(self, node_info: NodeInfo, params: Params):
+        # NOTE: Do not check the node limit to decide whether the node can be skipped because skipping a node when should not is unwanted.
+        return False
         if not node_info.can_skipped:
             return False
         cur_node_id = params.taskgraph.curr_node
@@ -101,21 +117,22 @@ class AgentOrg:
         return params
     
     def handl_direct_node(self, node_info: NodeInfo, params: Params):
-        # Direct response
         node_attribute = node_info.attributes
-        if node_attribute.get("value", "").strip() and node_attribute.get("direct"):
-            params = self.post_process_node(node_info, params)
-            return_response = OrchestratorResp(
-                answer=node_attribute["value"],
-                parameters=params.model_dump()
-            )
-            # TODO: multiple choice list
-            # if node_attribute.get("type", "") == "multiple-choice" and node_attribute.get("choice_list", []):
-            #     return_response["choice_list"] = node_attribute["choice_list"]
-            return True, return_response, params
+        if node_attribute.get("direct"):
+            # Direct response
+            if node_attribute.get("value", "").strip():
+                params = self.post_process_node(node_info, params)
+                return_response = OrchestratorResp(
+                    answer=node_attribute["value"],
+                    parameters=params.model_dump()
+                )
+                # Multiple choice list
+                if node_info.type == NodeTypeEnum.MULTIPLE_CHOICE.value and node_attribute.get("choice_list", []):
+                    return_response.choice_list = node_attribute["choice_list"]
+                return True, return_response, params
         return False, None, params
     
-    def perform_node(self, node_info: NodeInfo, params: Params,
+    def perform_node(self, message_state:MessageState, node_info: NodeInfo, params: Params,
                      text: str, chat_history_str: str,
                      stream_type: StreamType, message_queue: janus.SyncQueue):
         # Tool/Worker
@@ -123,17 +140,6 @@ class AgentOrg:
 
         user_message = ConvoMessage(history=chat_history_str, message=text)
         orchestrator_message = OrchestratorMessage(message=node_info.attributes["value"], attribute=node_info.attributes)
-        sys_instruct = "You are a " + self.product_kwargs["role"] + ". " + \
-                            self.product_kwargs["user_objective"] + \
-                            self.product_kwargs["builder_objective"] + \
-                            self.product_kwargs["intro"] + \
-                            self.product_kwargs.get("opt_instruct", "")
-        bot_config = BotConfig(
-            bot_id=self.product_kwargs.get("bot_id", "default"),
-            version=self.product_kwargs.get("version", "default"),
-            language=self.product_kwargs.get("language", "EN"),
-            bot_type=self.product_kwargs.get("bot_type", "presalebot"),
-        )
     
         # Create initial resource record with common info and output from trajectory
         resource_record = ResourceRecord(
@@ -148,19 +154,15 @@ class AgentOrg:
         # Add resource record to current turn's list
         params.memory.trajectory[-1].append(resource_record)
 
-        message_state = MessageState(
-            sys_instruct=sys_instruct, 
-            bot_config=bot_config,
-            user_message=user_message, 
-            orchestrator_message=orchestrator_message, 
-            function_calling_trajectory=params.memory.function_calling_trajectory, 
-            trajectory=params.memory.trajectory,
-            message_flow=params.memory.trajectory[-1][-1].output if params.memory.trajectory[-1] else "", 
-            slots=params.taskgraph.dialog_states,
-            metadata=params.metadata,
-            is_stream=True if stream_type is not None else False,
-            message_queue=message_queue
-        )
+        # Update message state
+        message_state.user_message = user_message
+        message_state.orchestrator_message = orchestrator_message
+        message_state.function_calling_trajectory = params.memory.function_calling_trajectory
+        message_state.trajectory = params.memory.trajectory
+        message_state.slots = params.taskgraph.dialog_states
+        message_state.metadata = params.metadata
+        message_state.is_stream = True if stream_type is not None else False
+        message_state.message_queue = message_queue
         
         response_state, params = self.env.step(node_info.resource_id, message_state, params)
         params.memory.trajectory = response_state.trajectory
@@ -169,7 +171,7 @@ class AgentOrg:
     def handle_nested_graph_node(self, node_info: NodeInfo, params: Params):
         if node_info.resource_id != NESTED_GRAPH_ID:
             return node_info, params
-        
+        # if current node is a nested graph resource, change current node to the start of the nested graph
         nested_graph = NestedGraph(node_info=node_info)
         next_node_id = nested_graph.get_nested_graph_start_node_id()
         nested_graph_node = params.taskgraph.curr_node
@@ -181,18 +183,22 @@ class AgentOrg:
             nested_graph_leaf_jump = None,
             global_intent= params.taskgraph.curr_global_intent,
         )
+        # add nested graph resource node to path
+        # start node of the nested graph will be added to the path after performed
         params.taskgraph.path.append(node)
         params.taskgraph.curr_node = next_node_id
-        params.taskgraph.node_status[node_info.node_id] = StatusEnum.INPROGRESS
+        # use incomplete status at the beginning, status will be changed when whole nested graph is traversed
+        params.taskgraph.node_status[node_info.node_id] = StatusEnum.INCOMPLETE
         node_info, params = self.task_graph._get_node(next_node_id, params)
    
         return node_info, params
+        
     
     def _get_response(self, 
                      inputs: dict, 
                      stream_type: StreamType = None, 
                      message_queue: janus.SyncQueue = None) -> OrchestratorResp:
-        text, chat_history_str, params = self.init_params(inputs)
+        text, chat_history_str, params, message_state = self.init_params(inputs)
         ##### TaskGraph Chain
         taskgraph_inputs = {
             "text": text,
@@ -224,12 +230,14 @@ class AgentOrg:
             if is_direct_node:
                 return direct_response
             # perform node
-            node_info, response_state, params = self.perform_node(node_info,
-                                                       params,
-                                                       text,
-                                                       chat_history_str,
-                                                       stream_type,
-                                                       message_queue)
+
+            node_info, message_state, params = self.perform_node(message_state,
+                                                                    node_info,
+                                                                    params,
+                                                                    text,
+                                                                    chat_history_str,
+                                                                    stream_type,
+                                                                    message_queue)
             params = self.post_process_node(node_info, params)
             
             n_node_performed += 1
@@ -249,17 +257,17 @@ class AgentOrg:
             if node_info.is_leaf is True:
                 break
 
-        if not response_state.response:
+        if not message_state.response:
             logger.info("No response, do context generation")
             if not stream_type:
-                response_state = ToolGenerator.context_generate(response_state)
+                message_state = ToolGenerator.context_generate(message_state)
             else:
-                response_state = ToolGenerator.stream_context_generate(response_state)
+                message_state = ToolGenerator.stream_context_generate(message_state)
         
         # TODO: Need to reformat the RAG response from trajectory
         # params["memory"]["tool_response"] = {}
         return OrchestratorResp(
-            answer=response_state.response,
+            answer=message_state.response,
             parameters=params.model_dump(),
             human_in_the_loop=params.metadata.hitl,
         )

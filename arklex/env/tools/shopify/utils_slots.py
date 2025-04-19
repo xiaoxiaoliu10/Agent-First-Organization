@@ -75,14 +75,14 @@ class ShopifyCancelOrderSlots(ShopifySlots):
 
 class ShopifyCartAddItemsSlots(ShopifySlots):
     CART_ID = {**ShopifySlots.CART_ID, "required": True}
-    ADD_LINE_ITEM = {
-        "name": "add_line_items",
-        "type": "list",
-        "description": "list of ProductVariant ids to be added to the shopping cart, such as ['gid://shopify/ProductVariant/41552094527601', 'gid://shopify/ProductVariant/41552094494833'].",
+    PRODUCT_VARIANT_IDS = ShopifySlots.to_list({
+        "name": "product_variant_id",
+        "type": "str",
+        "description": "ProductVariant id to be added to the shopping cart, such as gid://shopify/ProductVariant/41552094527601.",
         "prompt": "Please confirm the items to add to the cart.",
         "required": True,
         "verified": True
-    }
+    })
 
 class ShopifyFindUserByEmailSlots(ShopifySlots):
     USER_EMAIL = {

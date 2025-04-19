@@ -124,6 +124,7 @@ class TaskGraph(TaskGraphBase):
         
         node_info = NodeInfo(
             node_id=sample_node,
+            type=node_info.get("type", ""),
             resource_id=resource_id,
             resource_name=resource_name,
             can_skipped=True,
@@ -214,7 +215,7 @@ class TaskGraph(TaskGraphBase):
                 return path[i]
         return None
     
-    def handle_multi_step_node(self, curr_node, params: Params) -> Tuple[bool, dict, Params]:
+    def handle_multi_step_node(self, curr_node, params: Params) -> Tuple[bool, NodeInfo, Params]:
         """
         In case of a node having status == STAY, returned directly the same node
         """
@@ -223,11 +224,19 @@ class TaskGraph(TaskGraphBase):
         status = node_status.get(curr_node, StatusEnum.COMPLETE)
         if status == StatusEnum.STAY:
             node_info = self.graph.nodes[curr_node]
-            node_name = node_info["resource"]["name"]
-            id = node_info["resource"]["id"]
-            node_output = {"id": id, "name": node_name, "attribute": node_info["attribute"]}
-            return True, node_output, params
-        return False, {}, params
+            resource_name = node_info["resource"]["name"]
+            resource_id = node_info["resource"]["id"]
+            node_info = NodeInfo(
+                type=node_info.get("type", ""),
+                node_id=curr_node,
+                resource_id = resource_id,
+                resource_name = resource_name,
+                can_skipped=False,
+                is_leaf=len(list(self.graph.successors(curr_node))) == 0,
+                attributes=node_info["attribute"]
+            )
+            return True, node_info, params
+        return False, NodeInfo(), params
     
     def handle_incomplete_node(self, curr_node: str, params: Params) -> Tuple[bool, dict, Params]:
         """
@@ -339,6 +348,7 @@ class TaskGraph(TaskGraphBase):
         params.taskgraph.curr_node = curr_node
         node_info = NodeInfo(
             node_id=None,
+            type="",
             resource_id = "planner",
             resource_name = "planner",
             can_skipped=False,
@@ -348,11 +358,17 @@ class TaskGraph(TaskGraphBase):
         return node_info, params
         
     def handle_leaf_node(self, curr_node, params: Params):
+        '''
+        if leaf node, first check if it's in a nested graph
+        if not in nested graph, check if we have flow stack
+        '''
         def is_leaf(node):
             return len(list(self.graph.successors(node))) == 0
         
+        # if not leaf, return directly current node
         if not is_leaf(curr_node):
             return curr_node, params
+        
         
         nested_graph_next_node, params = NestedGraph.get_nested_graph_component_node(params, is_leaf)
         if nested_graph_next_node is not None:
