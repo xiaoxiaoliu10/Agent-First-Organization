@@ -245,7 +245,6 @@ class Generator:
                     break
                 n_trials += 1
 
-
             reusable_tasks[task_name]["subgraph"] = task_subgraph
 
         self.reusable_tasks = reusable_tasks
