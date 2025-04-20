@@ -64,7 +64,7 @@ class CrawledURLObject(URLObject):
         is_chunk=False,
         is_error=False,
         error_message=None,
-        url_type = URLType.WEB
+        url_type=URLType.WEB
     ):
         super().__init__(id, url)
         self.content = content
@@ -240,19 +240,19 @@ class Loader:
     
     def crawl_file(self, local_obj: URLObject) -> CrawledURLObject:
         '''This function crawls a file that is present locally and returns the crawled object.'''
-        file_type = filetype.guess(local_obj.url)
         file_path = Path(local_obj.url)
+        file_type = file_path.suffix.lstrip('.')
         file_name = file_path.name
         
         try:
             if not file_type:
-                err_msg = "No file type detected"
+                err_msg = f"No file type detected for file: {str(file_path)}"
                 raise FileNotFoundError(err_msg)
             
-            if file_type.extension in ["pdf", "png", "jpg", "jpeg"] and MISTRAL_API_KEY is not None:
+            if file_type in ["pdf", "png", "jpg", "jpeg"] and MISTRAL_API_KEY is not None:
                 # Call the Mistral API to extract data.
                 client = Mistral(api_key=MISTRAL_API_KEY)
-                if file_type.extension == "pdf":
+                if file_type == "pdf":
                     # For pdf's
                     uploaded_pdf = client.files.upload(
                         file={
@@ -276,7 +276,7 @@ class Loader:
                         model="mistral-ocr-latest",
                         document={
                             "type": "image_url",
-                            "image_url": f"data:image/{file_type.extension};base64,{base64_image}" 
+                            "image_url": f"data:image/{file_type};base64,{base64_image}" 
                         }
                     )
                 doc_text = ""
@@ -291,7 +291,7 @@ class Loader:
                     metadata={"title": file_name, "source": local_obj.url},
                     url_type=URLType.LOCAL
                 )
-            elif file_type.extension == "html":
+            elif file_type == "html":
                 # TODO : Consider replacing this logic with the Unstructured HTML Loader.
                 # Would need to be done in crawl_urls too.
                 html = open(file_path, "r", encoding="utf-8").read()
@@ -319,17 +319,17 @@ class Loader:
                         metadata={"title": title, "source": local_obj.url},
                         url_type=URLType.LOCAL
                     )
-            elif file_type.extension == "pdf":
+            elif file_type == "pdf":
                 # Since Mistral API key is absent, we default to basic pdf parser
                 logger.info("MISTRAL_API_KEY env variable not set, hence defaulting to static parsing.")
                 loader = PyPDFLoader(file_path)
-            elif file_type.extension == "doc" or file_type.extension == "docx":
+            elif file_type == "doc" or file_type == "docx":
                 loader = UnstructuredWordDocumentLoader(file_path, mode="single")
-            elif file_type.extension == "xlsx" or file_type.extension == "xls":
+            elif file_type == "xlsx" or file_type == "xls":
                 loader = UnstructuredExcelLoader(file_path, mode="single")
-            elif file_type.extension == "txt":
+            elif file_type == "txt":
                 loader = TextLoader(file_path)
-            elif file_type.extension == "md":
+            elif file_type == "md":
                 loader = UnstructuredMarkdownLoader(file_path)
             else:
                 err_msg = "Unsupported file type. If you are trying to upload a pdf, make sure it is less than 50MB. Images are only supported with the advanced parser."

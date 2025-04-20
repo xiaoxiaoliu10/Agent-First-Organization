@@ -23,7 +23,8 @@ from textual.widgets.tree import TreeNode
 
 from arklex.utils.utils import postprocess_json
 from arklex.orchestrator.generator.prompts import *
-from arklex.utils.loader import Loader, CrawledURLObject, URLType
+from arklex.utils.loader import Loader, URLType
+import sys
 from arklex.env.env import BaseResourceInitializer, DefaulResourceInitializer
 
 
