@@ -14,7 +14,7 @@ from arklex.exceptions import ToolExecutionError
 from arklex.env.tools.hubspot._exception_prompt import HubspotExceptionPrompt
 
 
-description = "Schedule a meeting for the existing customer with the specific representative."
+description = "Schedule a meeting for the existing customer with the specific representative. If you are not sure any information, please ask users to confirm in response."
 
 
 slots = [
@@ -71,7 +71,7 @@ slots = [
     {
         "name": "bt_slots_ux",
         "type": "str",
-        "description": "The busy time slots (unix form) of the representative. This is extracted from check_available tool. This is a list of dict.",
+        "description": "The busy time slots (unix form) of the representative. This is a list of dict.",
         "prompt": "",
         "required": True,
     },
@@ -87,7 +87,7 @@ slots = [
 outputs = [
     {
         "name": "meeting_confirmation_info",
-        "type": "string",
+        "type": "dict",
         "description": "The detailed information about the meeting to let the customer confirm",
     }
 ]

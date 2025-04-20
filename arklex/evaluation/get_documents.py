@@ -17,55 +17,50 @@ def get_domain_info(documents):
     return summary
 
 def load_docs(document_dir, doc_config, limit=10):
-    if "rag_docs" not in doc_config:
-        if "task_docs" not in doc_config:
-            raise ValueError("The config json file must have a key 'rag_docs' or 'task_docs' with a list of documents to load.")
-        else:
-            rag_docs = doc_config['task_docs']
-            filename = "task_documents.pkl"
-    else:
-        rag_docs = doc_config['rag_docs']
-        filename = "documents.pkl"
-        
     if document_dir is not None:
-        filepath = os.path.join(document_dir, filename)
-        total_num_docs = sum([doc.get("num") if doc.get("num") else 1 for doc in rag_docs])
-        loader = Loader()
-        if Path(filepath).exists():
-            docs = pickle.load(open(os.path.join(document_dir, filename), "rb"))
-        else:
-            docs = []
-            for doc in rag_docs:
-                source = doc.get("source")
-                if doc.get('type') != 'local':
-                    num_docs = doc.get("num") if doc.get("num") else 1
-                    urls = loader.get_all_urls(source, num_docs)
-                    crawled_urls = loader.to_crawled_url_objs(urls)
-                    docs.extend(crawled_urls)
-                    
-                elif doc.get('type') == 'local':
-                    file_list = [os.path.join(source, f) for f in os.listdir(source)]
-                    docs.extend(loader.to_crawled_local_objs(file_list))
-                
-            Loader.save(filepath, docs)
-            
-        if total_num_docs > 50:
-            limit = total_num_docs // 5
-        else:
-            limit = 10
-            
-        if isinstance(docs[0], CrawledURLObject):
+        try:
+            if "rag_docs" not in doc_config:
+                if "task_docs" not in doc_config:
+                    raise ValueError("The config json file must have a key 'rag_docs' or 'task_docs' with a list of documents to load.")
+            else:
+                rag_docs = doc_config['task_docs']
+                filename = "task_documents.pkl"
+            filepath = os.path.join(document_dir, filename)
+            total_num_docs = sum([doc.get("num") if doc.get("num") else 1 for doc in rag_docs])
+            loader = Loader()
+            if Path(filepath).exists():
+                docs = pickle.load(open(os.path.join(document_dir, filename), "rb"))
+            else:
+                docs = []
+                for doc in rag_docs:
+                    source = doc.get("source")
+                    if doc.get('type') != 'local':
+                        num_docs = doc.get("num") if doc.get("num") else 1
+                        urls = loader.get_all_urls(source, num_docs)
+                        crawled_urls = loader.to_crawled_url_objs(urls)
+                        docs.extend(crawled_urls)
+                    elif doc.get('type') == 'local':
+                        file_list = [os.path.join(source, f) for f in os.listdir(source)]
+                        docs.extend(loader.to_crawled_local_objs(file_list))
+                Loader.save(filepath, docs)
+            if total_num_docs > 50:
+                limit = total_num_docs // 5
+            else:
+                limit = 10
+            if isinstance(docs[0], CrawledURLObject):
+                documents = []
+                # Get candidate websites for only web urls
+                documents.extend(loader.get_candidates_websites(filter(lambda x: x.url_type == URLType.WEB, docs), limit))
+                documents.extend(filter(lambda x: x.url_type == URLType.LOCAL, docs))
+            else:
+                documents = []
+                for doc in docs:
+                    documents.append({"url": "", "content": doc.page_content, "metadata": doc.metadata})  
+        except Exception as e:
+            print(f"Error loading documents: {e}")
             documents = []
-            # Get candidate websites for only web urls
-            documents.extend(loader.get_candidates_websites(filter(lambda x: x.url_type == URLType.WEB, docs), limit))
-            documents.extend(filter(lambda x: x.url_type == URLType.LOCAL, docs))
-            
-        else:
-            documents = []
-            for doc in docs:
-                documents.append({"url": "", "content": doc.page_content, "metadata": doc.metadata})  
     else:
-        documents = ""
+        documents = []
     return documents
 
 if __name__ == "__main__":

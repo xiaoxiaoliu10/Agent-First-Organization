@@ -151,9 +151,10 @@ class Tool:
                 "name": self.name,
                 "content": response
             })
-            state.trajectory[-1][-1].input = slots
-            state.trajectory[-1][-1].output = response
             state.status = StatusEnum.COMPLETE if tool_success else StatusEnum.INCOMPLETE
+
+        state.trajectory[-1][-1].input = slots
+        state.trajectory[-1][-1].output = response
 
         if self.isResponse and tool_success:
             logger.info("Tool output is stored in response instead of message flow")
