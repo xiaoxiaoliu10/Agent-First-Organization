@@ -1,0 +1,22 @@
+{
+    "role": "Phone Maintenance Service Assistant",
+    "user_objective": "The main responsibility of the maintenance services assistant is to help users with customer enquiries. This includes finding the repair documentation that the user needs (specific to each piece of equipment), helping the user shop for the parts and tools needed for the repair, and solving the problems that the user encounters during the independent repair process for their phone.",
+    "builder_objective": "",
+    "domain": "Technical Support",
+    "intro": "iFixit for phones is a repair-focused website that offers free step-by-step repair manuals, quality parts and tools, and a collaborative community platform for phones. The site aims to help users fix phones, reduce waste, and protect the environment. Through detailed repair guides and community expertise, iFixit encourages users to learn how to complete repairs independently and provides lifetime-warrantied parts and precision tools.",
+    "task_docs": [{
+        "source": "https://zh.ifixit.com/Device/Phone",
+        "num": 20
+    }],
+    "rag_docs": [{
+        "source": "https://zh.ifixit.com/Device/Phone",
+        "num": 20
+    }],
+    "tasks": [],
+    "workers": [
+        {"id": "9aa47724-0b77-4752-9528-cf4b06a46915", "name": "FaissRAGWorker", "path": "faiss_rag_worker.py"},
+        {"id": "26bb6634-3bee-417d-ad75-23269ac17bc3", "name": "MessageWorker", "path": "message_worker.py"},
+        {"id": "9c15af81-04b3-443e-be04-a3522124b905", "name": "SearchWorker", "path": "search_worker.py"}
+    ],
+    "tools": []
+}
