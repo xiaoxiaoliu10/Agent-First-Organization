@@ -6,7 +6,7 @@ from pathlib import Path
 from os.path import dirname, abspath
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
-from arklex.utils.loader import Loader, CrawledURLObject, URLType
+from arklex.utils.loader import Loader, CrawledObject, SourceType
 
 def get_domain_info(documents):
     summary = None
@@ -47,15 +47,16 @@ def load_docs(document_dir, doc_config, limit=10):
                 limit = total_num_docs // 5
             else:
                 limit = 10
-            if isinstance(docs[0], CrawledURLObject):
+            if isinstance(docs[0], CrawledObject):
                 documents = []
                 # Get candidate websites for only web urls
-                documents.extend(loader.get_candidates_websites(filter(lambda x: x.url_type == URLType.WEB, docs), limit))
-                documents.extend(filter(lambda x: x.url_type == URLType.LOCAL, docs))
+                web_docs = list(filter(lambda x: x.source_type == SourceType.WEB, docs))
+                local_docs = list(filter(lambda x: x.source_type == SourceType.LOCAL, docs))
+                documents.extend(loader.get_candidates_websites(web_docs, limit))
+                documents.extend(local_docs)
+                documents = [doc.to_dict() for doc in documents]
             else:
-                documents = []
-                for doc in docs:
-                    documents.append({"url": "", "content": doc.page_content, "metadata": doc.metadata})  
+                raise ValueError("The documents must be a list of CrawledObject objects.")
         except Exception as e:
             print(f"Error loading documents: {e}")
             documents = []

@@ -37,7 +37,7 @@ def build_rag(folder_path, rag_docs):
         logging.info(f"Content: {[doc.content for doc in docs]}")
         Loader.save(filepath, docs)
 
-    logging.info(f"CRAWLED SOURCES: {[c.url for c in docs]}")
+    logging.info(f"crawled sources: {[c.source for c in docs]}")
     chunked_docs = Loader.chunk(docs)
     filepath_chunk = os.path.join(folder_path, "chunked_documents.pkl")
     Loader.save(filepath_chunk, chunked_docs)

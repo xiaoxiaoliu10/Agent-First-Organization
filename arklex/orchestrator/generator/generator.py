@@ -23,7 +23,7 @@ from textual.widgets.tree import TreeNode
 
 from arklex.utils.utils import postprocess_json
 from arklex.orchestrator.generator.prompts import *
-from arklex.utils.loader import Loader, URLType
+from arklex.utils.loader import Loader, SourceType
 import sys
 from arklex.env.env import BaseResourceInitializer, DefaulResourceInitializer
 
@@ -412,11 +412,13 @@ class Generator:
                 limit = 10
               
             crawled_docs = []
-            crawled_docs.extend(loader.get_candidates_websites(filter(lambda x: x.url_type == URLType.WEB, docs), limit))
-            crawled_docs.extend(filter(lambda x: x.url_type == URLType.LOCAL, docs))
+            web_docs = list(filter(lambda x: x.source_type == SourceType.WEB, docs))
+            local_docs = list(filter(lambda x: x.source_type == SourceType.LOCAL, docs))
+            crawled_docs.extend(loader.get_candidates_websites(web_docs, limit))
+            crawled_docs.extend(local_docs)
             
             logger.debug(f"Loaded {len(crawled_docs)} documents")
-            self.documents = "\n\n".join([f"{doc['url']}\n{doc['content']}" for doc in crawled_docs])
+            self.documents = "\n\n".join([f"{doc.source}\n{doc.content}" for doc in crawled_docs])
         else:
             self.documents = ""
 
