@@ -24,7 +24,8 @@ from textual.widgets.tree import TreeNode
 
 from arklex.utils.utils import postprocess_json
 from arklex.orchestrator.generator.prompts import *
-from arklex.utils.loader import Loader
+from arklex.utils.loader import Loader, SourceType
+import sys
 from arklex.env.env import BaseResourceInitializer, DefaulResourceInitializer
 from arklex.env.nested_graph.nested_graph import NESTED_GRAPH_ID
 
@@ -532,23 +533,37 @@ class Generator:
             loader = Loader()
             if Path(filepath).exists():
                 logger.warning(f"Loading existing documents from {os.path.join(self.output_dir, 'task_documents.pkl')}! If you want to recrawl, please delete the file or specify a new --output-dir when initiate Generator.")
-                crawled_urls_full = pickle.load(open(os.path.join(self.output_dir, "task_documents.pkl"), "rb"))
+                docs = pickle.load(open(os.path.join(self.output_dir, "task_documents.pkl"), "rb"))
             else:
-                crawled_urls_full = []
+                docs = []
                 for doc in self.task_docs:
                     source = doc.get("source")
-                    num_docs = doc.get("num") if doc.get("num") else 1
-                    urls = loader.get_all_urls(source, num_docs)
-                    crawled_urls = loader.to_crawled_obj(urls)
-                    crawled_urls_full.extend(crawled_urls)
-                Loader.save(filepath, crawled_urls_full)
+                    
+                    if doc.get('type') != 'local':
+                        num_docs = doc.get("num") if doc.get("num") else 1
+                        urls = loader.get_all_urls(source, num_docs)
+                        crawled_urls = loader.to_crawled_url_objs(urls)
+                        docs.extend(crawled_urls)
+                        
+                    elif doc.get('type') == 'local':
+                        file_list = [os.path.join(source, f) for f in os.listdir(source)]
+                        docs.extend(loader.to_crawled_local_objs(file_list))
+                    
+                Loader.save(filepath, docs)
+                
             if total_num_docs > 50:
                 limit = total_num_docs // 5
             else:
                 limit = 10
-            crawled_docs = loader.get_candidates_websites(crawled_urls_full, limit)
+              
+            crawled_docs = []
+            web_docs = list(filter(lambda x: x.source_type == SourceType.WEB, docs))
+            local_docs = list(filter(lambda x: x.source_type == SourceType.LOCAL, docs))
+            crawled_docs.extend(loader.get_candidates_websites(web_docs, limit))
+            crawled_docs.extend(local_docs)
+            
             logger.debug(f"Loaded {len(crawled_docs)} documents")
-            self.documents = "\n\n".join([f"{doc['url']}\n{doc['content']}" for doc in crawled_docs])
+            self.documents = "\n\n".join([f"{doc.source}\n{doc.content}" for doc in crawled_docs])
         else:
             self.documents = ""
 
