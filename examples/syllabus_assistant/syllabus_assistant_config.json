@@ -8,16 +8,14 @@
         {
             "source": "https://en.wikipedia.org/wiki/Syllabus",
             "num": 10
-        },
+        }
+    ],
+    "rag_docs": [
         {
             "source": "examples/syllabus_assistant/syllabus_local_docs",
             "type": "local"
         }
     ],
-    "rag_docs": [{
-        "source": "examples/syllabus_assistant/syllabus_local_docs",
-        "type": "local"
-    }],
     "tasks": [],
     "workers": [
         {"id": "9aa47724-0b77-4752-9528-cf4b06a46915", "name": "FaissRAGWorker", "path": "faiss_rag_worker.py"},
